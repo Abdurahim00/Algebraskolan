@@ -4,15 +4,17 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class GoogleSignInProvider extends ChangeNotifier {
-  final googleSignIn = GoogleSignIn();
-
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  static final GoogleSignInProvider instance = GoogleSignInProvider._();
   GoogleSignInAccount? _user;
 
   GoogleSignInAccount get user => _user!;
 
+  GoogleSignInProvider._(); // Private constructor
+
   Future<void> googleLogin() async {
     // Sign in with Google
-    final googleUser = await googleSignIn.signIn();
+    final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return;
     _user = googleUser;
 
@@ -64,16 +66,13 @@ class GoogleSignInProvider extends ChangeNotifier {
     // Sign out from Firebase
     await FirebaseAuth.instance.signOut();
 
-    if (googleSignIn.currentUser != null) {
-      googleSignIn..currentUser!.authHeaders;
-      googleSignIn..currentUser!.clearAuthCache();
+    if (_googleSignIn.currentUser != null) {
+      // Sign out from Google Sign-In
+      await _googleSignIn.signOut();
+
+      // Disconnect from Google Sign-In
+      await _googleSignIn.disconnect();
     }
-
-    // Sign out from Google Sign-In
-    await googleSignIn.signOut();
-
-    // Disconnect from Google Sign-In
-    await googleSignIn.disconnect();
 
     // Set user to null
     _user = null;

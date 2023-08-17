@@ -33,8 +33,8 @@ class HomePage extends StatelessWidget {
                   AsyncSnapshot<DocumentSnapshot> snapshot2) {
                 if (snapshot2.connectionState == ConnectionState.waiting) {
                   return Center(
-                      child: Lottie.asset(
-                    "assets/images/Pendulum.json",
+                      child: CircularProgressIndicator(
+                    color: Colors.orange,
                   ));
                 } else if (snapshot2.hasError) {
                   return const Center(child: Text("Something Went Wrong!"));
@@ -71,12 +71,12 @@ class HomePage extends StatelessWidget {
                     }
                   }
                 } else {
-                  return const LoginPage();
+                  return LoginPage();
                 }
               },
             );
           } else {
-            return const LoginPage();
+            return LoginPage();
           }
         },
       ),

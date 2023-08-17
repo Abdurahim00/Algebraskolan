@@ -205,7 +205,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => GoogleSignInProvider()),
+        ChangeNotifierProvider.value(value: GoogleSignInProvider.instance),
         ChangeNotifierProvider(create: (context) => StudentProvider()),
         ChangeNotifierProvider(create: (context) => QuestionProvider()),
       ],

@@ -28,7 +28,6 @@ const Classesnr = [
 ];
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
-final GoogleSignInProvider googlelogout = GoogleSignInProvider();
 
 class TeacherScreen extends StatefulWidget {
   const TeacherScreen({Key? key}) : super(key: key);
@@ -43,6 +42,8 @@ class _TeacherScreenState extends State<TeacherScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
+
     final TextTheme textTheme = Theme.of(context).textTheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -58,7 +59,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
               DrawerHeader(
                   child: (Image.asset("assets/images/Algebraskola1.png"))),
               ListTile(
-                onTap: () => googlelogout.googleLogout(),
+                onTap: () => provider.googleLogout(),
                 title: Text(
                   "Logga ut",
                   style: GoogleFonts.montserrat(),

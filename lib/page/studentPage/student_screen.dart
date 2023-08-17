@@ -1,18 +1,20 @@
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
-import '../teacherPage/teacher_screen.dart';
+import '../../backend/control_page.dart';
 
 // ignore: must_be_immutable
 class StudentScreen extends StatelessWidget {
   StudentScreen({super.key});
 
   GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
-  GoogleSignInProvider _googleSignInProvider = GoogleSignInProvider();
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
+
     return Scaffold(
       key: _scaffoldkey,
       drawer: Drawer(
@@ -21,7 +23,12 @@ class StudentScreen extends StatelessWidget {
             DrawerHeader(
                 child: (Image.asset("assets/images/Algebraskola1.png"))),
             ListTile(
-              onTap: () => _googleSignInProvider.googleLogout(),
+              onTap: () async {
+                await provider.googleLogout();
+                // ignore: use_build_context_synchronously
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => HomePage()));
+              },
               title: Text(
                 "Logga ut",
                 style: GoogleFonts.montserrat(),
