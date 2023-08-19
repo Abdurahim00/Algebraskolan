@@ -1,4 +1,4 @@
-package com.example.algebraskolan2
+package com.example.algebraskolan
 
 import io.flutter.embedding.android.FlutterActivity
 
