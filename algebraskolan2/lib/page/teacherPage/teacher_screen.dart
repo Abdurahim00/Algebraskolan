@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -59,7 +60,28 @@ class _TeacherScreenState extends State<TeacherScreen> {
               DrawerHeader(
                   child: (Image.asset("assets/images/Algebraskola1.png"))),
               ListTile(
-                onTap: () => provider.googleLogout(),
+                onTap: () => showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoAlertDialog(
+                        title: Text("Är du säker?"),
+                        actions: [
+                          MaterialButton(
+                            onPressed: () {
+                              provider.googleLogout();
+                              Navigator.pop(context);
+                            },
+                            child: Text("Ja"),
+                          ),
+                          MaterialButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text("Nej"),
+                          )
+                        ],
+                      );
+                    }),
                 title: Text(
                   "Logga ut",
                   style: GoogleFonts.montserrat(),

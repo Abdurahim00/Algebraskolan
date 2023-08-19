@@ -1,4 +1,5 @@
 import 'package:algebra/provider/google_sign_In.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -23,11 +24,32 @@ class StudentScreen extends StatelessWidget {
             DrawerHeader(
                 child: (Image.asset("assets/images/Algebraskola1.png"))),
             ListTile(
-              onTap: () async {
-                await provider.googleLogout();
-                // ignore: use_build_context_synchronously
-                Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => HomePage()));
+              onTap: () {
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoAlertDialog(
+                        title: Text("Är du säker?"),
+                        actions: [
+                          MaterialButton(
+                            onPressed: () {
+                              provider.googleLogout();
+
+                              Navigator.of(context).pushReplacement(
+                                  MaterialPageRoute(
+                                      builder: (context) => HomePage()));
+                            },
+                            child: Text("Ja"),
+                          ),
+                          MaterialButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text("Nej"),
+                          )
+                        ],
+                      );
+                    });
               },
               title: Text(
                 "Logga ut",
