@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Make sure to import this
 
 import '../backend/question_service.dart';
 
@@ -31,12 +30,5 @@ class QuestionProvider with ChangeNotifier {
     showCorrectAnimation.value = false;
     showUncorrectAnimation.value = false;
     notifyListeners();
-  }
-
-  // New method to reset hasAnsweredQuestionCorrectly field
-  Future<void> resetHasAnswered(String uid) async {
-    await FirebaseFirestore.instance.collection('users').doc(uid).update({
-      'hasAnsweredQuestionCorrectly': false,
-    });
   }
 }

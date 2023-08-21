@@ -1,3 +1,4 @@
+import 'package:algebra/page/studentPage/widget/coin_Widget.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ class StudentScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
+    String? uid = provider.uid;
 
     return Scaffold(
       key: _scaffoldkey,
@@ -74,6 +76,10 @@ class StudentScreen extends StatelessWidget {
                         "assets/images/favicon.png",
                       ),
                     ),
+                    SizedBox(
+                      height: 150,
+                    ),
+                    CoinWidget(uid: uid ?? ""),
                   ],
                 ),
               ),
@@ -83,7 +89,6 @@ class StudentScreen extends StatelessWidget {
               left: 10.0,
               child: IconButton(
                 icon: const Icon(Icons.menu, color: Colors.orange),
-                // your menu icon here
                 onPressed: () {
                   _scaffoldkey.currentState?.openDrawer();
                   // your menu button action here

@@ -20,6 +20,7 @@ dependencies:
   unicons: any
   google_fonts: ^5.1.0
   lottie: ^2.5.0
+  intl: ^0.17.0
 
 dev_dependencies:
   flutter_test:
