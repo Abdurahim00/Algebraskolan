@@ -113,7 +113,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 alignment: Alignment.centerRight,
                                 children: [
                                   TextField(
-                                    keyboardType: TextInputType.number,
+                                    keyboardType:
+                                        TextInputType.numberWithOptions(),
                                     textAlign: TextAlign.center,
                                     controller: _textController,
                                     decoration: InputDecoration(

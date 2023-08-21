@@ -7,11 +7,10 @@ import 'package:provider/provider.dart';
 
 import '../../backend/control_page.dart';
 
-// ignore: must_be_immutable
 class StudentScreen extends StatelessWidget {
-  StudentScreen({super.key});
+  StudentScreen({Key? key}) : super(key: key);
 
-  GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -20,82 +19,69 @@ class StudentScreen extends StatelessWidget {
 
     return Scaffold(
       key: _scaffoldkey,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.orange),
+          onPressed: () {
+            _scaffoldkey.currentState?.openDrawer();
+          },
+        ),
+        title: Image.asset(
+          "assets/images/favicon.png",
+          width: 40, // You can adjust the size as needed
+          height: 40,
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       drawer: Drawer(
         child: ListView(
           children: [
-            DrawerHeader(
-                child: (Image.asset("assets/images/Algebraskola1.png"))),
+            DrawerHeader(child: Image.asset("assets/images/Algebraskola1.png")),
             ListTile(
               onTap: () {
                 showDialog(
-                    context: context,
-                    builder: (context) {
-                      return CupertinoAlertDialog(
-                        title: Text("Är du säker?"),
-                        actions: [
-                          MaterialButton(
-                            onPressed: () {
-                              provider.googleLogout();
-
-                              Navigator.of(context).pushReplacement(
-                                  MaterialPageRoute(
-                                      builder: (context) => HomePage()));
-                            },
-                            child: Text("Ja"),
-                          ),
-                          MaterialButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text("Nej"),
-                          )
-                        ],
-                      );
-                    });
+                  context: context,
+                  builder: (context) {
+                    return CupertinoAlertDialog(
+                      title: Text("Är du säker?"),
+                      actions: [
+                        MaterialButton(
+                          onPressed: () {
+                            provider.googleLogout();
+                            Navigator.of(context).pushReplacement(
+                                MaterialPageRoute(
+                                    builder: (context) => HomePage()));
+                          },
+                          child: Text("Ja"),
+                        ),
+                        MaterialButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text("Nej"),
+                        ),
+                      ],
+                    );
+                  },
+                );
               },
-              title: Text(
-                "Logga ut",
-                style: GoogleFonts.montserrat(),
-              ),
+              title: Text("Logga ut", style: GoogleFonts.montserrat()),
             ),
           ],
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(30.0),
-        child: Stack(
-          children: [
-            Center(
-              child: Align(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 80,
-                      height: 80,
-                      child: Image.asset(
-                        "assets/images/favicon.png",
-                      ),
-                    ),
-                    SizedBox(
-                      height: 150,
-                    ),
-                    CoinWidget(uid: uid ?? ""),
-                  ],
-                ),
+        child: Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 150, // Adjust this if necessary
               ),
-            ),
-            Positioned(
-              top: 10.0,
-              left: 10.0,
-              child: IconButton(
-                icon: const Icon(Icons.menu, color: Colors.orange),
-                onPressed: () {
-                  _scaffoldkey.currentState?.openDrawer();
-                  // your menu button action here
-                },
-              ),
-            ),
-          ],
+              CoinWidget(uid: uid ?? ""),
+            ],
+          ),
         ),
       ),
     );

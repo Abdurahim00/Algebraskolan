@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
+import 'package:algebra/page/teacherPage/widget/student_card.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -230,9 +231,10 @@ class _TeacherScreenState extends State<TeacherScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         studentProvider.updateAllCoins();
-
                         // Hide the button immediately after it's pressed
-                        studentProvider.setShowButton(false); // Add this line
+                        studentProvider.setShowButton(false);
+                        // Add this line
+                        studentProvider.handleDeselectAllStudents();
 
                         Timer(const Duration(milliseconds: 1000), () {
                           studentProvider.resetUpdated();
