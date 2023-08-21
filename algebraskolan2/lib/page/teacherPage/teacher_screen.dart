@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
-import 'package:algebra/page/teacherPage/widget/student_card.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
@@ -40,7 +39,7 @@ class TeacherScreen extends StatefulWidget {
 
 class _TeacherScreenState extends State<TeacherScreen> {
   int? selectedClass = 0;
-  GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {

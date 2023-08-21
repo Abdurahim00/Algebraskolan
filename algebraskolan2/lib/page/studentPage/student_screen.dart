@@ -26,13 +26,16 @@ class StudentScreen extends StatelessWidget {
             _scaffoldkey.currentState?.openDrawer();
           },
         ),
-        title: Image.asset(
-          "assets/images/favicon.png",
-          width: 40, // You can adjust the size as needed
-          height: 40,
-        ),
+        title: null, // Set title to null
         backgroundColor: Colors.transparent,
         elevation: 0,
+        flexibleSpace: Center(
+          child: Image.asset(
+            "assets/images/favicon.png",
+            width: 50, // You can adjust the size as needed
+            height: 50,
+          ),
+        ),
       ),
       drawer: Drawer(
         child: ListView(
