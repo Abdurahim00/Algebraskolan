@@ -80,7 +80,7 @@ class StudentScreen extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(
-                height: 150, // Adjust this if necessary
+                height: 70, // Adjust this if necessary
               ),
               CoinWidget(uid: uid ?? ""),
             ],
