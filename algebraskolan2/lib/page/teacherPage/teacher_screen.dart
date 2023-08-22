@@ -52,47 +52,6 @@ class _TeacherScreenState extends State<TeacherScreen> {
     final studentProvider =
         context.watch<StudentProvider>(); // Access the StudentProvider
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
-        title: Positioned(
-          top: screenHeight * 0.007,
-          left: 0,
-          right: 0,
-          child: Center(
-            // Center widget to center the image
-            child: SizedBox(
-              // Size limiting widget
-              width: screenWidth *
-                  0.4, // 40% of screen width, adjust as per your requirement
-              child: Image.asset("assets/images/Algebraskolan4.png"),
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(UniconsLine.shopping_cart, color: Colors.white),
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: StudentSearch(studentProvider.students),
-              ).then((studentNotifier) {
-                if (studentNotifier != null) {
-                  print('Selected student: ${studentNotifier.displayName}');
-                }
-              });
-            },
-          ),
-        ],
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          // your menu icon here
-          onPressed: () {
-            _scaffoldkey.currentState?.openDrawer();
-            // your menu button action here
-          },
-        ),
-      ),
       key: _scaffoldkey,
       drawer: Drawer(
         child: ListView(
@@ -133,23 +92,6 @@ class _TeacherScreenState extends State<TeacherScreen> {
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          Column(
-            children: [
-              Expanded(
-                flex: 6,
-                child: Container(
-                  color: const Color.fromRGBO(245, 142, 11, 1),
-                  child: Stack(
-                    children: [],
-                  ),
-                ),
-              ),
-              // Update the StudentListPart
-              StudentListPart(
-                textTheme: textTheme,
-              ),
-            ],
-          ),
           Positioned(
             top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
             left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
@@ -158,6 +100,20 @@ class _TeacherScreenState extends State<TeacherScreen> {
               width: screenWidth * 0.5,
               child: const Coin_calculator(),
             ),
+          ),
+          Column(
+            children: [
+              Expanded(
+                flex: 6,
+                child: Container(
+                  color: const Color.fromRGBO(245, 142, 11, 1),
+                ),
+              ),
+              // Update the StudentListPart
+              StudentListPart(
+                textTheme: textTheme,
+              ),
+            ],
           ),
           Positioned(
             top: MediaQuery.of(context).size.height * 0.33 - 10,
@@ -259,6 +215,52 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 ),
               ),
             ),
+          Positioned(
+            top: 0, // It will start from the top
+            left: 0,
+            right: 0,
+            child: AppBar(
+              elevation: 0,
+              backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
+              title: Positioned(
+                top: screenHeight * 0.007,
+                left: 0,
+                right: 0,
+                child: Center(
+                  // Center widget to center the image
+                  child: SizedBox(
+                    // Size limiting widget
+                    width: screenWidth *
+                        0.4, // 40% of screen width, adjust as per your requirement
+                    child: Image.asset("assets/images/Algebraskolan4.png"),
+                  ),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(UniconsLine.shopping_cart,
+                      color: Colors.white),
+                  onPressed: () {
+                    showSearch(
+                      context: context,
+                      delegate: StudentSearch(studentProvider.students),
+                    ).then((studentNotifier) {
+                      if (studentNotifier != null) {
+                        print(
+                            'Selected student: ${studentNotifier.displayName}');
+                      }
+                    });
+                  },
+                ),
+              ],
+              leading: IconButton(
+                icon: const Icon(Icons.menu, color: Colors.white),
+                onPressed: () {
+                  _scaffoldkey.currentState?.openDrawer();
+                },
+              ),
+            ),
+          ),
         ],
       ),
     );

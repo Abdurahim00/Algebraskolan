@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'coin_calculator.dart';
+
 class ClassCard extends StatelessWidget {
   final Map<String, dynamic> classData;
 
@@ -25,6 +27,7 @@ class ClassCard extends StatelessWidget {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
+            Coin_calculator(),
             Image.asset("assets/images/${classData['image']}"),
             const SizedBox(height: 10),
             Text(

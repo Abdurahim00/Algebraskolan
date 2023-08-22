@@ -33,18 +33,18 @@ class Coin_calculator extends StatelessWidget {
               FittedBox(
                 child: GestureDetector(
                     onTap: minus,
-                    child: const Icon(
+                    child: Icon(
                       UniconsLine.minus_circle,
-                      size: 60,
+                      size: MediaQuery.of(context).size.width * 0.15,
                       color: Color.fromRGBO(245, 142, 11, 1),
                     )),
               ),
               FittedBox(
                 child: GestureDetector(
                   onTap: add,
-                  child: const Icon(
+                  child: Icon(
                     UniconsLine.plus_circle,
-                    size: 60,
+                    size: MediaQuery.of(context).size.width * 0.15,
                     color: Color.fromRGBO(245, 142, 11, 1),
                   ),
                 ),
