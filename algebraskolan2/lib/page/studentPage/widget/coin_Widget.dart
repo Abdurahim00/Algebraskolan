@@ -14,9 +14,9 @@ class CoinWidget extends StatefulWidget {
   _CoinWidgetState createState() => _CoinWidgetState();
 }
 
-class _CoinWidgetState extends State<CoinWidget>
-    with SingleTickerProviderStateMixin {
+class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
   AnimationController? _controller;
+  AnimationController? _lottieController;
 
   Animation<double>? _animation;
 
@@ -31,6 +31,12 @@ class _CoinWidgetState extends State<CoinWidget>
 
     _controller = AnimationController(
       duration: Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _lottieController = AnimationController(
+      duration:
+          Duration(seconds: 2), // or your desired duration for Lottie animation
       vsync: this,
     );
   }
@@ -57,6 +63,7 @@ class _CoinWidgetState extends State<CoinWidget>
               });
 
             _controller!.forward(from: 0);
+            _lottieController!.forward(from: 0); // Start the Lottie animation
           }
         }
 
@@ -65,16 +72,27 @@ class _CoinWidgetState extends State<CoinWidget>
 
         return Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Text(
-                ' $formattedCoins',
-                style: GoogleFonts.lilitaOne(fontSize: 32),
-              ),
-              Container(
-                  width: 200,
-                  child: Lottie.asset("assets/images/Coin Simple.json")),
-            ],
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment
+                  .start, // This will align items to the top of the column
+              children: [
+                Text(
+                  ' $formattedCoins' " Algebronor",
+                  style: GoogleFonts.lilitaOne(fontSize: 32),
+                ),
+                Container(
+                  child: Lottie.asset(
+                    "assets/images/Coin Simple.json",
+                    controller: _lottieController,
+                    onLoaded: (composition) {
+                      _lottieController!.duration = composition.duration;
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -84,6 +102,8 @@ class _CoinWidgetState extends State<CoinWidget>
   @override
   void dispose() {
     _controller?.dispose();
+    //_lottieController?.dispose();
+
     super.dispose();
   }
 }
