@@ -4,7 +4,6 @@ import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
-
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
@@ -51,217 +50,223 @@ class _TeacherScreenState extends State<TeacherScreen> {
 
     final studentProvider =
         context.watch<StudentProvider>(); // Access the StudentProvider
-    return Scaffold(
-      key: _scaffoldkey,
-      drawer: Drawer(
-        child: ListView(
+    return SafeArea(
+      child: Scaffold(
+        key: _scaffoldkey,
+        drawer: Drawer(
+          child: ListView(
+            children: [
+              DrawerHeader(
+                  child: (Image.asset("assets/images/Algebraskola1.png"))),
+              ListTile(
+                onTap: () => showDialog(
+                    context: context,
+                    builder: (context) {
+                      return CupertinoAlertDialog(
+                        title: Text("Är du säker?"),
+                        actions: [
+                          MaterialButton(
+                            onPressed: () {
+                              provider.googleLogout();
+                              Navigator.pop(context);
+                            },
+                            child: Text("Ja"),
+                          ),
+                          MaterialButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: Text("Nej"),
+                          )
+                        ],
+                      );
+                    }),
+                title: Text(
+                  "Logga ut",
+                  style: GoogleFonts.montserrat(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        resizeToAvoidBottomInset: false,
+        body: Stack(
           children: [
-            DrawerHeader(
-                child: (Image.asset("assets/images/Algebraskola1.png"))),
-            ListTile(
-              onTap: () => showDialog(
-                  context: context,
-                  builder: (context) {
-                    return CupertinoAlertDialog(
-                      title: Text("Är du säker?"),
-                      actions: [
-                        MaterialButton(
-                          onPressed: () {
-                            provider.googleLogout();
-                            Navigator.pop(context);
-                          },
-                          child: Text("Ja"),
+            Positioned(
+              top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
+              left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
+              child: SizedBox(
+                height: screenHeight * 0.2,
+                width: screenWidth * 0.5,
+                child: const Coin_calculator(),
+              ),
+            ),
+            Column(
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: Container(
+                    color: const Color.fromRGBO(245, 142, 11, 1),
+                  ),
+                ),
+                // Update the StudentListPart
+                StudentListPart(
+                  textTheme: textTheme,
+                ),
+              ],
+            ),
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.33 - 10,
+              child: Container(
+                padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.width * 0.35 + 20,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  children: Classesnr.map((classes) => GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedClass = classes["number"] as int?;
+                            context.read<StudentProvider>().handleClassChanged(
+                                selectedClass!); // Call handleClassChanged from the StudentProvider
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          margin: EdgeInsets.only(
+                              right: 10.0,
+                              top: selectedClass == classes['number'] ? 10 : 0),
+                          width: MediaQuery.of(context).size.width * 0.25,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(30.0),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                offset: Offset(0, 2),
+                                blurRadius: 6.0,
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              children: [
+                                Image.asset(
+                                    "assets/images/${classes['image']}"),
+                                const SizedBox(height: 10),
+                                Flexible(
+                                  child: AutoSizeText(
+                                    "${classes["name"]}",
+                                    style: GoogleFonts.montserrat(),
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        MaterialButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text("Nej"),
-                        )
-                      ],
-                    );
-                  }),
-              title: Text(
-                "Logga ut",
-                style: GoogleFonts.montserrat(),
+                      )).toList(),
+                ),
+              ),
+            ),
+            studentProvider.showButton
+                ? Align(
+                    alignment: Alignment.topCenter * 0.5,
+                    child: Positioned(
+                      top: MediaQuery.of(context).size.height * 0.27 - 50,
+                      left: MediaQuery.of(context).size.width / 2 - 30,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          studentProvider.updateAllCoins();
+                          // Hide the button immediately after it pressed
+                          studentProvider.setShowButton(false);
+                          // So they all get deselected when sending coins
+                          studentProvider.handleDeselectAllStudents();
+
+                          Timer(const Duration(milliseconds: 1000), () {
+                            studentProvider.resetUpdated();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.all(20.0),
+                          backgroundColor: Colors.blue[400],
+                          textStyle: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          alignment: Alignment.bottomLeft,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30)),
+                        ),
+                        child: Text(
+                          "Skicka",
+                          style: GoogleFonts.roboto(fontSize: 16),
+                        ),
+                      ),
+                    ),
+                  )
+                : Container(),
+            if (studentProvider.updated)
+              Container(
+                color:
+                    Colors.black.withOpacity(0.5), // Semi-transparent overlay
+                child: Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.3, // take 50% of parent width
+                    heightFactor: 0.3, // take 50% of parent height
+                    alignment: Alignment.center,
+                    child: Lottie.asset("assets/images/achievement.json"),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 0, // It will start from the top
+              left: 0,
+              right: 0,
+              child: AppBar(
+                elevation: 0,
+                backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
+                title: Positioned(
+                  top: screenHeight * 0.007,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    // Center widget to center the image
+                    child: SizedBox(
+                      // Size limiting widget
+                      width: screenWidth * 0.4, //
+                      child: Image.asset("assets/images/Algebraskolan4.png"),
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(UniconsLine.shopping_cart,
+                        color: Colors.white),
+                    onPressed: () {
+                      showSearch(
+                        context: context,
+                        delegate: StudentSearch(studentProvider.students),
+                      ).then((studentNotifier) {
+                        if (studentNotifier != null) {
+                          print(
+                              'Selected student: ${studentNotifier.displayName}');
+                        }
+                      });
+                    },
+                  ),
+                ],
+                leading: IconButton(
+                  icon: const Icon(Icons.menu, color: Colors.white),
+                  onPressed: () {
+                    _scaffoldkey.currentState?.openDrawer();
+                  },
+                ),
               ),
             ),
           ],
         ),
-      ),
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          Positioned(
-            top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
-            left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
-            child: SizedBox(
-              height: screenHeight * 0.2,
-              width: screenWidth * 0.5,
-              child: const Coin_calculator(),
-            ),
-          ),
-          Column(
-            children: [
-              Expanded(
-                flex: 6,
-                child: Container(
-                  color: const Color.fromRGBO(245, 142, 11, 1),
-                ),
-              ),
-              // Update the StudentListPart
-              StudentListPart(
-                textTheme: textTheme,
-              ),
-            ],
-          ),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.33 - 10,
-            child: Container(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.width * 0.35 + 20,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                children: Classesnr.map((classes) => GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          selectedClass = classes["number"] as int?;
-                          context.read<StudentProvider>().handleClassChanged(
-                              selectedClass!); // Call handleClassChanged from the StudentProvider
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        margin: EdgeInsets.only(
-                            right: 10.0,
-                            top: selectedClass == classes['number'] ? 10 : 0),
-                        width: MediaQuery.of(context).size.width * 0.25,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(30.0),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              offset: Offset(0, 2),
-                              blurRadius: 6.0,
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10.0),
-                          child: Column(
-                            children: [
-                              Image.asset("assets/images/${classes['image']}"),
-                              const SizedBox(height: 10),
-                              Flexible(
-                                child: AutoSizeText(
-                                  "${classes["name"]}",
-                                  style: GoogleFonts.montserrat(),
-                                  maxLines: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    )).toList(),
-              ),
-            ),
-          ),
-          studentProvider.showButton
-              ? Positioned(
-                  top: MediaQuery.of(context).size.height * 0.27 - 50,
-                  left: MediaQuery.of(context).size.width / 2 - 30,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      studentProvider.updateAllCoins();
-                      // Hide the button immediately after it's pressed
-                      studentProvider.setShowButton(false);
-                      // Add this line
-                      studentProvider.handleDeselectAllStudents();
-
-                      Timer(const Duration(milliseconds: 1000), () {
-                        studentProvider.resetUpdated();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.all(20.0),
-                      backgroundColor: Colors.blue[400],
-                      textStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      alignment: Alignment.bottomLeft,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30)),
-                    ),
-                    child: Text(
-                      "Skicka",
-                      style: GoogleFonts.roboto(fontSize: 16),
-                    ),
-                  ),
-                )
-              : Container(),
-          if (studentProvider.updated)
-            Container(
-              color: Colors.black.withOpacity(0.5), // Semi-transparent overlay
-              child: Center(
-                child: FractionallySizedBox(
-                  widthFactor: 0.3, // take 50% of parent width
-                  heightFactor: 0.3, // take 50% of parent height
-                  alignment: Alignment.center,
-                  child: Lottie.asset("assets/images/achievement.json"),
-                ),
-              ),
-            ),
-          Positioned(
-            top: 0, // It will start from the top
-            left: 0,
-            right: 0,
-            child: AppBar(
-              elevation: 0,
-              backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
-              title: Positioned(
-                top: screenHeight * 0.007,
-                left: 0,
-                right: 0,
-                child: Center(
-                  // Center widget to center the image
-                  child: SizedBox(
-                    // Size limiting widget
-                    width: screenWidth *
-                        0.4, // 40% of screen width, adjust as per your requirement
-                    child: Image.asset("assets/images/Algebraskolan4.png"),
-                  ),
-                ),
-              ),
-              actions: [
-                IconButton(
-                  icon: const Icon(UniconsLine.shopping_cart,
-                      color: Colors.white),
-                  onPressed: () {
-                    showSearch(
-                      context: context,
-                      delegate: StudentSearch(studentProvider.students),
-                    ).then((studentNotifier) {
-                      if (studentNotifier != null) {
-                        print(
-                            'Selected student: ${studentNotifier.displayName}');
-                      }
-                    });
-                  },
-                ),
-              ],
-              leading: IconButton(
-                icon: const Icon(Icons.menu, color: Colors.white),
-                onPressed: () {
-                  _scaffoldkey.currentState?.openDrawer();
-                },
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

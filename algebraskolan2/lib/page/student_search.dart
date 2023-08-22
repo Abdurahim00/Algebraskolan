@@ -78,17 +78,34 @@ class StudentSearch extends SearchDelegate<Student?> {
                           actions: [
                             TextButton(
                               child: const Text('Skicka'),
-                              onPressed: () {
+                              onPressed: () async {
                                 final coins =
                                     int.tryParse(coinController.text) ?? 0;
+                                final userDoc = await FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(student.uid)
+                                    .get();
+
+                                final currentCoins =
+                                    userDoc.data()?['coins'] ?? 0;
+
+                                // If coins to subtract exceeds current coins, show a Snackbar
+                                if (coins < 0 && currentCoins < -coins) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text(
+                                              'Inte tillräckligt med mynt att dra av!')));
+                                  return;
+                                }
+
                                 FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(student.uid)
                                     .update(
                                         {'coins': FieldValue.increment(coins)});
+
                                 coinController.clear();
                                 Navigator.of(context).pop();
-                                close(context, student);
                               },
                             ),
                           ],
