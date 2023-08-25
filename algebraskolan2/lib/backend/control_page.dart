@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:algebra/page/login.dart';
 import 'package:algebra/page/studentPage/student_screen.dart';
 import 'package:algebra/page/teacherPage/teacher_screen.dart';
+import 'package:lottie/lottie.dart';
 import '../page/studentPage/question_screen.dart';
 import 'auth_service.dart';
 
@@ -19,24 +20,24 @@ class HomePage extends StatelessWidget {
         stream: _authService.authStateChanges,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-                child: CircularProgressIndicator(
-              color: Colors.orange,
-            ));
+            final screenWidth = MediaQuery.of(context).size.width;
+            return Center(
+                child: Lottie.asset("assets/images/Circle Loading.json",
+                    width: screenWidth * 0.2));
           } else if (snapshot.hasError) {
-            return const Center(child: Text("Something Went Wrong!"));
+            return const Center(child: Text("Något gick fel!"));
           } else if (snapshot.data != null) {
             return FutureBuilder<DocumentSnapshot>(
               future: _authService.getUserDocument(snapshot.data!.uid),
               builder: (BuildContext context,
                   AsyncSnapshot<DocumentSnapshot> snapshot2) {
                 if (snapshot2.connectionState == ConnectionState.waiting) {
+                  final screenWidth = MediaQuery.of(context).size.width;
                   return Center(
-                      child: CircularProgressIndicator(
-                    color: Colors.orange,
-                  ));
+                      child: Lottie.asset("assets/images/Circle Loading.json",
+                          width: screenWidth * 0.2));
                 } else if (snapshot2.hasError) {
-                  return const Center(child: Text("Something Went Wrong!"));
+                  return const Center(child: Text("Något gick fel!"));
                 } else if (snapshot2.hasData) {
                   Map<String, dynamic> data =
                       snapshot2.data!.data() as Map<String, dynamic>;
@@ -45,28 +46,13 @@ class HomePage extends StatelessWidget {
                     return const TeacherScreen();
                   } else {
                     int classNumber = data['classNumber'];
-                    final questionAnsweredAt =
-                        data['questionAnsweredAt']?.toDate();
-                    if (questionAnsweredAt != null) {
-                      final now = DateTime.now();
-                      final difference =
-                          now.difference(questionAnsweredAt).inSeconds;
-                      print(
-                          'Time difference: $difference'); // print time difference
-                      if (difference > 30 * 60 ||
-                          data['hasAnsweredQuestionCorrectly'] == false) {
-                        print(
-                            'Redirecting to QuestionsScreen'); // print redirection action
-                        return QuestionsScreen(classNumber: classNumber);
-                      } else {
-                        print(
-                            'Redirecting to StudentScreen'); // print redirection action
-                        return StudentScreen();
-                      }
-                    } else {
-                      print(
-                          'Redirecting to QuestionsScreen due to null timestamp'); // print redirection action
+                    // print time difference
+                    if (data['hasAnsweredQuestionCorrectly'] == false) {
+                      // redirecting to questionscreen
                       return QuestionsScreen(classNumber: classNumber);
+                    } else {
+                      // go to studentscreen
+                      return StudentScreen();
                     }
                   }
                 } else {

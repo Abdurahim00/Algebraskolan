@@ -31,13 +31,14 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Consumer<QuestionProvider>(
       builder: (context, questionProvider, _) {
         if (questionProvider.question == null) {
-          return const Center(
-              child: CircularProgressIndicator(
-            color: Colors.orange,
-          ));
+          return Center(
+              child: Lottie.asset("assets/images/Circle Loading.json",
+                  width: screenWidth * 0.2));
         }
 
         return Scaffold(
@@ -181,11 +182,33 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                     Timer(const Duration(milliseconds: 1000),
                                         () {
                                       questionProvider.resetAnimation();
+
                                       Navigator.pushReplacement(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                StudentScreen()),
+                                        PageRouteBuilder(
+                                          pageBuilder: (context, animation,
+                                                  secondaryAnimation) =>
+                                              StudentScreen(),
+                                          transitionDuration: Duration(
+                                              milliseconds:
+                                                  500), // Adjust as needed
+                                          transitionsBuilder: (context,
+                                              animation,
+                                              secondaryAnimation,
+                                              child) {
+                                            // For fade transition
+                                            var fadeTween = Tween(
+                                                    begin: 0.0, end: 1.0)
+                                                .chain(CurveTween(
+                                                    curve: Curves.easeInOut));
+                                            var fadeAnimation =
+                                                animation.drive(fadeTween);
+
+                                            return FadeTransition(
+                                                opacity: fadeAnimation,
+                                                child: child);
+                                          },
+                                        ),
                                       );
                                     });
                                   } else {

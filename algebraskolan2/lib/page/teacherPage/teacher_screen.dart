@@ -89,7 +89,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
             ],
           ),
         ),
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
             Positioned(
@@ -209,8 +209,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 : Container(),
             if (studentProvider.updated)
               Container(
-                color:
-                    Colors.black.withOpacity(0.5), // Semi-transparent overlay
+                // Semi-transparent overlay
                 child: Center(
                   child: FractionallySizedBox(
                     widthFactor: 0.3, // take 50% of parent width

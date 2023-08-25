@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: () {
                     final provider = Provider.of<GoogleSignInProvider>(context,
                         listen: false);
-                    provider.googleLogin();
+                    provider.googleLogin(context);
                   },
                   label: const Text("Sign Up with Google"),
                 ),

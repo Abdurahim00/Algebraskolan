@@ -2,6 +2,7 @@ import 'package:algebra/page/student.dart';
 import 'package:algebra/provider/student_provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class StudentSearch extends SearchDelegate<Student?> {
   final List<ValueNotifier<Student>> students;
@@ -37,6 +38,8 @@ class StudentSearch extends SearchDelegate<Student?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return FutureBuilder<List<ValueNotifier<Student>>>(
       future: provider.fetchSearch(
         query,
@@ -45,9 +48,8 @@ class StudentSearch extends SearchDelegate<Student?> {
           AsyncSnapshot<List<ValueNotifier<Student>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
-              child: CircularProgressIndicator(
-            color: Colors.orange,
-          ));
+              child: Lottie.asset("assets/images/Circle Loading.json",
+                  width: screenWidth * 0.2));
         } else {
           if (snapshot.hasError)
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -68,12 +70,15 @@ class StudentSearch extends SearchDelegate<Student?> {
                         final coinController = TextEditingController();
                         return AlertDialog(
                           title: Text('Ange mynt för ${student.displayName}'),
-                          content: TextField(
-                            controller: coinController,
-                            decoration: const InputDecoration(
-                              labelText: 'Ange mynt',
+                          content: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: TextField(
+                              controller: coinController,
+                              decoration: const InputDecoration(
+                                labelText: 'Ange mynt',
+                              ),
+                              keyboardType: TextInputType.number,
                             ),
-                            keyboardType: TextInputType.number,
                           ),
                           actions: [
                             TextButton(

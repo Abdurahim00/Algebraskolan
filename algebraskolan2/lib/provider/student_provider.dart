@@ -57,6 +57,24 @@ class StudentProvider with ChangeNotifier {
     }
   }
 
+  void addSelectedStudent(ValueNotifier<Student> student) {
+    selectedStudents.add(student);
+    notifyListeners();
+  }
+
+  void removeSelectedStudent(ValueNotifier<Student> student) {
+    selectedStudents.remove(student);
+    notifyListeners();
+  }
+
+  void toggleStudentSelection(ValueNotifier<Student> student) {
+    if (selectedStudents.contains(student)) {
+      removeSelectedStudent(student);
+    } else {
+      addSelectedStudent(student);
+    }
+  }
+
   void toggleSelection(ValueNotifier<Student> studentNotifier) {
     if (_selectedStudents.contains(studentNotifier)) {
       handleDeselectStudent(studentNotifier);

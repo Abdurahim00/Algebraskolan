@@ -1,9 +1,12 @@
 import 'package:algebra/backend/control_page.dart';
+import 'package:algebra/page/splash_screen.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/student_provider.dart'; // make sure to import this
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/rendering.dart';
+
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -211,7 +214,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: HomePage(),
+        home: SplashScreen(),
       ),
     );
   }

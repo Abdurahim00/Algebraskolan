@@ -13,7 +13,7 @@ class GoogleSignInProvider extends ChangeNotifier {
 
   GoogleSignInProvider._(); // Private constructor
 
-  Future<void> googleLogin() async {
+  Future<void> googleLogin(BuildContext context) async {
     // Sign in with Google
     final googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return;
@@ -48,7 +48,7 @@ class GoogleSignInProvider extends ChangeNotifier {
               'student', // everyone who creates an account will become a student, the admin assigns teachers
           'classNumber': 0,
           'coins': 0, // default coins set to 0
-          'questionAnsweredAt': Timestamp.now(), // set to current time
+          // set to current time
           'hasAnsweredQuestionCorrectly':
               false, // new user has not yet answered a question
         });
@@ -57,6 +57,11 @@ class GoogleSignInProvider extends ChangeNotifier {
       // Handle any exceptions that occur during sign-in
       print('Error during sign-in: $e');
       // You can show an error message or perform any other necessary action
+      if (e is FirebaseException && e.code == "NETWORK_ERROR") {
+        print("Network error detected!");
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text("KOLLA DIN INTERNET")));
+      }
     }
 
     // Notify listeners of any changes

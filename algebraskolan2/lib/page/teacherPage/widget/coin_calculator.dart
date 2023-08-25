@@ -75,44 +75,48 @@ class Mini_Coin_calculator extends StatelessWidget {
       studentProvider.decrementCoins(studentNotifier);
     }
 
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          GestureDetector(
-            onTap: add,
-            child: Transform(
-              transform: Matrix4.rotationX(math.pi),
-              alignment: Alignment.center,
+    return Padding(
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            GestureDetector(
+              onTap: add,
+              child: Transform(
+                transform: Matrix4.rotationX(math.pi),
+                alignment: Alignment.center,
+                child: const Icon(
+                  UniconsLine.plus_circle,
+                  size: 30,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            ValueListenableBuilder<Student>(
+                valueListenable: studentNotifier,
+                builder: (context, student, _) {
+                  return FittedBox(
+                    fit: BoxFit.contain,
+                    child: Text(
+                        '${student.localCoins.value}', // Here, change coins to localCoins.value
+                        style: const TextStyle(
+                            fontSize: 30.0,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white)),
+                  );
+                }),
+            GestureDetector(
+              onTap: minus,
               child: const Icon(
-                UniconsLine.plus_circle,
+                UniconsLine.minus_circle,
                 size: 30,
                 color: Colors.white,
               ),
             ),
-          ),
-          ValueListenableBuilder<Student>(
-              valueListenable: studentNotifier,
-              builder: (context, student, _) {
-                return FittedBox(
-                  fit: BoxFit.contain,
-                  child: Text(
-                      '${student.localCoins.value}', // Here, change coins to localCoins.value
-                      style: const TextStyle(
-                          fontSize: 30.0,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white)),
-                );
-              }),
-          GestureDetector(
-            onTap: minus,
-            child: const Icon(
-              UniconsLine.minus_circle,
-              size: 30,
-              color: Colors.white,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

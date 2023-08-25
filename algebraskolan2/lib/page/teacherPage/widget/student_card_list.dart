@@ -53,7 +53,7 @@ class _StudentListPartState extends State<StudentListPart> {
                 studentProvider.selectedStudents.isEmpty
                     ? "Välj alla >"
                     : "Avvälj alla >",
-                style: GoogleFonts.roboto(fontSize: 18).copyWith(
+                style: GoogleFonts.roboto(fontSize: fontSize).copyWith(
                   color: studentProvider.selectedStudents.isEmpty
                       ? Colors.blue
                       : const Color.fromRGBO(245, 142, 11, 1),
@@ -63,30 +63,25 @@ class _StudentListPartState extends State<StudentListPart> {
                 maxLines: 1,
               ),
             ),
+            // first singlechildscroll is for horizontal use, and the second is so i dont get bottom overflow
             Flexible(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: studentProvider.students.map((studentnotifier) {
-                    return StudentCard(
-                      student: studentnotifier,
-                      isSelected: studentProvider.selectedStudents
-                          .contains(studentnotifier),
-                      onTap: () {
-                        setState(() {
-                          if (studentProvider.selectedStudents
-                              .contains(studentnotifier)) {
-                            studentProvider.selectedStudents
-                                .remove(studentnotifier);
-                          } else {
-                            studentProvider.selectedStudents
-                                .add(studentnotifier);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+                child: SingleChildScrollView(
+                  child: Row(
+                    children: studentProvider.students.map((studentnotifier) {
+                      return StudentCard(
+                        student: studentnotifier,
+                        selected: studentProvider.selectedStudents
+                            .contains(studentnotifier),
+                        onTap: () {
+                          studentProvider
+                              .toggleStudentSelection(studentnotifier);
+                        },
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
