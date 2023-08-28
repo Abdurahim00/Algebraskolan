@@ -77,7 +77,11 @@ class GoogleSignInProvider extends ChangeNotifier {
       await _googleSignIn.signOut();
 
       // Disconnect from Google Sign-In
-      await _googleSignIn.disconnect();
+      try {
+        await _googleSignIn.disconnect();
+      } catch (error) {
+        print('Failed to disconnect: $error');
+      }
     }
 
     // Set user to null

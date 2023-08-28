@@ -189,9 +189,10 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                           pageBuilder: (context, animation,
                                                   secondaryAnimation) =>
                                               StudentScreen(),
-                                          transitionDuration: Duration(
-                                              milliseconds:
-                                                  500), // Adjust as needed
+
+                                          transitionDuration:
+                                              Duration(milliseconds: 500),
+                                          // Adjust as needed
                                           transitionsBuilder: (context,
                                               animation,
                                               secondaryAnimation,

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -39,6 +40,7 @@ class TeacherScreen extends StatefulWidget {
 class _TeacherScreenState extends State<TeacherScreen> {
   int? selectedClass = 0;
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
+  final ValueNotifier<bool> refreshNotifier = ValueNotifier<bool>(false);
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,11 @@ class _TeacherScreenState extends State<TeacherScreen> {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+
+    // This is for when a teacher sends coins, their name will be displayed for the student.
+    User? user = FirebaseAuth.instance.currentUser;
+    String teacherName = user?.displayName ??
+        'Anonymous'; // Default to 'Anonymous' if displayName is null
 
     final studentProvider =
         context.watch<StudentProvider>(); // Access the StudentProvider
@@ -171,72 +178,17 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 ),
               ),
             ),
-            studentProvider.showButton
-                ? Align(
-                    alignment: Alignment.topCenter * 0.5,
-                    child: Positioned(
-                      top: MediaQuery.of(context).size.height * 0.27 - 50,
-                      left: MediaQuery.of(context).size.width / 2 - 30,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          studentProvider.updateAllCoins();
-                          // Hide the button immediately after it pressed
-                          studentProvider.setShowButton(false);
-                          // So they all get deselected when sending coins
-                          studentProvider.handleDeselectAllStudents();
-
-                          Timer(const Duration(milliseconds: 1000), () {
-                            studentProvider.resetUpdated();
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(20.0),
-                          backgroundColor: Colors.blue[400],
-                          textStyle: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          alignment: Alignment.bottomLeft,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30)),
-                        ),
-                        child: Text(
-                          "Skicka",
-                          style: GoogleFonts.roboto(fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  )
-                : Container(),
-            if (studentProvider.updated)
-              Container(
-                // Semi-transparent overlay
-                child: Center(
-                  child: FractionallySizedBox(
-                    widthFactor: 0.3, // take 50% of parent width
-                    heightFactor: 0.3, // take 50% of parent height
-                    alignment: Alignment.center,
-                    child: Lottie.asset("assets/images/achievement.json"),
-                  ),
-                ),
-              ),
             Positioned(
-              top: 0, // It will start from the top
+              top: 0,
               left: 0,
               right: 0,
               child: AppBar(
                 elevation: 0,
                 backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
-                title: Positioned(
-                  top: screenHeight * 0.007,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    // Center widget to center the image
-                    child: SizedBox(
-                      // Size limiting widget
-                      width: screenWidth * 0.4, //
-                      child: Image.asset("assets/images/Algebraskolan4.png"),
-                    ),
+                title: Center(
+                  child: SizedBox(
+                    width: screenWidth * 0.4, // adjust as needed
+                    child: Image.asset("assets/images/Algebraskolan4.png"),
                   ),
                 ),
                 actions: [
@@ -246,7 +198,9 @@ class _TeacherScreenState extends State<TeacherScreen> {
                     onPressed: () {
                       showSearch(
                         context: context,
-                        delegate: StudentSearch(studentProvider.students),
+                        delegate: StudentSearch(
+                          studentProvider.students,
+                        ),
                       ).then((studentNotifier) {
                         if (studentNotifier != null) {
                           print(
@@ -264,6 +218,69 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 ),
               ),
             ),
+            studentProvider.showButton
+                ? Positioned(
+                    top: MediaQuery.of(context).size.height * 0.27 - 50,
+                    left: MediaQuery.of(context).size.width / 2 - 30,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        // Made it asynchronous
+                        // Call the function and wait for it to complete
+                        await studentProvider.updateAllCoins(teacherName);
+
+                        // Hide the button immediately after it's pressed
+                        studentProvider.setShowButton(false);
+
+                        // Deselect all students when sending coins
+                        studentProvider.handleDeselectAllStudents();
+
+                        // Set a timer to reset the updated or failure status
+                        Timer(const Duration(milliseconds: 1900), () {
+                          studentProvider.resetUpdated();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.all(20.0),
+                        backgroundColor: Colors.blue[400],
+                        textStyle: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        alignment: Alignment.bottomLeft,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30)),
+                      ),
+                      child: Text(
+                        "Skicka",
+                        style: GoogleFonts.roboto(fontSize: 16),
+                      ),
+                    ),
+                  )
+                : Container(),
+            if (studentProvider.updated)
+              Container(
+                // Semi-transparent overlay
+                child: Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.3, // take 50% of parent width
+                    heightFactor: 0.5, // take 50% of parent height
+                    alignment: Alignment.topCenter,
+                    child: Lottie.asset("assets/images/checkmark (2).json"),
+                  ),
+                ),
+              ),
+            if (studentProvider.failure)
+              Container(
+                // Semi-transparent overlay
+                child: Center(
+                  child: FractionallySizedBox(
+                    widthFactor: 0.3,
+                    heightFactor: 0.5,
+                    alignment: Alignment.topCenter,
+                    child: Lottie.asset(
+                        "assets/images/canceled.json"), // Your "X" animation file here
+                  ),
+                ),
+              ),
           ],
         ),
       ),

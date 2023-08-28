@@ -12,6 +12,7 @@ class CoinWidget extends StatefulWidget {
   CoinWidget({Key? key, required this.uid}) : super(key: key);
 
   @override
+  // ignore: library_private_types_in_public_api
   _CoinWidgetState createState() => _CoinWidgetState();
 }
 
@@ -23,53 +24,67 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
 
   int _coins = 0;
 
-  Stream<DocumentSnapshot> get coinStream =>
-      widget.firestore.collection('users').doc(widget.uid).snapshots();
+  Stream<DocumentSnapshot>? get coinStream {
+    // ignore: unnecessary_null_comparison
+    if (widget.uid != null && widget.uid.isNotEmpty) {
+      return widget.firestore.collection('users').doc(widget.uid).snapshots();
+    } else {
+      return null;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
 
     _controller = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
 
     _lottieController = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       vsync: this,
     );
+  }
+
+  void _handleAnimation(int newCoinsValue) {
+    if (newCoinsValue != _coins) {
+      _coins = newCoinsValue;
+      _animation =
+          Tween<double>(begin: _animation?.value ?? 0, end: _coins.toDouble())
+              .animate(_controller!)
+            ..addListener(() {
+              setState(() {});
+            });
+
+      _controller!.forward(from: 0);
+      _lottieController!.forward(from: 0);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     double fontSize = MediaQuery.of(context).size.width * 0.08;
     final width = MediaQuery.of(context).size.width * 0.5;
+
     return StreamBuilder<DocumentSnapshot>(
       stream: coinStream,
       builder: (context, snapshot) {
         Widget content;
 
         if (snapshot.hasError) {
-          content = Text("Error fetching data");
+          content = const Text("Error fetching data");
         } else if (snapshot.hasData && snapshot.data!.exists) {
           Map<String, dynamic>? data =
               snapshot.data!.data() as Map<String, dynamic>?;
           int newCoinsValue = data?['coins'] ?? 0;
           String? displayName = data?['displayName'];
 
-          if (newCoinsValue != _coins) {
-            _coins = newCoinsValue;
-            _animation = Tween<double>(
-                    begin: _animation?.value ?? 0, end: _coins.toDouble())
-                .animate(_controller!)
-              ..addListener(() {
-                setState(() {});
-              });
-
-            _controller!.forward(from: 0);
-            _lottieController!.forward(from: 0);
-          }
+          // Schedule the animation logic to run after the build process
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _handleAnimation(newCoinsValue);
+          });
 
           final formattedCoins =
               NumberFormat("####").format(_animation?.value ?? _coins);
@@ -81,7 +96,7 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                 ' $formattedCoins Algebronor',
                 style: GoogleFonts.lilitaOne(fontSize: 32, color: Colors.black),
               ),
-              Container(
+              SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
                 height: MediaQuery.of(context).size.width * 0.7,
                 child: AspectRatio(
@@ -108,8 +123,8 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                                 left: leftPosition,
                                 child: Center(
                                   child: Container(
-                                    padding:
-                                        EdgeInsets.symmetric(vertical: 1.0),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 1.0),
                                     width: width,
                                     decoration: BoxDecoration(
                                       border: Border.all(
@@ -159,7 +174,6 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
   void dispose() {
     _controller?.dispose();
     _lottieController?.dispose();
-
     super.dispose();
   }
 }

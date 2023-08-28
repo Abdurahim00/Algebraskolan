@@ -1,15 +1,16 @@
-import 'package:algebra/backend/control_page.dart';
 import 'package:algebra/page/splash_screen.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/student_provider.dart'; // make sure to import this
+import 'package:algebra/provider/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/rendering.dart';
 
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -211,9 +212,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: GoogleSignInProvider.instance),
         ChangeNotifierProvider(create: (context) => StudentProvider()),
         ChangeNotifierProvider(create: (context) => QuestionProvider()),
+        ChangeNotifierProvider(
+          create: (context) => TransactionProvider(
+            googleSignInProvider:
+                Provider.of<GoogleSignInProvider>(context, listen: false),
+          ),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
+        navigatorObservers: [routeObserver], // <-- Add this line
         home: SplashScreen(),
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../backend/coin_transaction.dart';
 import '../page/student.dart';
 
 class StudentProvider with ChangeNotifier {
@@ -8,6 +9,7 @@ class StudentProvider with ChangeNotifier {
   final Set<ValueNotifier<Student>> _selectedStudents = {};
   bool _showButton = false;
   bool updated = false;
+  bool failure = false;
 
   Set<ValueNotifier<Student>> get selectedStudents => {..._selectedStudents};
   List<ValueNotifier<Student>> get students => [..._students];
@@ -20,18 +22,33 @@ class StudentProvider with ChangeNotifier {
 
   Future<void> fetchStudents(int classNumber) async {
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      QuerySnapshot? snapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('classNumber', isEqualTo: classNumber)
           .get();
 
-      _students = snapshot.docs
-          .map((doc) => ValueNotifier<Student>(Student.fromDocument(doc)))
-          .toList();
-
-      notifyListeners();
+      // Check for null or empty snapshot
+      // ignore: unnecessary_null_comparison
+      if (snapshot != null && snapshot.docs.isNotEmpty) {
+        _students = snapshot.docs
+            .map((doc) => ValueNotifier<Student>(Student.fromDocument(doc)))
+            .toList();
+      } else {
+        // Optionally handle empty state, e.g., set _students to an empty list
+        _students = [];
+        print("No students found for class number: $classNumber");
+      }
     } catch (error) {
+      print("An error occurred while fetching students: $error");
+      // Optionally set an error state in your model
+      // e.g., _hasError = true;
+
+      // Rethrow if you want to handle this error higher up in your application
       rethrow;
+    } finally {
+      // Notify listeners to rebuild widgets that depend on this data.
+      // This is useful in both success and error cases.
+      notifyListeners();
     }
   }
 
@@ -41,19 +58,57 @@ class StudentProvider with ChangeNotifier {
         return [];
       }
 
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      QuerySnapshot? snapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('displayNameLower',
               isGreaterThanOrEqualTo: query.toLowerCase())
           .get();
 
-      List<ValueNotifier<Student>> searchResults = snapshot.docs
-          .map((doc) => ValueNotifier<Student>(Student.fromDocument(doc)))
-          .toList();
-
-      return searchResults;
+      if (snapshot != null && snapshot.docs.isNotEmpty) {
+        List<ValueNotifier<Student>> searchResults = snapshot.docs
+            .map((doc) => ValueNotifier<Student>(Student.fromDocument(doc)))
+            .toList();
+        return searchResults;
+      } else {
+        // Optionally handle empty state, e.g., return an empty list
+        print("No results found for query: $query");
+        return [];
+      }
     } catch (error) {
+      print("An error occurred while fetching search results: $error");
+      // Rethrow if you want to handle this error higher up in your application
       rethrow;
+    }
+  }
+
+  Future<bool> updateCoinsInDatabase(
+      ValueNotifier<Student> studentNotifier) async {
+    Student? currentStudent = studentNotifier.value;
+
+    if (currentStudent == null || currentStudent.uid == null) {
+      print('Student or student UID is null. Aborting updateCoinsInDatabase.');
+      return false;
+    }
+
+    try {
+      // Update the coins in the Firestore database
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentStudent.uid)
+          .update({
+        'coins': FieldValue.increment(currentStudent.localCoins.value),
+      });
+
+      // Reset the local coins value
+      currentStudent.localCoins.value = 0;
+
+      notifyListeners();
+
+      return true;
+    } catch (e) {
+      // Handle any errors here
+      print('Error updating coins in Firestore: $e');
+      return false;
     }
   }
 
@@ -152,24 +207,66 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateAllCoins() {
+  // Updates both the students transaction list and the users coins amount
+  Future<bool> updateAllCoins(String teacherName) async {
+    bool hasErrorOccurred = false;
+
     for (var student in _students) {
       if (student.value.localCoins.value > 0) {
-        FirebaseFirestore.instance
-            .collection('users')
-            .doc(student.value.uid)
-            .update({
-          'coins': FieldValue.increment(student.value.localCoins.value),
-        });
-        updated = true;
-        student.value.localCoins.value = 0;
+        try {
+          // Create a new transaction
+          CoinTransaction transaction = CoinTransaction(
+            teacherName: teacherName,
+            amount: student.value.localCoins.value,
+            timestamp: DateTime.now(),
+          );
+
+          // Convert the transaction to a map
+          Map<String, dynamic> transactionMap = {
+            'teacherName': transaction.teacherName,
+            'amount': transaction.amount,
+            'timestamp': transaction.timestamp,
+            'isNew': true,
+          };
+
+          // Update the students' transaction history
+          await FirebaseFirestore.instance
+              .collection('students')
+              .doc(student.value.uid)
+              .collection('transactions')
+              .add(transactionMap);
+
+          // Update the coin count in the 'users' collection
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(student.value.uid)
+              .update({
+            'coins': FieldValue.increment(student.value.localCoins.value),
+          });
+
+          // Reset local coin count for the student
+          student.value.localCoins.value = 0;
+        } catch (e) {
+          print(
+              "An error occurred while updating coins for ${student.value.uid}: $e");
+          hasErrorOccurred = true;
+        }
       }
     }
-    setShowButton(false);
-    notifyListeners();
+
+    if (hasErrorOccurred) {
+      failure = true;
+      notifyListeners();
+      return false;
+    } else {
+      updated = true;
+      notifyListeners();
+      return true;
+    }
   }
 
   void resetUpdated() {
+    failure = false;
     updated = false;
     notifyListeners();
   }

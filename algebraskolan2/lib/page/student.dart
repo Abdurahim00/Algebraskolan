@@ -1,3 +1,4 @@
+import 'package:algebra/backend/coin_transaction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -10,6 +11,7 @@ class Student {
   final Timestamp? questionAnsweredAt; // added field
   final bool hasAnsweredQuestionCorrectly; // added field
   ValueNotifier<int> localCoins;
+  List<CoinTransaction> transactions = [];
 
   Student({
     required this.uid,
@@ -17,6 +19,7 @@ class Student {
     required this.role,
     required this.classNumber,
     required this.coins,
+    required this.transactions,
     this.questionAnsweredAt, // it can be null
     required this.hasAnsweredQuestionCorrectly,
     ValueNotifier<int>? localCoins, // It is nullable
@@ -38,6 +41,7 @@ class Student {
           data.containsKey('hasAnsweredQuestionCorrectly')
               ? data['hasAnsweredQuestionCorrectly']
               : false,
+      transactions: [],
     );
   }
 
@@ -47,7 +51,7 @@ class Student {
     String? role,
     int? classNumber,
     int? coins,
-    Timestamp? questionAnsweredAt, // added field
+    // added field
     bool? hasAnsweredQuestionCorrectly, // added field
     ValueNotifier<int>? localCoins, // It should be ValueNotifier<int>
   }) {
@@ -57,10 +61,10 @@ class Student {
       role: role ?? this.role,
       classNumber: classNumber ?? this.classNumber,
       coins: coins ?? this.coins,
-      questionAnsweredAt: questionAnsweredAt ?? this.questionAnsweredAt,
       hasAnsweredQuestionCorrectly:
           hasAnsweredQuestionCorrectly ?? this.hasAnsweredQuestionCorrectly,
       localCoins: localCoins ?? this.localCoins,
+      transactions: [],
     );
   }
 

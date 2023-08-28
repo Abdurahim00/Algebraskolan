@@ -86,6 +86,7 @@ class StudentSearch extends SearchDelegate<Student?> {
                               onPressed: () async {
                                 final coins =
                                     int.tryParse(coinController.text) ?? 0;
+
                                 final userDoc = await FirebaseFirestore.instance
                                     .collection('users')
                                     .doc(student.uid)
@@ -103,11 +104,9 @@ class StudentSearch extends SearchDelegate<Student?> {
                                   return;
                                 }
 
-                                FirebaseFirestore.instance
-                                    .collection('users')
-                                    .doc(student.uid)
-                                    .update(
-                                        {'coins': FieldValue.increment(coins)});
+                                // Update coins in the database and reset the local state
+                                await provider
+                                    .updateCoinsInDatabase(studentNotifier);
 
                                 coinController.clear();
                                 Navigator.of(context).pop();
