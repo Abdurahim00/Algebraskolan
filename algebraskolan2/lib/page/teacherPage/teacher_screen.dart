@@ -198,9 +198,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
                     onPressed: () {
                       showSearch(
                         context: context,
-                        delegate: StudentSearch(
-                          studentProvider.students,
-                        ),
+                        delegate: StudentSearch(),
                       ).then((studentNotifier) {
                         if (studentNotifier != null) {
                           print(

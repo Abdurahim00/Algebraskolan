@@ -53,9 +53,14 @@ class _TransactionWidgetState extends State<TransactionWidget> {
         return ValueListenableBuilder<bool>(
           valueListenable: widget.refreshNotifier,
           builder: (context, value, child) {
+            // Determine color based on the message content
+            final bool isDonation =
+                transactionProvider.latestDonationMessage.contains('donated');
+            final Color textColor = isDonation ? Colors.green : Colors.red;
+
             return Text(
               transactionProvider.latestDonationMessage,
-              style: GoogleFonts.carterOne(fontSize: 18, color: Colors.green),
+              style: GoogleFonts.carterOne(fontSize: 18, color: textColor),
             );
           },
         );

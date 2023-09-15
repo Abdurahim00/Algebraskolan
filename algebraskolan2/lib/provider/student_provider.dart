@@ -207,50 +207,54 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // Updates both the students transaction list and the users coins amount
+  Future<void> updateStudentCoins(
+      ValueNotifier<Student> student, String teacherName) async {
+    if (student.value.localCoins.value > 0) {
+      // Create a new transaction
+      CoinTransaction transaction = CoinTransaction(
+        teacherName: teacherName,
+        amount: student.value.localCoins.value,
+        timestamp: DateTime.now(),
+      );
+
+      // Convert the transaction to a map
+      Map<String, dynamic> transactionMap = {
+        'teacherName': transaction.teacherName,
+        'amount': transaction.amount,
+        'timestamp': transaction.timestamp,
+        'isNew': true,
+      };
+
+      // Update the students' transaction history
+      await FirebaseFirestore.instance
+          .collection('students')
+          .doc(student.value.uid)
+          .collection('transactions')
+          .add(transactionMap);
+
+      // Update the coin count in the 'users' collection
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(student.value.uid)
+          .update({
+        'coins': FieldValue.increment(student.value.localCoins.value),
+      });
+
+      // Reset local coin count for the student
+      student.value.localCoins.value = 0;
+    }
+  }
+
   Future<bool> updateAllCoins(String teacherName) async {
     bool hasErrorOccurred = false;
 
     for (var student in _students) {
-      if (student.value.localCoins.value > 0) {
-        try {
-          // Create a new transaction
-          CoinTransaction transaction = CoinTransaction(
-            teacherName: teacherName,
-            amount: student.value.localCoins.value,
-            timestamp: DateTime.now(),
-          );
-
-          // Convert the transaction to a map
-          Map<String, dynamic> transactionMap = {
-            'teacherName': transaction.teacherName,
-            'amount': transaction.amount,
-            'timestamp': transaction.timestamp,
-            'isNew': true,
-          };
-
-          // Update the students' transaction history
-          await FirebaseFirestore.instance
-              .collection('students')
-              .doc(student.value.uid)
-              .collection('transactions')
-              .add(transactionMap);
-
-          // Update the coin count in the 'users' collection
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(student.value.uid)
-              .update({
-            'coins': FieldValue.increment(student.value.localCoins.value),
-          });
-
-          // Reset local coin count for the student
-          student.value.localCoins.value = 0;
-        } catch (e) {
-          print(
-              "An error occurred while updating coins for ${student.value.uid}: $e");
-          hasErrorOccurred = true;
-        }
+      try {
+        await updateStudentCoins(student, teacherName);
+      } catch (e) {
+        print(
+            "An error occurred while updating coins for ${student.value.uid}: $e");
+        hasErrorOccurred = true;
       }
     }
 
