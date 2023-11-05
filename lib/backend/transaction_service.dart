@@ -1,29 +1,55 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TransactionService {
-  final FirebaseFirestore _firestore;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  TransactionService(this._firestore);
+  Future<void> fetchAndUpdateTransactions(
+      String uid, Function(String) onNewTransaction) async {
+    if (uid.isEmpty) {
+      print("User ID is empty, cannot fetch transactions");
+      return;
+    }
 
-  Future<QuerySnapshot> fetchTransactions(String uid) async {
-    return await _firestore
+    QuerySnapshot snapshot = await _firestore
         .collection('students')
         .doc(uid)
         .collection('transactions')
         .orderBy('timestamp', descending: true)
         .get();
+
+    for (var doc in snapshot.docs) {
+      final Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+      if (data != null && data.containsKey('isNew') && data['isNew']) {
+        final int amount = data['amount'] as int;
+        String message = amount >= 0
+            ? "${data['teacherName']} +$amount algebronor."
+            : "${data['teacherName']} -${amount.abs()} algebronor.";
+        onNewTransaction(message);
+        await updateTransactionIsNewFlag(uid, doc.id);
+        break;
+      }
+    }
   }
 
   Future<void> updateTransactionIsNewFlag(String uid, String docId) async {
-    await _firestore
-        .collection('students')
-        .doc(uid)
-        .collection('transactions')
-        .doc(docId)
-        .update({'isNew': false});
+    try {
+      await _firestore
+          .collection('students')
+          .doc(uid)
+          .collection('transactions')
+          .doc(docId)
+          .update({'isNew': false});
+    } catch (e) {
+      print('Failed to update transaction: $e');
+    }
   }
 
   Future<void> logTransaction(String uid, int coins, String teacherName) async {
+    if (uid.isEmpty) {
+      print("Student UID is empty, cannot log transaction");
+      return;
+    }
+
     await _firestore
         .collection('students')
         .doc(uid)
