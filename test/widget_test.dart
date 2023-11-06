@@ -1,30 +1,55 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mockito/mockito.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'lib/backend/question_service.dart';
 
-import 'package:algebra/main.dart';
+// Create mocks using the code generation features of Mockito
+class MockFirebaseFirestore extends Mock implements FirebaseFirestore {}
+
+class MockCollectionReference extends Mock implements CollectionReference {}
+
+class MockQuerySnapshot extends Mock implements QuerySnapshot {}
+
+class MockDocumentSnapshot extends Mock implements DocumentSnapshot {}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  late MockFirebaseFirestore mockFirestore;
+  late MockCollectionReference mockCollectionReference;
+  late MockQuerySnapshot mockQuerySnapshot;
+  late MockDocumentSnapshot mockDocumentSnapshot;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  setUp(() {
+    mockFirestore = MockFirebaseFirestore();
+    mockCollectionReference = MockCollectionReference();
+    mockQuerySnapshot = MockQuerySnapshot();
+    mockDocumentSnapshot = MockDocumentSnapshot();
+    // Set up your mocks here
   });
+
+  test('getQuestionsByClass returns questions for a valid class number',
+      () async {
+    // Arrange: set up the mock responses
+    when(mockFirestore.collection('math_questions'))
+        .thenReturn(mockCollectionReference);
+    when(mockCollectionReference.where('class',
+            isEqualTo: anyNamed('isEqualTo')))
+        .thenReturn(mockCollectionReference);
+    when(mockCollectionReference.get())
+        .thenAnswer((_) async => mockQuerySnapshot);
+    when(mockQuerySnapshot.docs).thenReturn([mockDocumentSnapshot]);
+    when(mockDocumentSnapshot.data())
+        .thenReturn({'question': 'What is 2+2?', 'answer': 4});
+    // ... set up the rest of the mock responses ...
+
+    // Act: call the method
+    final questionsService = QuestionsService(firestore: mockFirestore);
+    final questions = await questionsService.getQuestionsByClass(1);
+
+    // Assert: verify the expected results
+    expect(questions, isA<List<Map<String, dynamic>>>());
+    expect(questions, isNotEmpty); // Ensure that we get a non-empty list
+    expect(questions.first, contains('question')); // Check for a key in the map
+  });
+
+  // More tests...
 }
