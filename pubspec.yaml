@@ -43,7 +43,6 @@ flutter:
   assets:
     - assets/images/
 flutter_native_splash:
-    color: "42a5f5"  # Use your desired background color
     image: assets/images/favicon.png  # Use your desired image path
     android: true
     ios: true

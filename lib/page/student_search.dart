@@ -92,9 +92,10 @@ class StudentSearch extends SearchDelegate<Student?> {
 
                               // Check if coins to remove exceed the student's current coins
                               if (studentNotifier.value.coins < coinsToRemove) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: Text(
-                                        'Cannot remove more coins than the student has.')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content: Text(
+                                            'Cannot remove more coins than the student has.')));
                                 return;
                               }
 

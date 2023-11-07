@@ -18,19 +18,45 @@ class StudentProvider with ChangeNotifier {
   List<ValueNotifier<Student>> get students => [..._students];
   bool get showButton => _showButton;
 
+  Map<int, List<ValueNotifier<Student>>> _studentsCache = {};
+  // Cache timeout duration
+  Duration cacheTimeout = Duration(minutes: 10);
+  // Timestamps for when the data was last fetched
+  Map<int, DateTime> _lastFetchedTimestamps = {};
+
   void setShowButton(bool value) {
     _showButton = value;
     notifyListeners();
   }
 
+  bool _isCacheValid(int classNumber) {
+    final lastFetched = _lastFetchedTimestamps[classNumber];
+    if (lastFetched == null) return false;
+    final currentTime = DateTime.now();
+    final isWithinTimeout = currentTime.difference(lastFetched) < cacheTimeout;
+    return isWithinTimeout;
+  }
+
 //done
+  // Modified fetchStudents method to use cache
   Future<void> fetchStudents(int classNumber) async {
+    // Check if the cache is valid
+    if (_isCacheValid(classNumber)) {
+      _students = _studentsCache[classNumber] ?? [];
+      notifyListeners();
+      return;
+    }
+
+    // If cache is not valid, fetch new data
     try {
       List<Student> fetchedStudents =
           await _studentService.fetchStudentsByClassNumber(classNumber);
       _students = fetchedStudents
           .map((student) => ValueNotifier<Student>(student))
           .toList();
+      // Update the cache and the timestamp
+      _studentsCache[classNumber] = _students;
+      _lastFetchedTimestamps[classNumber] = DateTime.now();
     } catch (error) {
       print(
           "An error occurred while fetching students in StudentProvider: $error");
