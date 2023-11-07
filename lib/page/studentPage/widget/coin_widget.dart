@@ -1,7 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
@@ -94,7 +93,12 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
             children: [
               AutoSizeText(
                 ' $formattedCoins Algebronor',
-                style: GoogleFonts.lilitaOne(fontSize: 32, color: Colors.black),
+                style: const TextStyle(
+                  fontFamily:
+                      'LilitaOne', // Use the font family name you declared in pubspec.yaml
+                  fontSize: 32,
+                  color: Colors.black,
+                ),
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
@@ -137,7 +141,8 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.dancingScript(
+                                      style: TextStyle(
+                                        fontFamily: 'DancingScript',
                                         fontSize: fontSize,
                                       ),
                                     ),

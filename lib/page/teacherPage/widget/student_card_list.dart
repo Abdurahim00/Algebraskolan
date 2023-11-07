@@ -1,7 +1,6 @@
 import 'package:algebra/page/teacherPage/widget/student_card.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../provider/student_provider.dart';
@@ -53,11 +52,13 @@ class _StudentListPartState extends State<StudentListPart> {
                 studentProvider.selectedStudents.isEmpty
                     ? "Välj alla >"
                     : "Avvälj alla >",
-                style: GoogleFonts.roboto(fontSize: fontSize).copyWith(
+                style: TextStyle(
+                  fontFamily:
+                      'Montserrat', // Use the font family name you declared in pubspec.yaml
+                  fontSize: fontSize,
                   color: studentProvider.selectedStudents.isEmpty
                       ? Colors.blue
                       : const Color.fromRGBO(245, 142, 11, 1),
-                  fontSize: fontSize,
                 ),
                 minFontSize: 12,
                 maxLines: 1,

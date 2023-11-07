@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:algebra/page/studentPage/student_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -78,7 +77,11 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                             padding: const EdgeInsets.all(20),
                             child: Text(
                               "${questionProvider.question!['question']}",
-                              style: GoogleFonts.pangolin(fontSize: 30),
+                              style: const TextStyle(
+                                fontFamily:
+                                    'Pangolin', // Use the font family name you declared in pubspec.yaml
+                                fontSize: 30,
+                              ),
                             ),
                           ),
                         ),
@@ -115,7 +118,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 children: [
                                   TextField(
                                     keyboardType:
-                                        TextInputType.numberWithOptions(),
+                                        const TextInputType.numberWithOptions(),
                                     textAlign: TextAlign.center,
                                     controller: _textController,
                                     decoration: InputDecoration(
@@ -188,10 +191,10 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                         PageRouteBuilder(
                                           pageBuilder: (context, animation,
                                                   secondaryAnimation) =>
-                                              StudentScreen(),
+                                              const StudentScreen(),
 
                                           transitionDuration:
-                                              Duration(milliseconds: 500),
+                                              const Duration(milliseconds: 500),
                                           // Adjust as needed
                                           transitionsBuilder: (context,
                                               animation,

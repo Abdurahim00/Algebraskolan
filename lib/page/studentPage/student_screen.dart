@@ -4,13 +4,12 @@ import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/transaction_provider.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../backend/control_page.dart';
 
 class StudentScreen extends StatefulWidget {
-  StudentScreen({Key? key}) : super(key: key);
+  const StudentScreen({Key? key}) : super(key: key);
 
   @override
   State<StudentScreen> createState() => _StudentScreenState();
@@ -89,28 +88,58 @@ class _StudentScreenState extends State<StudentScreen> {
                 onTap: () {
                   showDialog(
                     context: context,
-                    builder: (context) {
-                      return CupertinoAlertDialog(
-                        title: Text("Är du säker?"),
-                        actions: [
-                          MaterialButton(
-                            onPressed: () {
-                              _handleLogout();
-                            },
-                            child: Text("Ja"),
-                          ),
-                          MaterialButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: Text("Nej"),
-                          ),
-                        ],
-                      );
+                    builder: (BuildContext context) {
+                      // Check the platform
+                      if (Theme.of(context).platform == TargetPlatform.iOS) {
+                        // Use CupertinoAlertDialog for iOS
+                        return CupertinoAlertDialog(
+                          title: const Text("Är du säker?"),
+                          actions: <Widget>[
+                            CupertinoDialogAction(
+                              onPressed: () {
+                                _handleLogout();
+                              },
+                              child: const Text("Ja"),
+                            ),
+                            CupertinoDialogAction(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: Text("Nej"),
+                            ),
+                          ],
+                        );
+                      } else {
+                        // Fallback to AlertDialog for Android and other platforms
+                        return AlertDialog(
+                          title: const Text("Är du säker?"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                _handleLogout();
+                              },
+                              child: Text("Ja"),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text("Nej"),
+                            ),
+                          ],
+                        );
+                      }
                     },
                   );
                 },
-                title: Text("Logga ut", style: GoogleFonts.montserrat()),
+                title: const Text(
+                  "Logga ut",
+                  style: TextStyle(
+                    fontFamily:
+                        'Montserrat', // Use the font family name you declared in pubspec.yaml
+                    // Add any other style properties you need
+                  ),
+                ),
               ),
             ],
           ),
@@ -125,12 +154,18 @@ class _StudentScreenState extends State<StudentScreen> {
                     create: (_) => TransactionProvider(
                       uid: uid!,
                       googleSignInProvider: Provider.of<GoogleSignInProvider>(
-                          context,
-                          listen: false),
+                        context,
+                        listen: false,
+                      ),
                     ),
-                    child: TransactionWidget(
-                      shouldShowDonation: shouldShowDonation,
-                      refreshNotifier: refreshNotifier,
+                    child: Consumer<TransactionProvider>(
+                      builder: (context, transactionProvider, child) {
+                        // Use transactionProvider to build your UI
+                        return TransactionWidget(
+                          shouldShowDonation: shouldShowDonation,
+                          refreshNotifier: refreshNotifier,
+                        );
+                      },
                     ),
                   ),
                 SizedBox(

@@ -72,79 +72,113 @@ class StudentSearch extends SearchDelegate<Student?> {
                     builder: (context) {
                       final coinController = TextEditingController();
                       return AlertDialog(
-                        title: Text('Ange mynt för ${student.displayName}'),
-                        content: SingleChildScrollView(
-                          padding: const EdgeInsets.symmetric(vertical: 10.0),
-                          child: TextField(
-                            controller: coinController,
-                            decoration: const InputDecoration(
-                              labelText: 'Ange mynt',
+                          title: Text('Ange mynt för ${student.displayName}'),
+                          content: SingleChildScrollView(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: TextField(
+                              controller: coinController,
+                              decoration: const InputDecoration(
+                                labelText: 'Ange mynt',
+                              ),
+                              keyboardType: TextInputType.number,
                             ),
-                            keyboardType: TextInputType.number,
                           ),
-                        ),
-                        actions: [
-                          TextButton(
-                            child: const Text('Ta bort'), // The "Remove" button
-                            onPressed: () async {
-                              final coinsToRemove =
-                                  int.tryParse(coinController.text) ?? 0;
+                          actions: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment
+                                  .spaceBetween, // Align space between the buttons
+                              children: [
+                                // "Ta bort" button on the far left
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white, // Text color
+                                    backgroundColor:
+                                        Colors.red, // Button background color
+                                  ),
+                                  onPressed: () async {
+                                    final coinsToRemove =
+                                        int.tryParse(coinController.text) ?? 0;
 
-                              // Check if coins to remove exceed the student's current coins
-                              if (studentNotifier.value.coins < coinsToRemove) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text(
-                                            'Cannot remove more coins than the student has.')));
-                                return;
-                              }
+                                    // Check if coins to remove exceed the student's current coins
+                                    if (studentNotifier.value.coins <
+                                        coinsToRemove) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Cannot remove more coins than the student has.'),
+                                        ),
+                                      );
+                                      return;
+                                    }
 
-                              studentNotifier.value.localCoins.value -=
-                                  coinsToRemove; // Subtract the entered coins
+                                    studentNotifier.value.localCoins.value -=
+                                        coinsToRemove; // Subtract the entered coins
 
-                              final teacherName =
-                                  googleSignInProvider.user?.displayName ??
-                                      "Unknown";
+                                    final teacherName = googleSignInProvider
+                                            .user?.displayName ??
+                                        "Unknown";
 
-                              try {
-                                await studentProvider.updateStudentCoins(
-                                    studentNotifier, teacherName);
-                                coinController.clear();
-                                Navigator.of(context).pop();
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content:
-                                            Text('Error updating coins: $e')));
-                              }
-                            },
-                          ),
-                          TextButton(
-                            child: const Text('Skicka'),
-                            onPressed: () async {
-                              final coins =
-                                  int.tryParse(coinController.text) ?? 0;
-                              studentNotifier.value.localCoins.value +=
-                                  coins; // Add the entered coins
+                                    try {
+                                      await studentProvider.updateStudentCoins(
+                                          studentNotifier, teacherName);
+                                      coinController.clear();
+                                      Navigator.of(context).pop();
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Error updating coins: $e'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                      'Ta bort'), // The "Remove" button text
+                                ),
 
-                              final teacherName =
-                                  googleSignInProvider.user?.displayName ??
-                                      "Unknown";
+                                // Spacer to push the next button to the far right
+                                Spacer(),
 
-                              try {
-                                await studentProvider.updateStudentCoins(
-                                    studentNotifier, teacherName);
-                                coinController.clear();
-                                Navigator.of(context).pop();
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                                    content: Text(
-                                        'Error updatering av algebronor: $e')));
-                              }
-                            },
-                          ),
-                        ],
-                      );
+                                // "Skicka" button on the far right
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white, // Text color
+                                    backgroundColor:
+                                        Colors.green, // Button background color
+                                  ),
+                                  onPressed: () async {
+                                    final coins =
+                                        int.tryParse(coinController.text) ?? 0;
+                                    studentNotifier.value.localCoins.value +=
+                                        coins; // Add the entered coins
+
+                                    final teacherName = googleSignInProvider
+                                            .user?.displayName ??
+                                        "Unknown";
+
+                                    try {
+                                      await studentProvider.updateStudentCoins(
+                                          studentNotifier, teacherName);
+                                      coinController.clear();
+                                      Navigator.of(context).pop();
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('Error updating coins: $e'),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: const Text(
+                                      'Skicka'), // The "Send" button text
+                                ),
+                              ],
+                            )
+                          ]);
                     },
                   );
                 },

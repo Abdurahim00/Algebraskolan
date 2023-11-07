@@ -1,6 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import '../../../provider/student_provider.dart';
@@ -65,10 +64,14 @@ class StudentCard extends StatelessWidget {
                             builder: (context, studentValue, _) {
                               return AutoSizeText(
                                 studentValue.displayName,
-                                style: GoogleFonts.roboto(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16),
+                                style: const TextStyle(
+                                  fontFamily:
+                                      'Roboto', // Use the font family name you declared in pubspec.yaml
+                                  color: Colors.white,
+                                  fontWeight: FontWeight
+                                      .w700, // Make sure you've added the specific font weight file in your assets
+                                  fontSize: 16,
+                                ),
                                 minFontSize: 12,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

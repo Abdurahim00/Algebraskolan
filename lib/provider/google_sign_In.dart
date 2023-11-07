@@ -60,7 +60,7 @@ class GoogleSignInProvider extends ChangeNotifier {
       if (e is FirebaseException && e.code == "NETWORK_ERROR") {
         print("Network error detected!");
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("KOLLA DIN INTERNET")));
+            .showSnackBar(const SnackBar(content: Text("KOLLA DIN INTERNET")));
       }
     }
 

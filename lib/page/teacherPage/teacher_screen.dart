@@ -13,7 +13,6 @@ import 'package:unicons/unicons.dart';
 import '../../provider/student_provider.dart';
 import 'widget/student_card_list.dart';
 import '../student_search.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 const Classesnr = [
   {"image": "number0.png", "name": "Klass 0", "number": 0},
@@ -67,30 +66,55 @@ class _TeacherScreenState extends State<TeacherScreen> {
                   child: (Image.asset("assets/images/Algebraskola1.png"))),
               ListTile(
                 onTap: () => showDialog(
-                    context: context,
-                    builder: (context) {
+                  context: context,
+                  builder: (BuildContext context) {
+                    // Check the platform
+                    if (Theme.of(context).platform == TargetPlatform.iOS) {
+                      // Use CupertinoAlertDialog for iOS
                       return CupertinoAlertDialog(
                         title: Text("Är du säker?"),
-                        actions: [
-                          MaterialButton(
+                        actions: <Widget>[
+                          CupertinoDialogAction(
                             onPressed: () {
                               provider.googleLogout();
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                             child: Text("Ja"),
                           ),
-                          MaterialButton(
+                          CupertinoDialogAction(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
                             },
                             child: Text("Nej"),
-                          )
+                          ),
                         ],
                       );
-                    }),
-                title: Text(
+                    } else {
+                      // Fallback to AlertDialog for Android and other platforms
+                      return AlertDialog(
+                        title: Text("Är du säker?"),
+                        actions: <Widget>[
+                          TextButton(
+                            onPressed: () {
+                              provider.googleLogout();
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Ja"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Nej"),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                ),
+                title: const Text(
                   "Logga ut",
-                  style: GoogleFonts.montserrat(),
+                  style: TextStyle(fontFamily: 'montserrat'),
                 ),
               ),
             ],
@@ -166,8 +190,8 @@ class _TeacherScreenState extends State<TeacherScreen> {
                                 Flexible(
                                   child: AutoSizeText(
                                     "${classes["name"]}",
-                                    style: GoogleFonts.montserrat(),
-                                    maxLines: 1,
+                                    style: const TextStyle(
+                                        fontFamily: 'montserrat'),
                                   ),
                                 ),
                               ],
@@ -247,9 +271,13 @@ class _TeacherScreenState extends State<TeacherScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30)),
                       ),
-                      child: Text(
+                      child: const Text(
                         "Skicka",
-                        style: GoogleFonts.roboto(fontSize: 16),
+                        style: TextStyle(
+                          fontFamily:
+                              'Roboto', // Use the font family name you declared in pubspec.yaml
+                          fontSize: 16, // Set the font size directly here
+                        ),
                       ),
                     ),
                   )
