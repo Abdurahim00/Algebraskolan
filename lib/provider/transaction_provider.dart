@@ -24,12 +24,8 @@ class TransactionProvider extends ChangeNotifier {
 
   Future<void> updateTransactionIsNewFlag(String docId) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('students')
-          .doc(uid) // <-- Use the uid from GoogleSignInProvider
-          .collection('transactions')
-          .doc(docId)
-          .update({'isNew': false});
+      // Delegate the database update to the TransactionService
+      await _transactionService.updateTransactionIsNewFlag(uid!, docId);
     } catch (e) {
       print('Failed to update transaction: $e');
     }

@@ -203,7 +203,8 @@ class StudentProvider with ChangeNotifier {
     CoinTransaction transaction = CoinTransaction(
       teacherName: teacherName,
       amount: student.value.localCoins.value,
-      timestamp: DateTime.now(),
+      // Use Firestore's server timestamp
+      timestamp: FieldValue.serverTimestamp(),
     );
 
     // Use the StudentService to add the transaction and update coins
