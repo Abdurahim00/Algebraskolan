@@ -1,9 +1,12 @@
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
-Future<List<Map<String, dynamic>>> getQuestionsByClass(int classNumber) async {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+Future<List<Map<String, dynamic>>> getQuestionsByClass(int classNumber,
+    {@visibleForTesting FirebaseFirestore? firestore}) async {
+  firestore ??= FirebaseFirestore.instance;
 
   // Reference to the 'questions' collection
   CollectionReference questionsRef = firestore.collection('math_questions');
@@ -18,9 +21,12 @@ Future<List<Map<String, dynamic>>> getQuestionsByClass(int classNumber) async {
       .toList();
 }
 
-Future<Map<String, dynamic>> getRandomQuestion(int classNumber) async {
+Future<Map<String, dynamic>> getRandomQuestion(int classNumber,
+    {@visibleForTesting Random? random,
+    @visibleForTesting FirebaseFirestore? firestore}) async {
   // Fetch all questions for the class
-  List<Map<String, dynamic>> questions = await getQuestionsByClass(classNumber);
+  List<Map<String, dynamic>> questions =
+      await getQuestionsByClass(classNumber, firestore: firestore);
 
   if (questions.isNotEmpty) {
     // Get a random question
@@ -33,9 +39,9 @@ Future<Map<String, dynamic>> getRandomQuestion(int classNumber) async {
   }
 }
 
-Future<bool> checkAnswer(
-    int classNumber, int questionIndex, String userAnswer) async {
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
+Future<bool> checkAnswer(int classNumber, int questionIndex, String userAnswer,
+    {FirebaseFirestore? firestore}) async {
+  firestore ??= FirebaseFirestore.instance;
 
   // Reference to the 'questions' collection
   CollectionReference questionsRef = firestore.collection('math_questions');

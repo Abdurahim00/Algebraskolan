@@ -1,7 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class TransactionService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  TransactionService({@visibleForTesting FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  final FirebaseFirestore _firestore;
 
   Future<void> fetchAndUpdateTransactions(
       String uid, Function(String) onNewTransaction) async {

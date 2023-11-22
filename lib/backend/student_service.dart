@@ -60,6 +60,7 @@ class StudentService {
           .collection('users')
           .doc(uid)
           .update({'coins': FieldValue.increment(coins)});
+
       return true;
     } catch (e) {
       print("Error updating coins in StudentService: $e");

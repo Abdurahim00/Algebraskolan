@@ -1,21 +1,11 @@
 class CoinTransaction {
-  String teacherName;
-  int amount;
-  dynamic
-      timestamp; // Changed from DateTime to dynamic to accept FieldValue.serverTimestamp()
+  final String teacherName;
+  final int amount;
+  final DateTime timestamp;
 
   CoinTransaction({
     required this.teacherName,
     required this.amount,
-    required this.timestamp, // Accept dynamic type
+    required this.timestamp,
   });
-
-  Map<String, dynamic> toMap() {
-    return {
-      'teacherName': teacherName,
-      'amount': amount,
-      'timestamp': timestamp, // No change needed here
-      'isNew': true, // Ensure isNew is always true for new transactions
-    };
-  }
 }
