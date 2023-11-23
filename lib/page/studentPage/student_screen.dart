@@ -1,8 +1,8 @@
 import 'package:algebra/page/studentPage/widget/coin_widget.dart';
+import 'package:algebra/page/studentPage/widget/student_drawer.dart';
 import 'package:algebra/page/studentPage/widget/transactions.dart'; // Make sure to import TransactionWidget if the path is different
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/transaction_provider.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -79,71 +79,7 @@ class _StudentScreenState extends State<StudentScreen> {
             ),
           ),
         ),
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                  child: Image.asset("assets/images/Algebraskola1.png")),
-              ListTile(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      // Check the platform
-                      if (Theme.of(context).platform == TargetPlatform.iOS) {
-                        // Use CupertinoAlertDialog for iOS
-                        return CupertinoAlertDialog(
-                          title: const Text("Är du säker?"),
-                          actions: <Widget>[
-                            CupertinoDialogAction(
-                              onPressed: () {
-                                _handleLogout();
-                              },
-                              child: const Text("Ja"),
-                            ),
-                            CupertinoDialogAction(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: Text("Nej"),
-                            ),
-                          ],
-                        );
-                      } else {
-                        // Fallback to AlertDialog for Android and other platforms
-                        return AlertDialog(
-                          title: const Text("Är du säker?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                _handleLogout();
-                              },
-                              child: Text("Ja"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                              child: const Text("Nej"),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                title: const Text(
-                  "Logga ut",
-                  style: TextStyle(
-                    fontFamily:
-                        'Montserrat', // Use the font family name you declared in pubspec.yaml
-                    // Add any other style properties you need
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        drawer: const StudentDrawer(),
         body: Padding(
           padding: const EdgeInsets.all(30.0),
           child: SingleChildScrollView(
@@ -162,7 +98,6 @@ class _StudentScreenState extends State<StudentScreen> {
                       builder: (context, transactionProvider, child) {
                         // Use transactionProvider to build your UI
                         return TransactionWidget(
-                          shouldShowDonation: shouldShowDonation,
                           refreshNotifier: refreshNotifier,
                         );
                       },

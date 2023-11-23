@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:algebra/page/drawer.dart';
 import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
@@ -43,8 +43,6 @@ class _TeacherScreenState extends State<TeacherScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
-
     final TextTheme textTheme = Theme.of(context).textTheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
@@ -59,67 +57,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
     return SafeArea(
       child: Scaffold(
         key: _scaffoldkey,
-        drawer: Drawer(
-          child: ListView(
-            children: [
-              DrawerHeader(
-                  child: (Image.asset("assets/images/Algebraskola1.png"))),
-              ListTile(
-                onTap: () => showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    // Check the platform
-                    if (Theme.of(context).platform == TargetPlatform.iOS) {
-                      // Use CupertinoAlertDialog for iOS
-                      return CupertinoAlertDialog(
-                        title: Text("Är du säker?"),
-                        actions: <Widget>[
-                          CupertinoDialogAction(
-                            onPressed: () {
-                              provider.googleLogout();
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Ja"),
-                          ),
-                          CupertinoDialogAction(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Nej"),
-                          ),
-                        ],
-                      );
-                    } else {
-                      // Fallback to AlertDialog for Android and other platforms
-                      return AlertDialog(
-                        title: Text("Är du säker?"),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              provider.googleLogout();
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Ja"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Nej"),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                ),
-                title: const Text(
-                  "Logga ut",
-                  style: TextStyle(fontFamily: 'montserrat'),
-                ),
-              ),
-            ],
-          ),
-        ),
+        drawer: const AppDrawer(),
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [

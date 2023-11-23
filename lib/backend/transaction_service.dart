@@ -14,24 +14,28 @@ class TransactionService {
       return;
     }
 
-    QuerySnapshot snapshot = await _firestore
-        .collection('students')
-        .doc(uid)
-        .collection('transactions')
-        .orderBy('timestamp', descending: true)
-        .get();
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('students')
+          .doc(uid)
+          .collection('transactions')
+          .orderBy('timestamp', descending: true)
+          .limit(1) // Fetch only the latest transaction
+          .get();
 
-    for (var doc in snapshot.docs) {
-      final Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-      if (data != null && data.containsKey('isNew') && data['isNew']) {
-        final int amount = data['amount'] as int;
-        String message = amount >= 0
-            ? "${data['teacherName']} +$amount algebronor."
-            : "${data['teacherName']} -${amount.abs()} algebronor.";
-        onNewTransaction(message);
-        await updateTransactionIsNewFlag(uid, doc.id);
-        break;
+      if (snapshot.docs.isNotEmpty) {
+        final doc = snapshot.docs.first;
+        final Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+        if (data != null) {
+          final int amount = data['amount'] as int;
+          String message = amount >= 0
+              ? "${data['teacherName']} +$amount algebronor."
+              : "${data['teacherName']} -${amount.abs()} algebronor.";
+          onNewTransaction(message);
+        }
       }
+    } catch (e) {
+      print('Error fetching latest transaction: $e');
     }
   }
 

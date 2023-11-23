@@ -8,7 +8,7 @@ class GoogleSignInProvider extends ChangeNotifier {
   static final GoogleSignInProvider instance = GoogleSignInProvider._();
   GoogleSignInAccount? _user;
 
-  GoogleSignInAccount get user => _user!;
+  GoogleSignInAccount? get user => _user;
   String? get uid => FirebaseAuth.instance.currentUser?.uid;
 
   GoogleSignInProvider._(); // Private constructor

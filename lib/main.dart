@@ -16,8 +16,12 @@ void main() async {
   await Firebase.initializeApp();
   await FirebaseAuth.instance.signOut(); // force sign-out for testing
 
-  SystemChrome.setPreferredOrientations(
-      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]).then((_) {
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]).then((_) {
     runApp(const MyApp());
   });
 }
