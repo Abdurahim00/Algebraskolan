@@ -28,30 +28,42 @@ class StudentService {
     }
   }
 
-  // Search students by display name
   Future<List<Student>> searchStudentsByDisplayName(String query) async {
     if (query.isEmpty) {
       return [];
     }
 
     try {
+      // Adjust the query to include class number
       QuerySnapshot snapshot = await _firestore
           .collection('users')
           .where('displayNameLower',
               isGreaterThanOrEqualTo: query.toLowerCase())
           .get();
 
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.map((doc) => Student.fromDocument(doc)).toList();
-      } else {
-        print("No results found for query: $query");
-        return [];
+      List<Student> initialResults =
+          snapshot.docs.map((doc) => Student.fromDocument(doc)).toList();
+
+      // Further filter the results if the query is numeric
+      if (isNumeric(query)) {
+        int classNumber = int.parse(query);
+        initialResults = initialResults
+            .where((student) => student.classNumber == classNumber)
+            .toList();
       }
+
+      return initialResults;
     } catch (error) {
-      print(
-          "An error occurred while searching students in StudentService: $error");
+      print("An error occurred while searching students: $error");
       rethrow;
     }
+  }
+
+  bool isNumeric(String s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
   }
 
   Future<bool> updateStudentCoinsInFirestore(String uid, int coins) async {

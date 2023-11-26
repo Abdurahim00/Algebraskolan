@@ -90,4 +90,18 @@ class GoogleSignInProvider extends ChangeNotifier {
     // Notify listeners of changes
     notifyListeners();
   }
+
+  // Call this method in your main function or initState of your root widget
+  Future<void> initializeUser() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null) {
+      // User is signed in
+      try {
+        _user = await _googleSignIn.signInSilently();
+      } catch (error) {
+        print("Error in silent sign-in: $error");
+      }
+    }
+    notifyListeners();
+  }
 }

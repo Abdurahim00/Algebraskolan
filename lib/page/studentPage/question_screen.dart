@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:algebra/page/studentPage/student_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -117,8 +118,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 alignment: Alignment.centerRight,
                                 children: [
                                   TextField(
-                                    keyboardType:
-                                        const TextInputType.numberWithOptions(),
+                                    keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     controller: _textController,
                                     decoration: InputDecoration(
@@ -129,7 +129,15 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                         borderSide: BorderSide.none,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
+                                      contentPadding: const EdgeInsets.only(
+                                        right:
+                                            40, // Adjust the padding to ensure text doesn't overlap with the button
+                                      ),
                                     ),
+                                    inputFormatters: <TextInputFormatter>[
+                                      FilteringTextInputFormatter
+                                          .digitsOnly, // Only numbers can be entered
+                                    ],
                                   ),
                                   IconButton(
                                     icon: const Icon(

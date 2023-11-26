@@ -1,35 +1,32 @@
-import 'package:algebra/page/splash_screen.dart';
-import 'package:algebra/provider/google_sign_In.dart';
-import 'package:algebra/provider/question_provider.dart';
-import 'package:algebra/provider/student_provider.dart'; // make sure to import this
-import 'package:algebra/provider/transaction_provider.dart';
+import 'package:algebra/page/network_alert.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-
-final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+import 'package:flutter/services.dart';
+import 'package:algebra/provider/google_sign_In.dart';
+import 'package:algebra/provider/student_provider.dart';
+import 'package:algebra/provider/question_provider.dart';
+import 'package:algebra/provider/transaction_provider.dart';
+import 'package:algebra/page/splash_screen.dart';
+import 'package:algebra/provider/connectivity_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  await FirebaseAuth.instance.signOut(); // force sign-out for testing
-
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-    DeviceOrientation.portraitDown,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
-  ]).then((_) {
-    runApp(const MyApp());
-  });
+  final googleSignInProvider = GoogleSignInProvider.instance;
+  await googleSignInProvider.initializeUser();
+  final connectivityController = ConnectivityController();
+  await connectivityController.init();
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]).then(
+      (_) => runApp(MyApp(connectivityController: connectivityController)));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ConnectivityController connectivityController;
 
-  // This widget is the root of your application.
+  const MyApp({Key? key, required this.connectivityController})
+      : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -45,9 +42,33 @@ class MyApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
+        title: 'Algebra App',
+        theme: ThemeData(primarySwatch: Colors.blue),
         debugShowCheckedModeBanner: false,
-        navigatorObservers: [routeObserver],
-        home: SplashScreen(),
+        home: ValueListenableBuilder<bool>(
+          valueListenable: connectivityController.isConnected,
+          builder: (context, isConnected, child) {
+            if (isConnected) {
+              return SplashScreen(
+                  connectivityController: connectivityController);
+            } else {
+              // Show network alert popup instead of returning a widget
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                NetworkAlertPopup.show(
+                  context,
+                  connectivityController,
+                  () {
+                    Navigator.of(context).pushReplacement(MaterialPageRoute(
+                      builder: (context) => SplashScreen(
+                          connectivityController: connectivityController),
+                    ));
+                  },
+                );
+              });
+              return Container(); // Return an empty container
+            }
+          },
+        ),
       ),
     );
   }

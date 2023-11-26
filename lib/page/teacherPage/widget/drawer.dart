@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../provider/google_sign_In.dart';
+import '../../../provider/google_sign_In.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -21,8 +21,7 @@ class AppDrawer extends StatelessWidget {
             currentAccountPicture: CircleAvatar(
               backgroundImage: user?.photoUrl != null
                   ? NetworkImage(user!.photoUrl!) as ImageProvider<Object>?
-                  : const AssetImage('assets/default_user.png')
-                      as ImageProvider<Object>?,
+                  : const AssetImage('assets/default_user.png'),
             ),
           ),
           ListTile(

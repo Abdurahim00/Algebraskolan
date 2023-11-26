@@ -26,6 +26,8 @@ dependencies:
   animated_splash_screen: ^1.3.0
   page_transition: ^2.0.9
   fluttertoast: ^8.2.2
+  connectivity_plus: ^5.0.2
+
   
 
  

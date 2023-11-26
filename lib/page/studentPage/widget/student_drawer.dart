@@ -29,8 +29,7 @@ class StudentDrawer extends StatelessWidget {
             currentAccountPicture: CircleAvatar(
               backgroundImage: user?.photoUrl != null
                   ? NetworkImage(user!.photoUrl!) as ImageProvider<Object>?
-                  : const AssetImage('assets/default_user.png')
-                      as ImageProvider<Object>?,
+                  : const AssetImage('assets/default_user.png'),
             ),
           ),
           ListTile(
