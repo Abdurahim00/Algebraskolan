@@ -1,13 +1,14 @@
-import 'package:algebra/provider/google_sign_In.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
-import 'package:provider/provider.dart';
-import 'package:algebra/provider/connectivity_provider.dart'; // Import ConnectivityProvider
-import 'package:algebra/page/network_alert.dart'; // Import NetworkAlertPopup
+
+import '../provider/google_sign_In.dart';
+import 'network_alert.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -43,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                const SizedBox(height: 8),
                 const Align(
                   alignment: Alignment.topLeft,
                   child: Text(
@@ -79,16 +79,14 @@ class _LoginPageState extends State<LoginPage> {
                     overlayColor: MaterialStateProperty.all<Color>(
                         Colors.orange.withOpacity(0.2)),
                   ),
-                  icon: const FaIcon(
-                    FontAwesomeIcons.google,
-                    color: Colors.orange,
-                  ),
+                  icon: const FaIcon(FontAwesomeIcons.google,
+                      color: Colors.orange),
                   onPressed: () async {
                     if (await connectivityController.isConnected.value) {
                       final provider = Provider.of<GoogleSignInProvider>(
                           context,
                           listen: false);
-                      provider.googleLogin(context);
+                      provider.googleLogin(context, connectivityController);
                     } else {
                       NetworkAlertPopup.show(context, connectivityController,
                           () async {
@@ -96,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                           final provider = Provider.of<GoogleSignInProvider>(
                               context,
                               listen: false);
-                          provider.googleLogin(context);
+                          provider.googleLogin(context, connectivityController);
                         }
                       });
                     }

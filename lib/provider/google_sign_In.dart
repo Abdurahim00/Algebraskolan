@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../page/network_alert.dart';
+import '../provider/connectivity_provider.dart'; // Import ConnectivityProvider
 
 class GoogleSignInProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -13,20 +15,21 @@ class GoogleSignInProvider extends ChangeNotifier {
 
   GoogleSignInProvider._(); // Private constructor
 
-  Future<void> googleLogin(BuildContext context) async {
-    // Sign in with Google
-    final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return;
-    _user = googleUser;
-
-    // Get authentication credentials
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-
+  Future<void> googleLogin(BuildContext context,
+      ConnectivityController connectivityController) async {
     try {
+      // Sign in with Google
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return;
+      _user = googleUser;
+
+      // Get authentication credentials
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
       // Sign in to Firebase with Google credentials
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
@@ -44,23 +47,24 @@ class GoogleSignInProvider extends ChangeNotifier {
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'email': email,
           'displayName': displayName,
-          'role':
-              'student', // everyone who creates an account will become a student, the admin assigns teachers
+          'role': 'student', // Default role
           'classNumber': 0,
-          'coins': 0, // default coins set to 0
-          // set to current time
-          'hasAnsweredQuestionCorrectly':
-              false, // new user has not yet answered a question
+          'coins': 0,
+          'hasAnsweredQuestionCorrectly': false,
         });
       }
     } catch (e) {
-      // Handle any exceptions that occur during sign-in
-      print('Error during sign-in: $e');
-      // You can show an error message or perform any other necessary action
-      if (e is FirebaseException && e.code == "NETWORK_ERROR") {
-        print("Network error detected!");
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text("KOLLA DIN INTERNET")));
+      // Handle network exceptions
+      if (e is FirebaseException && e.code == 'network-request-failed') {
+        // Show network alert dialog with a retry callback
+        NetworkAlertPopup.show(context, connectivityController, () {
+          // Retry logic for Google login
+          googleLogin(context, connectivityController);
+        });
+      } else {
+        // Handle other exceptions
+        print('Error during sign-in: $e');
+        // Show error message or perform other actions
       }
     }
 
