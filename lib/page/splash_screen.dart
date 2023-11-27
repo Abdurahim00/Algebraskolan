@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:algebra/provider/connectivity_provider.dart'; // Ensure you have the correct import for ConnectivityController
+import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:page_transition/page_transition.dart';
-import 'package:algebra/backend/control_page.dart'; // Ensure you have the correct import for HomePage or the desired next screen
-
+import 'package:algebra/backend/control_page.dart'; // Replace with your desired next screen
 import 'network_alert.dart'; // Import NetworkAlertPopup
 
 class SplashScreen extends StatelessWidget {
@@ -33,20 +32,26 @@ class SplashScreen extends StatelessWidget {
             nextScreen: HomePage(), // Replace with your desired screen
           );
         } else {
-          // Trigger the NetworkAlertPopup instead of returning a widget
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            NetworkAlertPopup.show(
-              context,
-              connectivityController,
-              () {
-                Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (context) => SplashScreen(
-                      connectivityController: connectivityController),
-                ));
-              },
-            );
-          });
-          return Container(); // Return an empty container
+          // Directly show the NetworkAlertPopup
+          return Scaffold(
+            body: Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  NetworkAlertPopup.show(
+                    context,
+                    connectivityController,
+                    () {
+                      Navigator.of(context).pushReplacement(MaterialPageRoute(
+                        builder: (context) => SplashScreen(
+                            connectivityController: connectivityController),
+                      ));
+                    },
+                  );
+                },
+                child: const Text('Check Connection'),
+              ),
+            ),
+          );
         }
       },
     );

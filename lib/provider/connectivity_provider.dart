@@ -1,7 +1,7 @@
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 
-class ConnectivityController {
+class ConnectivityController extends ChangeNotifier {
   ValueNotifier<bool> isConnected = ValueNotifier(false);
 
   Future<void> init() async {

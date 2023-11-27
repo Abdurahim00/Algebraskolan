@@ -114,7 +114,7 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                       children: [
                         // This is the Lottie animation at the bottom of the stack.
                         Lottie.asset(
-                          "assets/images/credit-card.json",
+                          "assets/images/Pn9nLAk7JQ.json",
                           controller: _lottieController,
                           onLoaded: (composition) {
                             _lottieController!.duration = composition.duration;

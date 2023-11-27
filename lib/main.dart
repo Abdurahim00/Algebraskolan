@@ -9,6 +9,7 @@ import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/transaction_provider.dart';
 import 'package:algebra/page/splash_screen.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
+import 'package:algebra/page/login.dart'; // Import LoginPage
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,8 @@ class MyApp extends StatelessWidget {
                 Provider.of<GoogleSignInProvider>(context, listen: false),
           ),
         ),
+        ChangeNotifierProvider.value(
+            value: connectivityController), // Added this line
       ],
       child: MaterialApp(
         title: 'Algebra App',
@@ -52,19 +55,12 @@ class MyApp extends StatelessWidget {
               return SplashScreen(
                   connectivityController: connectivityController);
             } else {
-              // Show network alert popup instead of returning a widget
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                NetworkAlertPopup.show(
-                  context,
-                  connectivityController,
-                  () {
-                    Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (context) => SplashScreen(
-                          connectivityController: connectivityController),
-                    ));
-                  },
-                );
-              });
+              // Show network alert popup
+              Future.microtask(() => NetworkAlertPopup.show(
+                    context,
+                    connectivityController,
+                    () => connectivityController.checkConnectivity(),
+                  ));
               return Container(); // Return an empty container
             }
           },

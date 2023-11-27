@@ -17,31 +17,41 @@ class _ConnectionAlertState extends State<ConnectionAlert> {
   void initState() {
     super.initState();
     connectivityController.init();
+    connectivityController.isConnected.addListener(_connectivityChanged);
   }
 
-  void _handleRetry() {
-    // Recheck internet connection
-    connectivityController.checkConnectivity();
+  void _connectivityChanged() {
+    if (!connectivityController.isConnected.value) {
+      if (mounted) {
+        showNetworkAlert();
+      }
+    } else {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop('dialog');
+      }
+    }
+  }
+
+  void showNetworkAlert() {
+    NetworkAlertPopup.show(
+      context,
+      connectivityController,
+      _handleRetry,
+    );
+  }
+
+  Future<bool> _handleRetry() async {
+    return await connectivityController.checkConnectivity();
+  }
+
+  @override
+  void dispose() {
+    connectivityController.isConnected.removeListener(_connectivityChanged);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: connectivityController.isConnected,
-      builder: (context, isConnected, child) {
-        if (!isConnected) {
-          // Trigger the NetworkAlertPopup if not connected
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            NetworkAlertPopup.show(
-              context,
-              connectivityController,
-              _handleRetry,
-            );
-          });
-        }
-        // Return an empty container or the main content of the screen
-        return SizedBox();
-      },
-    );
+    return SizedBox(); // Or your main content
   }
 }

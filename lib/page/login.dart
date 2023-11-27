@@ -1,14 +1,15 @@
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:lottie/lottie.dart'; // Make sure to import this
+import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
+import 'package:algebra/provider/connectivity_provider.dart'; // Import ConnectivityProvider
+import 'package:algebra/page/network_alert.dart'; // Import NetworkAlertPopup
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -26,15 +27,16 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final connectivityController =
+        Provider.of<ConnectivityController>(context, listen: false);
+
     return Scaffold(
       body: Stack(
         children: [
-          // Lottie animation in the background
           Positioned.fill(
             child: Lottie.asset('assets/images/Gradient Circles Warm.json',
                 fit: BoxFit.cover),
           ),
-          // Your login page content
           Padding(
             padding: const EdgeInsets.all(32),
             child: Column(
@@ -59,10 +61,9 @@ class _LoginPageState extends State<LoginPage> {
                   child: Text(
                     "Signa up dig med Algebraskolans mail",
                     style: TextStyle(
-                      fontFamily:
-                          'LilitaOne', // Use the font family name you declared in pubspec.yaml
-                      fontSize: 20, // Set the font size directly here
-                      color: Colors.white, // Set the color to white
+                      fontFamily: 'LilitaOne',
+                      fontSize: 20,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -75,23 +76,34 @@ class _LoginPageState extends State<LoginPage> {
                         MaterialStateProperty.all<Color>(Colors.black),
                     minimumSize: MaterialStateProperty.all<Size>(
                         Size(double.infinity, 50)),
-                    overlayColor: MaterialStateProperty.all<Color>(Colors.orange
-                        .withOpacity(0.2)), // Semi-transparent orange
+                    overlayColor: MaterialStateProperty.all<Color>(
+                        Colors.orange.withOpacity(0.2)),
                   ),
                   icon: const FaIcon(
                     FontAwesomeIcons.google,
                     color: Colors.orange,
                   ),
-                  onPressed: () {
-                    final provider = Provider.of<GoogleSignInProvider>(context,
-                        listen: false);
-                    provider.googleLogin(context);
+                  onPressed: () async {
+                    if (await connectivityController.isConnected.value) {
+                      final provider = Provider.of<GoogleSignInProvider>(
+                          context,
+                          listen: false);
+                      provider.googleLogin(context);
+                    } else {
+                      NetworkAlertPopup.show(context, connectivityController,
+                          () async {
+                        if (await connectivityController.checkConnectivity()) {
+                          final provider = Provider.of<GoogleSignInProvider>(
+                              context,
+                              listen: false);
+                          provider.googleLogin(context);
+                        }
+                      });
+                    }
                   },
                   label: const Text("Sign Up with Google"),
                 ),
-                SizedBox(
-                  height: screenHeight * 0.1,
-                )
+                SizedBox(height: screenHeight * 0.1),
               ],
             ),
           ),

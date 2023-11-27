@@ -57,7 +57,6 @@ class StudentSearch extends SearchDelegate<Student?> {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
           final results = snapshot.data ?? [];
-          // Filter results based on full name match or partial match
           final filteredResults = results.where((studentNotifier) {
             final studentName = studentNotifier.value.displayName.toLowerCase();
             final lowerCaseQuery = query.toLowerCase();
@@ -105,8 +104,7 @@ class StudentSearch extends SearchDelegate<Student?> {
               decoration: const InputDecoration(labelText: 'Ange mynt'),
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter
-                    .digitsOnly, // Only numbers can be entered
+                FilteringTextInputFormatter.digitsOnly,
               ],
             ),
           ),
@@ -133,8 +131,6 @@ class StudentSearch extends SearchDelegate<Student?> {
       ),
       onPressed: () async {
         final coinsToRemove = int.tryParse(coinController.text) ?? 0;
-
-        // Check if the coins are within the allowed range
         if (coinsToRemove <= 0) {
           _showToast('Du kan inte ta bort 0 algebronor.');
           return;
@@ -143,7 +139,6 @@ class StudentSearch extends SearchDelegate<Student?> {
           _showToast('Du kan inte ta bort mer än 9999 algebronor.');
           return;
         }
-
         if (studentNotifier.value.coins < coinsToRemove) {
           _showToast('Eleven har inte tillräckligt med algebronor.');
           return;
@@ -155,6 +150,7 @@ class StudentSearch extends SearchDelegate<Student?> {
               studentNotifier, teacherName);
           coinController.clear();
           Navigator.of(context).pop();
+          _showSuccessToast('Du har tagit bort $coinsToRemove algebronor');
         } catch (e) {
           _showToast('Error updating coins: $e');
         }
@@ -175,7 +171,6 @@ class StudentSearch extends SearchDelegate<Student?> {
       ),
       onPressed: () async {
         final coins = int.tryParse(coinController.text) ?? 0;
-        // Check if the coins are within the allowed range
         if (coins <= 0) {
           _showToast('Du kan inte skicka 0 algebronor.');
           return;
@@ -184,7 +179,6 @@ class StudentSearch extends SearchDelegate<Student?> {
           _showToast('Du kan inte skicka mer än 9999 algebronor.');
           return;
         }
-
         studentNotifier.value.localCoins.value += coins;
         final teacherName = googleSignInProvider.user?.displayName ?? "Unknown";
         try {
@@ -192,6 +186,7 @@ class StudentSearch extends SearchDelegate<Student?> {
               studentNotifier, teacherName);
           coinController.clear();
           Navigator.of(context).pop();
+          _showSuccessToast('Du har skickat $coins algebronor');
         } catch (e) {
           _showToast('Error updating coins: $e');
         }
@@ -207,6 +202,18 @@ class StudentSearch extends SearchDelegate<Student?> {
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
       backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
+
+  void _showSuccessToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      timeInSecForIosWeb: 1,
+      backgroundColor: Colors.green,
       textColor: Colors.white,
       fontSize: 16.0,
     );
