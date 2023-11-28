@@ -9,7 +9,6 @@ import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/transaction_provider.dart';
 import 'package:algebra/page/splash_screen.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
-import 'package:algebra/page/login.dart'; // Import LoginPage
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
