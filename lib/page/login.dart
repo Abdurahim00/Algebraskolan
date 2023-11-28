@@ -8,9 +8,10 @@ import '../provider/google_sign_In.dart';
 import 'network_alert.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -75,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                     foregroundColor:
                         MaterialStateProperty.all<Color>(Colors.black),
                     minimumSize: MaterialStateProperty.all<Size>(
-                        Size(double.infinity, 50)),
+                        const Size(double.infinity, 50)),
                     overlayColor: MaterialStateProperty.all<Color>(
                         Colors.orange.withOpacity(0.2)),
                   ),

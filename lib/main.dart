@@ -24,8 +24,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final ConnectivityController connectivityController;
 
-  const MyApp({Key? key, required this.connectivityController})
-      : super(key: key);
+  const MyApp({super.key, required this.connectivityController});
 
   @override
   Widget build(BuildContext context) {

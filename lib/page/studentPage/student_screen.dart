@@ -6,10 +6,8 @@ import 'package:algebra/provider/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../backend/control_page.dart';
-
 class StudentScreen extends StatefulWidget {
-  const StudentScreen({Key? key}) : super(key: key);
+  const StudentScreen({super.key});
 
   @override
   State<StudentScreen> createState() => _StudentScreenState();
@@ -43,13 +41,6 @@ class _StudentScreenState extends State<StudentScreen> {
     // Clean up
     shouldShowDonation = false;
     super.dispose();
-  }
-
-  _handleLogout() {
-    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
-    provider.googleLogout();
-    Navigator.of(context)
-        .pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
   }
 
   @override

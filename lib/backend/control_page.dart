@@ -11,7 +11,7 @@ import 'auth_service.dart';
 class HomePage extends StatelessWidget {
   final UserAuthService _authService = UserAuthService();
 
-  HomePage({Key? key}) : super(key: key);
+  HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +60,6 @@ class HomePage extends StatelessWidget {
           } else if (snapshot2.hasData) {
             Map<String, dynamic> data =
                 snapshot2.data!.data() as Map<String, dynamic>;
-            print('User Data: $data'); // print all the user data
             if (data['role'] == 'teacher') {
               return const TeacherScreen();
             } else {
@@ -68,16 +67,16 @@ class HomePage extends StatelessWidget {
               if (data['hasAnsweredQuestionCorrectly'] == false) {
                 return QuestionsScreen(classNumber: classNumber);
               } else {
-                return StudentScreen();
+                return const StudentScreen();
               }
             }
           } else {
-            return LoginPage();
+            return const LoginPage();
           }
         },
       );
     } else {
-      return LoginPage();
+      return const LoginPage();
     }
   }
 }

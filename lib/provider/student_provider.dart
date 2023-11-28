@@ -32,8 +32,6 @@ class StudentProvider with ChangeNotifier {
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {
-      print(
-          "An error occurred while fetching students in StudentProvider: $error");
       rethrow;
     } finally {
       notifyListeners();
@@ -49,8 +47,6 @@ class StudentProvider with ChangeNotifier {
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {
-      print(
-          "An error occurred while searching students in StudentProvider: $error");
       rethrow;
     }
   }
@@ -59,8 +55,8 @@ class StudentProvider with ChangeNotifier {
       ValueNotifier<Student> studentNotifier) async {
     Student? currentStudent = studentNotifier.value;
 
+    // ignore: unnecessary_null_comparison
     if (currentStudent == null || currentStudent.uid == null) {
-      print('Student or student UID is null. Aborting updateCoinsInDatabase.');
       return false;
     }
 
@@ -197,8 +193,6 @@ class StudentProvider with ChangeNotifier {
       try {
         await updateStudentCoins(student, teacherName);
       } catch (e) {
-        print(
-            "An error occurred while updating coins for ${student.value.uid}: $e");
         hasErrorOccurred = true;
       }
     }

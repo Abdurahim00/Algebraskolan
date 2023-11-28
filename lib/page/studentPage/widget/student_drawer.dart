@@ -6,7 +6,7 @@ import 'package:algebra/provider/google_sign_In.dart';
 import '../../../backend/control_page.dart';
 
 class StudentDrawer extends StatelessWidget {
-  const StudentDrawer({Key? key}) : super(key: key);
+  const StudentDrawer({super.key});
 
   void _handleLogout(BuildContext context) {
     final provider = Provider.of<GoogleSignInProvider>(context, listen: false);

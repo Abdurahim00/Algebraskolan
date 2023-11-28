@@ -8,7 +8,7 @@ class CoinWidget extends StatefulWidget {
   final String uid;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  CoinWidget({Key? key, required this.uid}) : super(key: key);
+  CoinWidget({super.key, required this.uid});
 
   @override
   // ignore: library_private_types_in_public_api

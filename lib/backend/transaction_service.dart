@@ -10,7 +10,6 @@ class TransactionService {
   Future<void> fetchAndUpdateTransactions(
       String uid, Function(String) onNewTransaction) async {
     if (uid.isEmpty) {
-      print("User ID is empty, cannot fetch transactions");
       return;
     }
 
@@ -54,7 +53,6 @@ class TransactionService {
 
   Future<void> logTransaction(String uid, int coins, String teacherName) async {
     if (uid.isEmpty) {
-      print("Student UID is empty, cannot log transaction");
       return;
     }
 

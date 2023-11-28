@@ -10,8 +10,7 @@ import '../../provider/question_provider.dart';
 class QuestionsScreen extends StatefulWidget {
   final int classNumber;
 
-  const QuestionsScreen({required this.classNumber, Key? key})
-      : super(key: key);
+  const QuestionsScreen({required this.classNumber, super.key});
 
   @override
   _QuestionsScreenState createState() => _QuestionsScreenState();

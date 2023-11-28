@@ -13,7 +13,7 @@ import '../../provider/student_provider.dart';
 import 'widget/student_card_list.dart';
 import '../student_search.dart';
 
-const Classesnr = [
+const classesNr = [
   {"image": "number0.png", "name": "Klass 0", "number": 0},
   {"image": "number1.png", "name": "Klass 1", "number": 1},
   {"image": "number2.png", "name": "Klass 2", "number": 2},
@@ -29,7 +29,7 @@ const Classesnr = [
 final GoogleSignIn googleSignIn = GoogleSignIn();
 
 class TeacherScreen extends StatefulWidget {
-  const TeacherScreen({Key? key}) : super(key: key);
+  const TeacherScreen({super.key});
 
   @override
   _TeacherScreenState createState() => _TeacherScreenState();
@@ -92,50 +92,54 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
-                  children: Classesnr.map((classes) => GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedClass = classes["number"] as int?;
-                            context.read<StudentProvider>().handleClassChanged(
-                                selectedClass!); // Call handleClassChanged from the StudentProvider
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: EdgeInsets.only(
-                              right: 10.0,
-                              top: selectedClass == classes['number'] ? 10 : 0),
-                          width: MediaQuery.of(context).size.width * 0.25,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(30.0),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black12,
-                                offset: Offset(0, 2),
-                                blurRadius: 6.0,
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(10.0),
-                            child: Column(
-                              children: [
-                                Image.asset(
-                                    "assets/images/${classes['image']}"),
-                                const SizedBox(height: 10),
-                                Flexible(
-                                  child: AutoSizeText(
-                                    "${classes["name"]}",
-                                    style: const TextStyle(
-                                        fontFamily: 'montserrat'),
+                  children: classesNr
+                      .map((classes) => GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedClass = classes["number"] as int?;
+                                context.read<StudentProvider>().handleClassChanged(
+                                    selectedClass!); // Call handleClassChanged from the StudentProvider
+                              });
+                            },
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: EdgeInsets.only(
+                                  right: 10.0,
+                                  top: selectedClass == classes['number']
+                                      ? 10
+                                      : 0),
+                              width: MediaQuery.of(context).size.width * 0.25,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(30.0),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    offset: Offset(0, 2),
+                                    blurRadius: 6.0,
                                   ),
+                                ],
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(10.0),
+                                child: Column(
+                                  children: [
+                                    Image.asset(
+                                        "assets/images/${classes['image']}"),
+                                    const SizedBox(height: 10),
+                                    Flexible(
+                                      child: AutoSizeText(
+                                        "${classes["name"]}",
+                                        style: const TextStyle(
+                                            fontFamily: 'montserrat'),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                      )).toList(),
+                          ))
+                      .toList(),
                 ),
               ),
             ),

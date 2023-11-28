@@ -18,12 +18,9 @@ class StudentService {
       if (snapshot.docs.isNotEmpty) {
         return snapshot.docs.map((doc) => Student.fromDocument(doc)).toList();
       } else {
-        print("No students found for class number: $classNumber");
         return [];
       }
     } catch (error) {
-      print(
-          "An error occurred while fetching students in StudentService: $error");
       rethrow;
     }
   }
@@ -54,15 +51,11 @@ class StudentService {
 
       return initialResults;
     } catch (error) {
-      print("An error occurred while searching students: $error");
       rethrow;
     }
   }
 
   bool isNumeric(String s) {
-    if (s == null) {
-      return false;
-    }
     return double.tryParse(s) != null;
   }
 
@@ -75,7 +68,6 @@ class StudentService {
 
       return true;
     } catch (e) {
-      print("Error updating coins in StudentService: $e");
       return false;
     }
   }

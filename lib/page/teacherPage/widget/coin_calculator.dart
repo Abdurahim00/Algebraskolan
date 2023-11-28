@@ -25,32 +25,29 @@ class Coin_calculator extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Center(
-        child: Container(
-          // Set your desired width here.
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              FittedBox(
-                child: GestureDetector(
-                    onTap: minus,
-                    child: Icon(
-                      UniconsLine.minus_circle,
-                      size: MediaQuery.of(context).size.width * 0.15,
-                      color: Color.fromRGBO(245, 142, 11, 1),
-                    )),
-              ),
-              FittedBox(
-                child: GestureDetector(
-                  onTap: add,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: <Widget>[
+            FittedBox(
+              child: GestureDetector(
+                  onTap: minus,
                   child: Icon(
-                    UniconsLine.plus_circle,
+                    UniconsLine.minus_circle,
                     size: MediaQuery.of(context).size.width * 0.15,
                     color: Color.fromRGBO(245, 142, 11, 1),
-                  ),
+                  )),
+            ),
+            FittedBox(
+              child: GestureDetector(
+                onTap: add,
+                child: Icon(
+                  UniconsLine.plus_circle,
+                  size: MediaQuery.of(context).size.width * 0.15,
+                  color: Color.fromRGBO(245, 142, 11, 1),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

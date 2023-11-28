@@ -14,7 +14,6 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> fetchAndUpdateTransactions() async {
     await _transactionService.fetchAndUpdateTransactions(uid!, (message) {
       latestDonationMessage = message;
-      print('Latest donation message: $latestDonationMessage');
       notifyListeners();
     });
   }

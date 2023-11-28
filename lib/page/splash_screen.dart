@@ -8,8 +8,7 @@ import 'network_alert.dart'; // Import NetworkAlertPopup
 class SplashScreen extends StatelessWidget {
   final ConnectivityController connectivityController;
 
-  const SplashScreen({Key? key, required this.connectivityController})
-      : super(key: key);
+  const SplashScreen({super.key, required this.connectivityController});
 
   @override
   Widget build(BuildContext context) {

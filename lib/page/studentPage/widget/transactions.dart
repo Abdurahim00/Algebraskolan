@@ -7,9 +7,9 @@ class TransactionWidget extends StatefulWidget {
   final ValueNotifier<bool> refreshNotifier;
 
   const TransactionWidget({
-    Key? key,
+    super.key,
     required this.refreshNotifier,
-  }) : super(key: key);
+  });
 
   @override
   _TransactionWidgetState createState() => _TransactionWidgetState();

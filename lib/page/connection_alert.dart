@@ -3,7 +3,7 @@ import '../provider/connectivity_provider.dart';
 import 'network_alert.dart';
 
 class ConnectionAlert extends StatefulWidget {
-  const ConnectionAlert({Key? key}) : super(key: key);
+  const ConnectionAlert({super.key});
 
   @override
   State<ConnectionAlert> createState() => _ConnectionAlertState();
@@ -52,6 +52,6 @@ class _ConnectionAlertState extends State<ConnectionAlert> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(); // Or your main content
+    return const SizedBox(); // Or your main content
   }
 }
