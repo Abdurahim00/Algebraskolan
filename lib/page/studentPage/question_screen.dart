@@ -17,15 +17,22 @@ class QuestionsScreen extends StatefulWidget {
 }
 
 class _QuestionsScreenState extends State<QuestionsScreen> {
-  final _textController = TextEditingController();
+  late final TextEditingController _textController;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero).then((_) {
+    _textController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<QuestionProvider>(context, listen: false)
           .fetchQuestion(widget.classNumber);
     });
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -241,34 +248,53 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   ),
                 ),
               ),
-              if (questionProvider.showCorrectAnimation.value)
-                Positioned(
-                  child: Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Center(
-                      child: FractionallySizedBox(
-                        widthFactor: 0.3,
-                        heightFactor: 0.3,
-                        alignment: Alignment.center,
-                        child: Lottie.asset("assets/images/achievement.json"),
+              ValueListenableBuilder<bool>(
+                valueListenable: questionProvider.showCorrectAnimation,
+                builder: (context, showCorrect, child) {
+                  if (showCorrect) {
+                    return Positioned(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.3,
+                            heightFactor: 0.3,
+                            alignment: Alignment.center,
+                            child:
+                                Lottie.asset("assets/images/achievement.json"),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-              if (questionProvider.showUncorrectAnimation.value)
-                Positioned(
-                  child: Container(
-                    color: Colors.black.withOpacity(0.5),
-                    child: Center(
-                      child: FractionallySizedBox(
-                        widthFactor: 0.3,
-                        heightFactor: 0.3,
-                        alignment: Alignment.center,
-                        child: Lottie.asset("assets/images/canceled.json"),
+                    );
+                  } else {
+                    return const SizedBox
+                        .shrink(); // Return an empty container when the condition is false
+                  }
+                },
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: questionProvider.showUncorrectAnimation,
+                builder: (context, showUncorrect, child) {
+                  if (showUncorrect) {
+                    return Positioned(
+                      child: Container(
+                        color: Colors.black.withOpacity(0.5),
+                        child: Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.3,
+                            heightFactor: 0.3,
+                            alignment: Alignment.center,
+                            child: Lottie.asset("assets/images/canceled.json"),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
+                    );
+                  } else {
+                    return const SizedBox
+                        .shrink(); // Return an empty container when the condition is false
+                  }
+                },
+              ),
             ],
           ),
         );

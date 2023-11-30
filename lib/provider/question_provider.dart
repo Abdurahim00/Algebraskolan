@@ -6,10 +6,16 @@ class QuestionProvider with ChangeNotifier {
   Map<String, dynamic>? question;
   final ValueNotifier<bool> showCorrectAnimation = ValueNotifier(false);
   final ValueNotifier<bool> showUncorrectAnimation = ValueNotifier(false);
+  bool isLoading = false; // Add a loading state
 
   Future<void> fetchQuestion(int classNumber) async {
+    isLoading = true; // Set loading to true
+    notifyListeners(); // Notify here to show a loading indicator
+
     question = await getRandomQuestion(classNumber);
-    notifyListeners();
+
+    isLoading = false; // Reset loading state
+    notifyListeners(); // Notify again to update UI with the fetched question
   }
 
   Future<bool> validateAnswer(
@@ -22,13 +28,14 @@ class QuestionProvider with ChangeNotifier {
       showCorrectAnimation.value = false;
       showUncorrectAnimation.value = true;
     }
-    notifyListeners();
+    // Do not call notifyListeners() here if you're using ValueNotifier for animations
+
     return isCorrect;
   }
 
   void resetAnimation() {
     showCorrectAnimation.value = false;
     showUncorrectAnimation.value = false;
-    notifyListeners();
+    // Do not call notifyListeners() here if you're using ValueNotifier for animations
   }
 }
