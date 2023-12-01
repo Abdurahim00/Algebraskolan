@@ -64,7 +64,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
               top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
               left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
               child: SizedBox(
-                height: screenHeight * 0.2,
+                height: screenHeight * 0.1,
                 width: screenWidth * 0.5,
                 child: const Coin_calculator(),
               ),
@@ -72,7 +72,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
             Column(
               children: [
                 Expanded(
-                  flex: 6,
+                  flex: 4,
                   child: Container(
                     color: const Color.fromRGBO(245, 142, 11, 1),
                   ),
@@ -84,7 +84,7 @@ class _TeacherScreenState extends State<TeacherScreen> {
               ],
             ),
             Positioned(
-              top: MediaQuery.of(context).size.height * 0.33 - 10,
+              top: MediaQuery.of(context).size.height * 0.25 - 10,
               child: Container(
                 padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                 width: MediaQuery.of(context).size.width,
@@ -184,11 +184,11 @@ class _TeacherScreenState extends State<TeacherScreen> {
             studentProvider.isUpdatingCoins
                 ? Center(
                     child: Lottie.asset("assets/images/Circle Loading.json",
-                        width: screenWidth * 0.2),
+                        width: screenWidth * 0.3),
                   )
                 : studentProvider.showButton
                     ? Positioned(
-                        top: MediaQuery.of(context).size.height * 0.27 - 50,
+                        top: MediaQuery.of(context).size.height * 0.2 - 50,
                         left: MediaQuery.of(context).size.width / 2 - 30,
                         child: ElevatedButton(
                           onPressed: () async {
@@ -218,9 +218,9 @@ class _TeacherScreenState extends State<TeacherScreen> {
                           child: const Text(
                             "Skicka",
                             style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: 16,
-                            ),
+                                fontFamily: 'Roboto',
+                                fontSize: 16,
+                                color: Colors.white),
                           ),
                         ),
                       )
