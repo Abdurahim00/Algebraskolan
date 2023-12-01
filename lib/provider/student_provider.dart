@@ -13,14 +13,21 @@ class StudentProvider with ChangeNotifier {
   bool _showButton = false;
   bool updated = false;
   bool failure = false;
+  bool _isUpdatingCoins = false;
 
   Set<ValueNotifier<Student>> get selectedStudents => {..._selectedStudents};
   List<ValueNotifier<Student>> get students => [..._students];
   bool get showButton => _showButton;
+  bool get isUpdatingCoins => _isUpdatingCoins;
 
   void setShowButton(bool value) {
     _showButton = value;
     notifyListeners();
+  }
+
+  void setIsUpdatingCoins(bool value) {
+    _isUpdatingCoins = value;
+    notifyListeners(); // Notify listeners about the change
   }
 
 //done
@@ -187,15 +194,26 @@ class StudentProvider with ChangeNotifier {
   }
 
   Future<bool> updateAllCoins(String teacherName) async {
+    _isUpdatingCoins = true; // Start loading
+    notifyListeners(); // Notify to update UI
+
     bool hasErrorOccurred = false;
 
-    for (var student in _students) {
+    // Filter students with more than 0 coins
+    var studentsWithCoins = _students
+        .where((student) => student.value.localCoins.value > 0)
+        .toList();
+
+    for (var student in studentsWithCoins) {
       try {
         await updateStudentCoins(student, teacherName);
       } catch (e) {
         hasErrorOccurred = true;
       }
     }
+
+    _isUpdatingCoins = false; // Stop loading
+    notifyListeners(); // Notify to update UI
 
     if (hasErrorOccurred) {
       failure = true;

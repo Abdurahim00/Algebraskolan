@@ -10,20 +10,24 @@ import '../../provider/question_provider.dart';
 class QuestionsScreen extends StatefulWidget {
   final int classNumber;
 
-  const QuestionsScreen({required this.classNumber, super.key});
+  const QuestionsScreen({Key? key, required this.classNumber})
+      : super(key: key);
 
   @override
-  _QuestionsScreenState createState() => _QuestionsScreenState();
+  QuestionsScreenState createState() => QuestionsScreenState();
 }
 
-class _QuestionsScreenState extends State<QuestionsScreen> {
+class QuestionsScreenState extends State<QuestionsScreen> {
   late final TextEditingController _textController;
+  FocusNode _textFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    print('QuestionsScreenState initState() called');
     _textController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('QuestionsScreenState postFrameCallback called');
       Provider.of<QuestionProvider>(context, listen: false)
           .fetchQuestion(widget.classNumber);
     });
@@ -31,7 +35,9 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   @override
   void dispose() {
+    print('QuestionsScreenState dispose() called');
     _textController.dispose();
+    _textFocusNode.dispose();
     super.dispose();
   }
 
@@ -48,6 +54,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         }
 
         return Scaffold(
+          resizeToAvoidBottomInset: false,
           backgroundColor: Colors.grey[300],
           body: Stack(
             children: [
@@ -127,6 +134,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                     keyboardType: TextInputType.number,
                                     textAlign: TextAlign.center,
                                     controller: _textController,
+                                    focusNode: _textFocusNode,
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Colors.grey[300],

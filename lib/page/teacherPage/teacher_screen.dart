@@ -181,48 +181,50 @@ class _TeacherScreenState extends State<TeacherScreen> {
                 ),
               ),
             ),
-            studentProvider.showButton
-                ? Positioned(
-                    top: MediaQuery.of(context).size.height * 0.27 - 50,
-                    left: MediaQuery.of(context).size.width / 2 - 30,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        // Made it asynchronous
-                        // Call the function and wait for it to complete
-                        await studentProvider.updateAllCoins(teacherName);
-
-                        // Hide the button immediately after it's pressed
-                        studentProvider.setShowButton(false);
-
-                        // Deselect all students when sending coins
-                        studentProvider.handleDeselectAllStudents();
-
-                        // Set a timer to reset the updated or failure status
-                        Timer(const Duration(milliseconds: 1900), () {
-                          studentProvider.resetUpdated();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.all(20.0),
-                        backgroundColor: Colors.blue[400],
-                        textStyle: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                        alignment: Alignment.bottomLeft,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30)),
-                      ),
-                      child: const Text(
-                        "Skicka",
-                        style: TextStyle(
-                          fontFamily:
-                              'Roboto', // Use the font family name you declared in pubspec.yaml
-                          fontSize: 16, // Set the font size directly here
-                        ),
-                      ),
-                    ),
+            studentProvider.isUpdatingCoins
+                ? Center(
+                    child: Lottie.asset("assets/images/Circle Loading.json",
+                        width: screenWidth * 0.2),
                   )
-                : Container(),
+                : studentProvider.showButton
+                    ? Positioned(
+                        top: MediaQuery.of(context).size.height * 0.27 - 50,
+                        left: MediaQuery.of(context).size.width / 2 - 30,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            // Disable the button and show loading indicator
+                            studentProvider.setShowButton(false);
+                            studentProvider.setIsUpdatingCoins(true);
+
+                            // Call the function and wait for it to complete
+                            await studentProvider.updateAllCoins(teacherName);
+
+                            // Hide loading indicator and handle the outcome
+                            studentProvider.setIsUpdatingCoins(false);
+                            Timer(const Duration(milliseconds: 1900), () {
+                              studentProvider.resetUpdated();
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.all(20.0),
+                            backgroundColor: Colors.blue[400],
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                            alignment: Alignment.bottomLeft,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30)),
+                          ),
+                          child: const Text(
+                            "Skicka",
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Container(),
             if (studentProvider.updated)
               Container(
                 // Semi-transparent overlay

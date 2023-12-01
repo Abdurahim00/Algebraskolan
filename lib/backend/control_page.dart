@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lottie/lottie.dart';
 import 'package:algebra/page/login.dart';
 import 'package:algebra/page/studentPage/student_screen.dart';
@@ -8,26 +7,62 @@ import 'package:algebra/page/teacherPage/teacher_screen.dart';
 import '../page/studentPage/question_screen.dart';
 import 'auth_service.dart';
 
+// Create a custom class to hold both user and user data
+class UserData {
+  final User? user;
+  final Map<String, dynamic>? userData;
+
+  UserData(this.user, this.userData);
+}
+
 class HomePage extends StatelessWidget {
   final UserAuthService _authService = UserAuthService();
+  final GlobalKey<QuestionsScreenState> _questionsScreenKey = GlobalKey();
 
   HomePage({super.key});
+
+  // Method to create a combined stream of user and user data
+  Stream<UserData?> getUserDataStream() {
+    return _authService.authStateChanges.asyncMap((user) async {
+      if (user != null) {
+        var userDocument = await _authService.getUserDocument(user.uid);
+        var userData = userDocument.data() as Map<String, dynamic>;
+        return UserData(user, userData);
+      }
+      return Future.value(null); // Corrected return for null case
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: StreamBuilder<User?>(
-        stream: _authService.authStateChanges,
+      body: StreamBuilder<UserData?>(
+        stream: getUserDataStream(),
         builder: (context, snapshot) {
-          // Determine if the app is in a loading state
-          bool isLoading = snapshot.connectionState == ConnectionState.waiting;
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildLoadingScreen(context);
+          }
 
-          return WillPopScope(
-            onWillPop: () async => !isLoading,
-            child: isLoading
-                ? _buildLoadingScreen(context)
-                : _buildContentBasedOnSnapshot(context, snapshot),
-          );
+          if (snapshot.hasError) {
+            return const Center(child: Text("Något gick fel!"));
+          }
+
+          if (snapshot.hasData && snapshot.data != null) {
+            var data = snapshot.data!.userData;
+            if (data!['role'] == 'teacher') {
+              return const TeacherScreen();
+            } else {
+              int classNumber = data['classNumber'];
+              if (data['hasAnsweredQuestionCorrectly'] == false) {
+                return QuestionsScreen(
+                    key: _questionsScreenKey, classNumber: classNumber);
+              } else {
+                return const StudentScreen();
+              }
+            }
+          } else {
+            return const LoginPage();
+          }
         },
       ),
     );
@@ -39,44 +74,5 @@ class HomePage extends StatelessWidget {
       child: Lottie.asset("assets/images/Circle Loading.json",
           width: screenWidth * 0.2),
     );
-  }
-
-  Widget _buildContentBasedOnSnapshot(
-      BuildContext context, AsyncSnapshot<User?> snapshot) {
-    if (snapshot.hasError) {
-      return const Center(child: Text("Något gick fel!"));
-    } else if (snapshot.data != null) {
-      return FutureBuilder<DocumentSnapshot>(
-        future: _authService.getUserDocument(snapshot.data!.uid),
-        builder:
-            (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot2) {
-          if (snapshot2.connectionState == ConnectionState.waiting) {
-            final screenWidth = MediaQuery.of(context).size.width;
-            return Center(
-                child: Lottie.asset("assets/images/Circle Loading.json",
-                    width: screenWidth * 0.2));
-          } else if (snapshot2.hasError) {
-            return const Center(child: Text("Något gick fel!"));
-          } else if (snapshot2.hasData) {
-            Map<String, dynamic> data =
-                snapshot2.data!.data() as Map<String, dynamic>;
-            if (data['role'] == 'teacher') {
-              return const TeacherScreen();
-            } else {
-              int classNumber = data['classNumber'];
-              if (data['hasAnsweredQuestionCorrectly'] == false) {
-                return QuestionsScreen(classNumber: classNumber);
-              } else {
-                return const StudentScreen();
-              }
-            }
-          } else {
-            return const LoginPage();
-          }
-        },
-      );
-    } else {
-      return const LoginPage();
-    }
   }
 }

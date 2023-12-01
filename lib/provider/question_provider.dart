@@ -3,19 +3,22 @@ import 'package:flutter/foundation.dart';
 import '../backend/question_service.dart';
 
 class QuestionProvider with ChangeNotifier {
-  Map<String, dynamic>? question;
+  Map<String, dynamic>? _question;
   final ValueNotifier<bool> showCorrectAnimation = ValueNotifier(false);
   final ValueNotifier<bool> showUncorrectAnimation = ValueNotifier(false);
-  bool isLoading = false; // Add a loading state
+
+  // Getter to access the current question outside the class
+  Map<String, dynamic>? get question => _question;
 
   Future<void> fetchQuestion(int classNumber) async {
-    isLoading = true; // Set loading to true
-    notifyListeners(); // Notify here to show a loading indicator
-
-    question = await getRandomQuestion(classNumber);
-
-    isLoading = false; // Reset loading state
-    notifyListeners(); // Notify again to update UI with the fetched question
+    try {
+      _question = await getRandomQuestion(classNumber);
+      notifyListeners(); // Notify only after successfully fetching the question
+    } catch (e) {
+      print('Error fetching question: $e');
+      // Handle any error state as needed
+      // Consider notifying listeners if the UI needs to react to this error state
+    }
   }
 
   Future<bool> validateAnswer(
