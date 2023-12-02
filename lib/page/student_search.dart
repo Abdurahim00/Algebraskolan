@@ -41,7 +41,10 @@ class StudentSearch extends SearchDelegate<Student?> {
     final screenWidth = MediaQuery.of(context).size.width;
     final studentProvider =
         Provider.of<StudentProvider>(context, listen: false);
-    final studentsFuture = studentProvider.fetchSearch(query);
+
+    final Future<List<ValueNotifier<Student>>> studentsFuture = query.isEmpty
+        ? studentProvider.fetchAllStudentsSortedByCoins()
+        : studentProvider.fetchSearch(query);
 
     return FutureBuilder<List<ValueNotifier<Student>>>(
       future: studentsFuture,
@@ -56,38 +59,25 @@ class StudentSearch extends SearchDelegate<Student?> {
           _showToast("Error: ${snapshot.error}");
           return Center(child: Text('Error: ${snapshot.error}'));
         } else {
-          final results = snapshot.data ?? [];
-          final filteredResults = results.where((studentNotifier) {
-            final studentName = studentNotifier.value.displayName.toLowerCase();
-            final lowerCaseQuery = query.toLowerCase();
-            return query.isNotEmpty &&
-                (studentName == lowerCaseQuery ||
-                    studentName.contains(lowerCaseQuery));
-          }).toList();
-
           return ListView.builder(
-            itemCount: filteredResults.length,
+            itemCount: snapshot.data?.length ?? 0,
             itemBuilder: (context, index) {
-              final studentNotifier = filteredResults[index];
+              final studentNotifier = snapshot.data![index];
               final student = studentNotifier.value;
               return ListTile(
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Student's name and class
                     Expanded(
                       child: Text(
                         '${student.displayName} (Klass ${student.classNumber})',
-                        overflow: TextOverflow.ellipsis, // To handle long names
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
-                    // Student's coins with an icon
                     Row(
                       children: [
-                        Text('${student.coins} '), // Student's coin count
-                        const Icon(Icons.circle,
-                            color: Colors.orange), // Coin icon
+                        Text('${student.coins} '),
+                        const Icon(Icons.circle, color: Colors.orange),
                       ],
                     ),
                   ],

@@ -45,14 +45,12 @@ class _StudentListPartState extends State<StudentListPart> {
               onTap: () {
                 if (studentProvider.selectedStudents.isEmpty) {
                   studentProvider.handleSelectAllStudents();
-                  setState(() => context
-                      .findAncestorStateOfType<TeacherScreenState>()
-                      ?.showCoinCalculator = true);
+                  studentProvider
+                      .setShowCoinCalculator(true); // Show coin calculator
                 } else {
                   studentProvider.handleDeselectAllStudents();
-                  setState(() => context
-                      .findAncestorStateOfType<TeacherScreenState>()
-                      ?.showCoinCalculator = false);
+                  studentProvider
+                      .setShowCoinCalculator(false); // Hide coin calculator
                 }
               },
               child: AutoSizeText(

@@ -20,6 +20,14 @@ class StudentProvider with ChangeNotifier {
   bool get showButton => _showButton;
   bool get isUpdatingCoins => _isUpdatingCoins;
 
+  bool _showCoinCalculator = false;
+  bool get showCoinCalculator => _showCoinCalculator;
+
+  void setShowCoinCalculator(bool value) {
+    _showCoinCalculator = value;
+    notifyListeners();
+  }
+
   void setShowButton(bool value) {
     _showButton = value;
     notifyListeners();
@@ -28,6 +36,20 @@ class StudentProvider with ChangeNotifier {
   void setIsUpdatingCoins(bool value) {
     _isUpdatingCoins = value;
     notifyListeners(); // Notify listeners about the change
+  }
+
+// Fetch and sort all students by coins
+  Future<List<ValueNotifier<Student>>> fetchAllStudentsSortedByCoins() async {
+    try {
+      List<Student> fetchedStudents = await _studentService.fetchAllStudents();
+      fetchedStudents.sort((a, b) =>
+          b.coins.compareTo(a.coins)); // Sort by coins in descending order
+      return fetchedStudents
+          .map((student) => ValueNotifier<Student>(student))
+          .toList();
+    } catch (error) {
+      rethrow;
+    }
   }
 
 //done
@@ -45,11 +67,29 @@ class StudentProvider with ChangeNotifier {
     }
   }
 
+  Future<List<ValueNotifier<Student>>> fetchAllStudents() async {
+    try {
+      List<Student> fetchedStudents = await _studentService.fetchAllStudents();
+      return fetchedStudents
+          .map((student) => ValueNotifier<Student>(student))
+          .toList();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
 //done
   Future<List<ValueNotifier<Student>>> fetchSearch(String query) async {
     try {
-      List<Student> searchResults =
-          await _studentService.searchStudentsByDisplayName(query);
+      List<Student> searchResults;
+      if (query.isEmpty) {
+        // Return all students if the query is empty
+        searchResults = await _studentService.fetchAllStudents();
+      } else {
+        // Only search by name if there's a query
+        searchResults =
+            await _studentService.searchStudentsByDisplayName(query);
+      }
       return searchResults
           .map((student) => ValueNotifier<Student>(student))
           .toList();
@@ -103,6 +143,8 @@ class StudentProvider with ChangeNotifier {
     } else {
       handleSelectStudent(studentNotifier);
     }
+    // Update the visibility of the coin calculator based on selection
+    setShowCoinCalculator(_selectedStudents.isNotEmpty);
   }
 
   void incrementCoins(ValueNotifier<Student> studentNotifier) {
@@ -148,6 +190,7 @@ class StudentProvider with ChangeNotifier {
     if (selectedClass != newClass) {
       selectedClass = newClass;
       _selectedStudents.clear();
+      setShowCoinCalculator(false);
       await fetchStudents(newClass);
       setShowButton(false);
       notifyListeners();
@@ -194,26 +237,25 @@ class StudentProvider with ChangeNotifier {
   }
 
   Future<bool> updateAllCoins(String teacherName) async {
-    _isUpdatingCoins = true; // Start loading
-    notifyListeners(); // Notify to update UI
-
+    _isUpdatingCoins = true;
+    notifyListeners();
     bool hasErrorOccurred = false;
 
-    // Filter students with more than 0 coins
-    var studentsWithCoins = _students
-        .where((student) => student.value.localCoins.value > 0)
-        .toList();
-
-    for (var student in studentsWithCoins) {
-      try {
-        await updateStudentCoins(student, teacherName);
-      } catch (e) {
-        hasErrorOccurred = true;
+    Map<String, int> studentCoinsUpdates = {};
+    for (var student in _students) {
+      if (student.value.localCoins.value > 0) {
+        studentCoinsUpdates[student.value.uid] = student.value.localCoins.value;
+        student.value.localCoins.value = 0; // Reset local coin count
       }
     }
 
-    _isUpdatingCoins = false; // Stop loading
-    notifyListeners(); // Notify to update UI
+    if (studentCoinsUpdates.isNotEmpty) {
+      hasErrorOccurred = !await _studentService
+          .updateCoinsForMultipleStudents(studentCoinsUpdates);
+    }
+
+    _isUpdatingCoins = false;
+    notifyListeners();
 
     if (hasErrorOccurred) {
       failure = true;

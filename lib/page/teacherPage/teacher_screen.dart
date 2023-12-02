@@ -36,7 +36,6 @@ class TeacherScreen extends StatefulWidget {
 }
 
 class TeacherScreenState extends State<TeacherScreen> {
-  bool showCoinCalculator = false;
   int? selectedClass = 0;
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
   final ValueNotifier<bool> refreshNotifier = ValueNotifier<bool>(false);
@@ -61,7 +60,7 @@ class TeacherScreenState extends State<TeacherScreen> {
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
-            if (showCoinCalculator)
+            if (studentProvider.showCoinCalculator)
               Positioned(
                 top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
                 left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted

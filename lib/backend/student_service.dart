@@ -25,6 +25,16 @@ class StudentService {
     }
   }
 
+  // Fetch all students
+  Future<List<Student>> fetchAllStudents() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('users').get();
+      return snapshot.docs.map((doc) => Student.fromDocument(doc)).toList();
+    } catch (error) {
+      rethrow;
+    }
+  }
+
   Future<List<Student>> searchStudentsByDisplayName(String query) async {
     if (query.isEmpty) {
       return [];
@@ -86,5 +96,22 @@ class StudentService {
         .doc(uid)
         .collection('transactions')
         .add(transactionMap);
+  }
+
+  // Batch update coins for multiple students
+  Future<bool> updateCoinsForMultipleStudents(
+      Map<String, int> studentCoinsUpdates) async {
+    WriteBatch batch = _firestore.batch();
+    try {
+      studentCoinsUpdates.forEach((uid, coins) {
+        DocumentReference docRef = _firestore.collection('users').doc(uid);
+        batch.update(docRef, {'coins': FieldValue.increment(coins)});
+      });
+      await batch.commit();
+      return true;
+    } catch (e) {
+      print('Error in batch update: $e');
+      return false;
+    }
   }
 }
