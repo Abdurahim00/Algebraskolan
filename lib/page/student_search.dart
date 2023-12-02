@@ -71,8 +71,27 @@ class StudentSearch extends SearchDelegate<Student?> {
               final studentNotifier = filteredResults[index];
               final student = studentNotifier.value;
               return ListTile(
-                title: Text(
-                    '${student.displayName} (Klass ${student.classNumber})'),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Student's name and class
+                    Expanded(
+                      child: Text(
+                        '${student.displayName} (Klass ${student.classNumber})',
+                        overflow: TextOverflow.ellipsis, // To handle long names
+                      ),
+                    ),
+
+                    // Student's coins with an icon
+                    Row(
+                      children: [
+                        Text('${student.coins} '), // Student's coin count
+                        const Icon(Icons.circle,
+                            color: Colors.orange), // Coin icon
+                      ],
+                    ),
+                  ],
+                ),
                 onTap: () {
                   _showStudentDialog(context, studentNotifier, studentProvider);
                 },
@@ -143,15 +162,38 @@ class StudentSearch extends SearchDelegate<Student?> {
           _showToast('Eleven har inte tillräckligt med algebronor.');
           return;
         }
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Dialog(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 20),
+                    Text("Tar bort algebronor..."),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+
         studentNotifier.value.localCoins.value -= coinsToRemove;
         final teacherName = googleSignInProvider.user?.displayName ?? "Unknown";
         try {
           await studentProvider.updateStudentCoins(
               studentNotifier, teacherName);
+          Navigator.pop(context); // Close the progress dialog
           coinController.clear();
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(); // Close the alert dialog
           _showSuccessToast('Du har tagit bort $coinsToRemove algebronor');
         } catch (e) {
+          Navigator.pop(context); // Close the progress dialog
           _showToast('Error updating coins: $e');
         }
       },
@@ -179,15 +221,36 @@ class StudentSearch extends SearchDelegate<Student?> {
           _showToast('Du kan inte skicka mer än 9999 algebronor.');
           return;
         }
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Dialog(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 20),
+                    Text("Skickar algebronor..."),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
         studentNotifier.value.localCoins.value += coins;
         final teacherName = googleSignInProvider.user?.displayName ?? "Unknown";
         try {
           await studentProvider.updateStudentCoins(
               studentNotifier, teacherName);
+          Navigator.pop(context); // Close the progress dialog
           coinController.clear();
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(); // Close the alert dialog
           _showSuccessToast('Du har skickat $coins algebronor');
         } catch (e) {
+          Navigator.pop(context); // Close the progress dialog
           _showToast('Error updating coins: $e');
         }
       },

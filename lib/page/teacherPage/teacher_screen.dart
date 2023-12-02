@@ -32,10 +32,11 @@ class TeacherScreen extends StatefulWidget {
   const TeacherScreen({super.key});
 
   @override
-  _TeacherScreenState createState() => _TeacherScreenState();
+  TeacherScreenState createState() => TeacherScreenState();
 }
 
-class _TeacherScreenState extends State<TeacherScreen> {
+class TeacherScreenState extends State<TeacherScreen> {
+  bool showCoinCalculator = false;
   int? selectedClass = 0;
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
   final ValueNotifier<bool> refreshNotifier = ValueNotifier<bool>(false);
@@ -60,15 +61,16 @@ class _TeacherScreenState extends State<TeacherScreen> {
         resizeToAvoidBottomInset: true,
         body: Stack(
           children: [
-            Positioned(
-              top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
-              left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
-              child: SizedBox(
-                height: screenHeight * 0.1,
-                width: screenWidth * 0.5,
-                child: const Coin_calculator(),
+            if (showCoinCalculator)
+              Positioned(
+                top: screenHeight * 0.6 - (screenHeight * 0.2) / 2, // Adjusted
+                left: screenWidth * 0.5 - (screenWidth * 0.5) / 2, // Adjusted
+                child: SizedBox(
+                  height: screenHeight * 0.1,
+                  width: screenWidth * 0.5,
+                  child: const Coin_calculator(),
+                ),
               ),
-            ),
             Column(
               children: [
                 Expanded(
@@ -112,13 +114,24 @@ class _TeacherScreenState extends State<TeacherScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(30.0),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    offset: Offset(0, 2),
-                                    blurRadius: 6.0,
-                                  ),
-                                ],
+                                boxShadow: selectedClass == classes['number']
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors
+                                              .blue.shade100, // Glow color
+                                          offset: const Offset(0, 2),
+                                          blurRadius:
+                                              10.0, // Increase the blur radius for a larger glow
+                                          spreadRadius: 5.0,
+                                        ),
+                                      ]
+                                    : const [
+                                        BoxShadow(
+                                          color: Colors.black12,
+                                          offset: Offset(0, 2),
+                                          blurRadius: 6.0,
+                                        ),
+                                      ],
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(10.0),

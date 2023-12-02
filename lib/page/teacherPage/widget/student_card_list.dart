@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart';
 
 import '../../../provider/student_provider.dart';
+import '../teacher_screen.dart';
 
 class StudentListPart extends StatefulWidget {
   final TextTheme textTheme;
@@ -42,10 +43,16 @@ class _StudentListPartState extends State<StudentListPart> {
           children: [
             GestureDetector(
               onTap: () {
-                if (studentProvider.selectedStudents.isNotEmpty) {
-                  studentProvider.handleDeselectAllStudents();
-                } else {
+                if (studentProvider.selectedStudents.isEmpty) {
                   studentProvider.handleSelectAllStudents();
+                  setState(() => context
+                      .findAncestorStateOfType<TeacherScreenState>()
+                      ?.showCoinCalculator = true);
+                } else {
+                  studentProvider.handleDeselectAllStudents();
+                  setState(() => context
+                      .findAncestorStateOfType<TeacherScreenState>()
+                      ?.showCoinCalculator = false);
                 }
               },
               child: AutoSizeText(
