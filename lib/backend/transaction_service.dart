@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+import 'coin_transaction.dart';
+
 class TransactionService {
   TransactionService({@visibleForTesting FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -38,19 +40,6 @@ class TransactionService {
     }
   }
 
-  Future<void> updateTransactionIsNewFlag(String uid, String docId) async {
-    try {
-      await _firestore
-          .collection('students')
-          .doc(uid)
-          .collection('transactions')
-          .doc(docId)
-          .update({'isNew': false});
-    } catch (e) {
-      print('Failed to update transaction: $e');
-    }
-  }
-
   Future<void> logTransaction(String uid, int coins, String teacherName) async {
     if (uid.isEmpty) {
       return;
@@ -64,7 +53,31 @@ class TransactionService {
       'teacherName': teacherName,
       'amount': coins,
       'timestamp': FieldValue.serverTimestamp(),
-      'isNew': true,
     });
+  }
+
+  Future<List<CoinTransaction>> fetchAllTransactions(String uid) async {
+    List<CoinTransaction> transactions = [];
+    if (uid.isEmpty) {
+      return transactions;
+    }
+
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('students')
+          .doc(uid)
+          .collection('transactions')
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        transactions.add(CoinTransaction.fromMap(data));
+      }
+    } catch (e) {
+      print('Error fetching transactions: $e');
+    }
+
+    return transactions;
   }
 }

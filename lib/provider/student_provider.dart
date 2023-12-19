@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../backend/coin_transaction.dart';
+import '../backend/sound_manager.dart';
 import '../backend/student_service.dart';
+import '../backend/transaction_service.dart';
 import '../page/student.dart';
 
 class StudentProvider with ChangeNotifier {
   final StudentService _studentService =
       StudentService(FirebaseFirestore.instance);
+
   List<ValueNotifier<Student>> _students = [];
   int selectedClass = 0;
   final Set<ValueNotifier<Student>> _selectedStudents = {};
@@ -22,6 +25,8 @@ class StudentProvider with ChangeNotifier {
 
   bool _showCoinCalculator = false;
   bool get showCoinCalculator => _showCoinCalculator;
+
+  StudentProvider();
 
   void setShowCoinCalculator(bool value) {
     _showCoinCalculator = value;
@@ -218,28 +223,42 @@ class StudentProvider with ChangeNotifier {
   }
 
   Future<void> updateStudentCoins(
-      ValueNotifier<Student> student, String teacherName) async {
-    // Create a new transaction
-    CoinTransaction transaction = CoinTransaction(
-      teacherName: teacherName,
-      amount: student.value.localCoins.value,
-      timestamp: DateTime.now(),
-    );
+      ValueNotifier<Student> studentNotifier, String teacherName) async {
+    // Fetch the current coin balance
+    int currentCoins = await _studentService
+        .fetchCurrentCoinBalance(studentNotifier.value.uid);
 
-    // Use the StudentService to add the transaction and update coins
-    await _studentService.addTransactionToStudent(
-        student.value.uid, transaction);
-    await _studentService.updateStudentCoinsInFirestore(
-        student.value.uid, student.value.localCoins.value);
+    int coinsToChange = studentNotifier.value.localCoins.value;
 
-    // Reset local coin count for the student
-    student.value.localCoins.value = 0;
+    // Check if the coins to be deducted will not result in a negative balance
+    if (currentCoins + coinsToChange >= 0) {
+      // Create a new transaction
+      CoinTransaction transaction = CoinTransaction(
+        teacherName: teacherName,
+        amount: coinsToChange,
+        timestamp: DateTime.now(),
+      );
+
+      // Use the StudentService to add the transaction and update coins
+      await _studentService.addTransactionToStudent(
+          studentNotifier.value.uid, transaction);
+      await _studentService.updateStudentCoinsInFirestore(
+          studentNotifier.value.uid, coinsToChange);
+
+      // Reset local coin count for the student
+      studentNotifier.value.localCoins.value = 0;
+
+      notifyListeners();
+    } else {
+      // Handle the case where the coin deduction would result in a negative balance
+      // You might want to notify the user or log this event
+      throw Exception('Inte tillräckligt med algebronor.');
+    }
   }
 
   Future<bool> updateAllCoins(String teacherName) async {
     _isUpdatingCoins = true;
     notifyListeners();
-    bool hasErrorOccurred = false;
 
     Map<String, int> studentCoinsUpdates = {};
     for (var student in _students) {
@@ -250,21 +269,41 @@ class StudentProvider with ChangeNotifier {
     }
 
     if (studentCoinsUpdates.isNotEmpty) {
-      hasErrorOccurred = !await _studentService
+      var updatedStudentUids = await _studentService
           .updateCoinsForMultipleStudents(studentCoinsUpdates);
+
+      // Log transactions asynchronously
+      logTransactionsInBackground(studentCoinsUpdates, teacherName);
+
+      // Check if the coin update was successful
+      if (updatedStudentUids.isEmpty) {
+        failure = true;
+        _isUpdatingCoins = false;
+        notifyListeners();
+        return false;
+      }
+
+      // Play success sound here
+      await SoundManager.playSuccessSound();
+
+      // Deselect all students after successful coin update
+      handleDeselectAllStudents(); // Add this line
+      _showCoinCalculator = false;
     }
 
+    updated = true;
     _isUpdatingCoins = false;
     notifyListeners();
+    return true;
+  }
 
-    if (hasErrorOccurred) {
-      failure = true;
-      notifyListeners();
-      return false;
-    } else {
-      updated = true;
-      notifyListeners();
-      return true;
+  Future<void> logTransactionsInBackground(
+      Map<String, int> studentCoinsUpdates, String teacherName) async {
+    for (var entry in studentCoinsUpdates.entries) {
+      String uid = entry.key;
+      int coins = entry.value;
+      // Log transaction for each student without awaiting
+      TransactionService().logTransaction(uid, coins, teacherName);
     }
   }
 

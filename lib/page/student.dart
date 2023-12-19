@@ -7,7 +7,7 @@ class Student {
   final String displayName;
   final String role;
   final int classNumber;
-  final int coins;
+  late final int coins;
   final Timestamp? questionAnsweredAt; // added field
   final bool hasAnsweredQuestionCorrectly; // added field
   ValueNotifier<int> localCoins;

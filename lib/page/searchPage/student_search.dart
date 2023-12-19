@@ -105,12 +105,26 @@ class StudentSearch extends SearchDelegate<Student?> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text('Ange mynt för ${studentNotifier.value.displayName}'),
+          backgroundColor: Colors.white,
+          title:
+              Text('Ange Algebronor för ${studentNotifier.value.displayName}'),
           content: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 10.0),
             child: TextField(
               controller: coinController,
-              decoration: const InputDecoration(labelText: 'Ange mynt'),
+              decoration: const InputDecoration(
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.only(),
+                  // Border style when TextField is enabled
+                  borderSide: BorderSide(width: 2.0),
+                ),
+                border: OutlineInputBorder(),
+                labelText: 'Ange Algebronor',
+                labelStyle: TextStyle(
+                  color: Colors.black, // Default label color
+                ),
+              ),
+              cursorColor: Colors.black,
               keyboardType: TextInputType.number,
               inputFormatters: <TextInputFormatter>[
                 FilteringTextInputFormatter.digitsOnly,

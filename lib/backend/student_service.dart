@@ -98,20 +98,40 @@ class StudentService {
         .add(transactionMap);
   }
 
-  // Batch update coins for multiple students
-  Future<bool> updateCoinsForMultipleStudents(
+  // Batch update coins for multiple students and return the UIDs of updated students
+  Future<List<String>> updateCoinsForMultipleStudents(
       Map<String, int> studentCoinsUpdates) async {
     WriteBatch batch = _firestore.batch();
+    List<String> updatedStudentUids = [];
+
     try {
       studentCoinsUpdates.forEach((uid, coins) {
         DocumentReference docRef = _firestore.collection('users').doc(uid);
         batch.update(docRef, {'coins': FieldValue.increment(coins)});
+        updatedStudentUids.add(uid); // Add the uid to the list
       });
       await batch.commit();
-      return true;
+      return updatedStudentUids; // Return the list of updated UIDs
     } catch (e) {
       print('Error in batch update: $e');
-      return false;
+      return []; // Return an empty list in case of error
+    }
+  }
+
+  // Fetch the current coin balance of a student
+  Future<int> fetchCurrentCoinBalance(String uid) async {
+    try {
+      DocumentSnapshot snapshot =
+          await _firestore.collection('users').doc(uid).get();
+      Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+      if (snapshot.exists && data != null && data.containsKey('coins')) {
+        return data['coins'] as int;
+      } else {
+        throw Exception('Student not found or coins field is missing');
+      }
+    } catch (e) {
+      print('Error fetching coin balance: $e');
+      rethrow;
     }
   }
 }

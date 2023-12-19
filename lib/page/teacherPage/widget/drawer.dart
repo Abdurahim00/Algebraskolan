@@ -12,6 +12,13 @@ class AppDrawer extends StatelessWidget {
     final provider = Provider.of<GoogleSignInProvider>(context, listen: true);
     final user = provider.user; // This can be null after logout
 
+    ImageProvider<Object>? imageProvider;
+    if (user != null && user.photoUrl != null) {
+      imageProvider = NetworkImage(user.photoUrl!);
+    } else {
+      imageProvider = const AssetImage('assets/default_user.png');
+    }
+
     return Drawer(
       child: ListView(
         children: [
@@ -19,9 +26,7 @@ class AppDrawer extends StatelessWidget {
             accountName: Text(user?.displayName ?? 'No Name'),
             accountEmail: Text(user?.email ?? 'No Email'),
             currentAccountPicture: CircleAvatar(
-              backgroundImage: user?.photoUrl != null
-                  ? NetworkImage(user!.photoUrl!) as ImageProvider<Object>?
-                  : const AssetImage('assets/default_user.png'),
+              backgroundImage: imageProvider,
             ),
           ),
           ListTile(

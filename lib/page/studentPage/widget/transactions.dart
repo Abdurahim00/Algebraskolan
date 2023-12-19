@@ -27,6 +27,10 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Dynamic font size based on screen width
+    double screenWidth = MediaQuery.of(context).size.width;
+    double fontSize = screenWidth * 0.04; // Example: 4% of screen width
+
     return Consumer<TransactionProvider>(
       builder: (context, transactionProvider, child) {
         // Determine color based on the message content
@@ -36,7 +40,7 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
         return Text(
           transactionProvider.latestDonationMessage,
-          style: GoogleFonts.carterOne(fontSize: 18, color: textColor),
+          style: GoogleFonts.carterOne(fontSize: fontSize, color: textColor),
         );
       },
     );

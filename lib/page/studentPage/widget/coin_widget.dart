@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../teacherPage/teacher_screen.dart';
+
 class CoinWidget extends StatefulWidget {
   final String uid;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -64,7 +66,8 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    double fontSize = MediaQuery.of(context).size.width * 0.08;
+    double fontSize =
+        isTablet(context) ? 48.0 : 30.0; // Larger font size for tablets
     final width = MediaQuery.of(context).size.width * 0.5;
 
     return StreamBuilder<DocumentSnapshot>(
@@ -93,28 +96,32 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
             children: [
               AutoSizeText(
                 ' $formattedCoins Algebronor',
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily:
                       'LilitaOne', // Use the font family name you declared in pubspec.yaml
-                  fontSize: 32,
+                  fontSize: isTablet(context)
+                      ? 42
+                      : 32, // Larger font size for tablets
                   color: Colors.black,
                 ),
               ),
               SizedBox(
                 width: MediaQuery.of(context).size.width * 0.7,
-                height: MediaQuery.of(context).size.width * 0.7,
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: LayoutBuilder(builder: (context, constraints) {
                     double topPosition =
-                        constraints.maxHeight * 0.18; // 10% from the top
+                        constraints.maxHeight * 0.19; // 10% from the top
                     double leftPosition = constraints.maxWidth * 0.15;
                     // 10% from the left
                     return Stack(
+                      alignment: Alignment
+                          .center, // Add this line to center the stack contents
+
                       children: [
                         // This is the Lottie animation at the bottom of the stack.
                         Lottie.asset(
-                          "assets/images/Pn9nLAk7JQ.json",
+                          "assets/images/credit-card.json",
                           controller: _lottieController,
                           onLoaded: (composition) {
                             _lottieController!.duration = composition.duration;
@@ -123,8 +130,14 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                         // Using Positioned to overlay the displayName on the card.
                         displayName != null
                             ? Positioned(
-                                top: topPosition,
-                                left: leftPosition,
+                                top: isTablet(context)
+                                    ? constraints.maxHeight * 0.22
+                                    : constraints.maxHeight *
+                                        0.18, // Adjust for tablet
+                                left: isTablet(context)
+                                    ? constraints.maxWidth * 0.12
+                                    : constraints.maxWidth *
+                                        0.15, // Adjust for tablet
                                 child: Center(
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(
@@ -167,7 +180,7 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Align(
-            alignment: Alignment.topCenter,
+            alignment: Alignment.center,
             child: content,
           ),
         );

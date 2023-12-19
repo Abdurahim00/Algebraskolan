@@ -9,14 +9,20 @@ class ClassCardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      scrollDirection: Axis.horizontal,
-      itemCount: classesData.length,
-      itemBuilder: (context, index) {
-        return ClassCard(
-          classData: classesData[index],
-        );
+    return NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification notification) {
+        if (notification is ScrollUpdateNotification) {}
+        return true;
       },
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: classesData.length,
+        itemBuilder: (context, index) {
+          return ClassCard(
+            classData: classesData[index],
+          );
+        },
+      ),
     );
   }
 }

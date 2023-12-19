@@ -8,10 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import 'package:unicons/unicons.dart';
 import '../../provider/student_provider.dart';
 import 'widget/student_card_list.dart';
-import '../student_search.dart';
+import '../searchPage/student_search.dart';
+import 'dart:math' as math;
 
 const classesNr = [
   {"image": "number0.png", "name": "Klass 0", "number": 0},
@@ -35,6 +35,11 @@ class TeacherScreen extends StatefulWidget {
   TeacherScreenState createState() => TeacherScreenState();
 }
 
+bool isTablet(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  return screenWidth > 600; // You can adjust this threshold as needed
+}
+
 class TeacherScreenState extends State<TeacherScreen> {
   int? selectedClass = 0;
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
@@ -45,6 +50,13 @@ class TeacherScreenState extends State<TeacherScreen> {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
+    const double maxCardWidth = 160.0; // Maximum card width, adjust as needed
+
+    double cardWidth = math.min(screenWidth * 0.25, maxCardWidth);
+
+    const double maxCardHeight = 100.0; // Maximum card height, adjust as needed
+
+    double cardHeight = math.min(cardWidth * (3 / 2), maxCardHeight);
 
     // This is for when a teacher sends coins, their name will be displayed for the student.
     User? user = FirebaseAuth.instance.currentUser;
@@ -75,7 +87,7 @@ class TeacherScreenState extends State<TeacherScreen> {
                 Expanded(
                   flex: 4,
                   child: Container(
-                    color: const Color.fromRGBO(245, 142, 11, 1),
+                    color: Color.fromARGB(255, 245, 142, 11),
                   ),
                 ),
                 // Update the StudentListPart
@@ -89,7 +101,11 @@ class TeacherScreenState extends State<TeacherScreen> {
               child: Container(
                 padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.width * 0.35 + 20,
+                height: isTablet(context)
+                    ? MediaQuery.of(context).size.width * 0.3 + 10
+                    // Shorter height for tablets
+                    : MediaQuery.of(context).size.width * 0.35 +
+                        20, // Original height for mobile
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
@@ -109,7 +125,8 @@ class TeacherScreenState extends State<TeacherScreen> {
                                   top: selectedClass == classes['number']
                                       ? 10
                                       : 0),
-                              width: MediaQuery.of(context).size.width * 0.25,
+                              width: cardWidth,
+                              height: cardHeight, // Apply the calculated height
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(30.0),
@@ -164,14 +181,15 @@ class TeacherScreenState extends State<TeacherScreen> {
                 backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
                 title: Center(
                   child: SizedBox(
-                    width: screenWidth * 0.4, // adjust as needed
+                    width: isTablet(context)
+                        ? screenWidth * 0.18
+                        : screenWidth * 0.4, // Adjust size for tablet
                     child: Image.asset("assets/images/Algebraskolan4.png"),
                   ),
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(UniconsLine.shopping_cart,
-                        color: Colors.white),
+                    icon: const Icon(Icons.search_rounded, color: Colors.white),
                     onPressed: () {
                       showSearch(
                         context: context,
@@ -201,38 +219,41 @@ class TeacherScreenState extends State<TeacherScreen> {
                 : studentProvider.showButton
                     ? Positioned(
                         top: MediaQuery.of(context).size.height * 0.2 - 50,
-                        left: MediaQuery.of(context).size.width / 2 - 30,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            // Disable the button and show loading indicator
-                            studentProvider.setShowButton(false);
-                            studentProvider.setIsUpdatingCoins(true);
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              // Disable the button and show loading indicator
+                              studentProvider.setShowButton(false);
+                              studentProvider.setIsUpdatingCoins(true);
 
-                            // Call the function and wait for it to complete
-                            await studentProvider.updateAllCoins(teacherName);
+                              // Call the function and wait for it to complete
+                              await studentProvider.updateAllCoins(teacherName);
 
-                            // Hide loading indicator and handle the outcome
-                            studentProvider.setIsUpdatingCoins(false);
-                            Timer(const Duration(milliseconds: 1900), () {
-                              studentProvider.resetUpdated();
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.all(20.0),
-                            backgroundColor: Colors.blue[400],
-                            textStyle: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                              // Hide loading indicator and handle the outcome
+                              studentProvider.setIsUpdatingCoins(false);
+                              Timer(const Duration(milliseconds: 1900), () {
+                                studentProvider.resetUpdated();
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.all(20.0),
+                              backgroundColor: Colors.blue[400],
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                              alignment: Alignment.bottomLeft,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30)),
                             ),
-                            alignment: Alignment.bottomLeft,
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30)),
-                          ),
-                          child: const Text(
-                            "Skicka",
-                            style: TextStyle(
-                                fontFamily: 'Roboto',
-                                fontSize: 16,
-                                color: Colors.white),
+                            child: const Text(
+                              "Skicka",
+                              style: TextStyle(
+                                  fontFamily: 'Roboto',
+                                  fontSize: 16,
+                                  color: Colors.white),
+                            ),
                           ),
                         ),
                       )
@@ -245,7 +266,9 @@ class TeacherScreenState extends State<TeacherScreen> {
                     widthFactor: 0.3, // take 50% of parent width
                     heightFactor: 0.5, // take 50% of parent height
                     alignment: Alignment.topCenter,
-                    child: Lottie.asset("assets/images/checkmark (2).json"),
+                    child: Lottie.asset(
+                      "assets/images/checkmark (2).json",
+                    ),
                   ),
                 ),
               ),

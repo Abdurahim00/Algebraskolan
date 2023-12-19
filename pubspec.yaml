@@ -26,6 +26,12 @@ dependencies:
   page_transition: ^2.0.9
   fluttertoast: ^8.2.2
   connectivity_plus: ^5.0.2
+  audioplayers: ^5.2.1
+  cached_network_image: ^3.3.0
+  firebase_messaging: ^14.7.9
+
+
+  
 
   
 
@@ -47,6 +53,9 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/fonts/
+    - assets/audio/
+
   fonts:
     - family: LilitaOne
       fonts:

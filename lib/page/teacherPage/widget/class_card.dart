@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 import 'coin_calculator.dart';
 
@@ -9,9 +10,17 @@ class ClassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Set maximum width limit
+    const double maxCardWidth = 200.0; // Adjust as needed
+
+    // Calculate card width with a limit
+    double cardWidth = math.min(screenWidth * 0.25, maxCardWidth);
+
     return Container(
       margin: const EdgeInsets.only(right: 10.0),
-      width: MediaQuery.of(context).size.width * 0.25,
+      width: cardWidth,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.0),

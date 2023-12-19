@@ -4,7 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart';
 
 import '../../../provider/student_provider.dart';
-import '../teacher_screen.dart';
 
 class StudentListPart extends StatefulWidget {
   final TextTheme textTheme;
@@ -16,6 +15,11 @@ class StudentListPart extends StatefulWidget {
 
   @override
   State<StudentListPart> createState() => _StudentListPartState();
+}
+
+bool isTablet(BuildContext context) {
+  final screenWidth = MediaQuery.of(context).size.width;
+  return screenWidth > 600; // Adjust this threshold as needed
 }
 
 class _StudentListPartState extends State<StudentListPart> {
@@ -30,9 +34,10 @@ class _StudentListPartState extends State<StudentListPart> {
 
   @override
   Widget build(BuildContext context) {
-    final studentProvider =
-        Provider.of<StudentProvider>(context); // Fetch the StudentProvider
+    final studentProvider = Provider.of<StudentProvider>(context);
     double fontSize = MediaQuery.of(context).size.width * 0.04;
+// Adjust font size based on device type
+    double baseFontSize = isTablet(context) ? 18 : fontSize; // Example sizes
 
     return Expanded(
       flex: 6,
@@ -41,8 +46,8 @@ class _StudentListPartState extends State<StudentListPart> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            GestureDetector(
-              onTap: () {
+            TextButton(
+              onPressed: () {
                 if (studentProvider.selectedStudents.isEmpty) {
                   studentProvider.handleSelectAllStudents();
                   studentProvider
@@ -53,14 +58,17 @@ class _StudentListPartState extends State<StudentListPart> {
                       .setShowCoinCalculator(false); // Hide coin calculator
                 }
               },
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.all(fontSize * 0.5),
+                alignment: Alignment.centerLeft,
+              ),
               child: AutoSizeText(
                 studentProvider.selectedStudents.isEmpty
                     ? "Välj alla >"
                     : "Avvälj alla >",
                 style: TextStyle(
-                  fontFamily:
-                      'Montserrat', // Use the font family name you declared in pubspec.yaml
-                  fontSize: fontSize,
+                  fontFamily: 'Montserrat',
+                  fontSize: baseFontSize,
                   color: studentProvider.selectedStudents.isEmpty
                       ? Colors.blue
                       : const Color.fromRGBO(245, 142, 11, 1),
