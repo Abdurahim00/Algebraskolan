@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
-import 'package:algebra/page/login.dart';
-import 'package:algebra/page/studentPage/student_screen.dart';
-import 'package:algebra/page/teacherPage/teacher_screen.dart';
-import '../page/studentPage/question_screen.dart';
+import 'package:algebra/pages/login.dart';
+import 'package:algebra/pages/studentPage/student_screen.dart';
+import 'package:algebra/pages/teacherPage/teacher_screen.dart';
+import '../pages/studentPage/question_screen.dart';
 import '../provider/google_sign_In.dart';
 import 'auth_service.dart';
 

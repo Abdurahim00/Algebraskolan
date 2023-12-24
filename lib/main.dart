@@ -8,8 +8,8 @@ import 'package:algebra/provider/student_provider.dart';
 import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/transaction_provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
-import 'package:algebra/page/splash_screen.dart';
-import 'package:algebra/page/network_alert.dart';
+import 'package:algebra/other/splash_screen.dart';
+import 'package:algebra/other/network_alert.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

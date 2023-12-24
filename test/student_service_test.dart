@@ -1,6 +1,6 @@
 import 'package:algebra/backend/coin_transaction.dart';
 import 'package:algebra/backend/student_service.dart';
-import 'package:algebra/page/student.dart';
+import 'package:algebra/backend/student.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';

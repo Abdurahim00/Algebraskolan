@@ -1,4 +1,4 @@
-import 'package:algebra/page/studentPage/widget/date_icon.dart';
+import 'package:algebra/pages/studentPage/widget/date_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

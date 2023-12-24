@@ -5,7 +5,7 @@ import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/student_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:algebra/page/student.dart';
+import 'package:algebra/backend/student.dart';
 
 class StudentSearch extends SearchDelegate<Student?> {
   final GoogleSignInProvider googleSignInProvider =

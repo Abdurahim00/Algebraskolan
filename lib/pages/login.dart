@@ -5,7 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
 
 import '../provider/google_sign_In.dart';
-import 'network_alert.dart';
+import '../other/network_alert.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     }
                   },
-                  label: const Text("Sign Up with Google"),
+                  label: const Text("Registrera dig med Google"),
                 ),
                 SizedBox(height: screenHeight * 0.1),
               ],

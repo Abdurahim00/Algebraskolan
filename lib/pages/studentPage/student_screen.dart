@@ -1,6 +1,6 @@
-import 'package:algebra/page/studentPage/widget/coin_widget.dart';
-import 'package:algebra/page/studentPage/widget/student_drawer.dart';
-import 'package:algebra/page/studentPage/widget/transactions.dart'; // Make sure to import TransactionWidget if the path is different
+import 'package:algebra/pages/studentPage/widget/coin_widget.dart';
+import 'package:algebra/pages/studentPage/widget/student_drawer.dart';
+import 'package:algebra/pages/studentPage/widget/transactions.dart'; // Make sure to import TransactionWidget if the path is different
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/transaction_provider.dart';
 import 'package:flutter/material.dart';

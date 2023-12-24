@@ -1,4 +1,4 @@
-import 'package:algebra/page/teacherPage/widget/student_card.dart';
+import 'package:algebra/pages/teacherPage/widget/student_card.dart';
 import 'package:flutter/material.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:provider/provider.dart';

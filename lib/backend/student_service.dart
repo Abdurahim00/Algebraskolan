@@ -1,6 +1,6 @@
 import 'package:algebra/backend/coin_transaction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../page/student.dart';
+import 'student.dart';
 
 class StudentService {
   final FirebaseFirestore _firestore;

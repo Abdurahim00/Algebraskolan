@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
 import '../../../provider/student_provider.dart';
-import '../../student.dart';
+import '../../../backend/student.dart';
 import 'coin_calculator.dart';
 
 class StudentCard extends StatelessWidget {

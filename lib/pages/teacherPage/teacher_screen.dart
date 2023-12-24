@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:algebra/page/teacherPage/widget/drawer.dart';
-import 'package:algebra/page/teacherPage/widget/coin_calculator.dart';
+import 'package:algebra/pages/teacherPage/widget/drawer.dart';
+import 'package:algebra/pages/teacherPage/widget/coin_calculator.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

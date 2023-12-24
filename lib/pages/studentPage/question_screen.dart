@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:algebra/page/studentPage/student_screen.dart';
+import 'package:algebra/pages/studentPage/student_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';

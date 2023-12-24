@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../backend/sound_manager.dart';
 import '../backend/student_service.dart';
 import '../backend/transaction_service.dart';
-import '../page/student.dart';
+import '../backend/student.dart';
 
 class StudentProvider with ChangeNotifier {
   final StudentService _studentService =

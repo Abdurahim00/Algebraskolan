@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:unicons/unicons.dart';
 
 import '../../../provider/student_provider.dart';
-import '../../student.dart';
+import '../../../backend/student.dart';
 import '../teacher_screen.dart';
 
 class Coin_calculator extends StatelessWidget {
