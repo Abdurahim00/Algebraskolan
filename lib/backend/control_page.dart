@@ -49,7 +49,7 @@ class HomePage extends StatelessWidget {
         }
       } catch (e) {
         debugPrint('Error fetching user data: $e');
-        throw e;
+        rethrow;
       }
     });
   }
@@ -61,9 +61,9 @@ class HomePage extends StatelessWidget {
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Obehörig Åtkomst'),
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text('Bara Algebraskolans mail är tillåtet.'),
               ],
             ),
@@ -129,7 +129,7 @@ class HomePage extends StatelessWidget {
 
   Widget _buildTemporaryScreen() {
     // This screen is shown while user data is being fetched
-    return Center(
+    return const Center(
       child: CircularProgressIndicator(),
     );
   }

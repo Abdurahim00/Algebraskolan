@@ -9,7 +9,7 @@ import '../../student.dart';
 import '../teacher_screen.dart';
 
 class Coin_calculator extends StatelessWidget {
-  const Coin_calculator({Key? key}) : super(key: key);
+  const Coin_calculator({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +56,7 @@ class Coin_calculator extends StatelessWidget {
 class Mini_Coin_calculator extends StatelessWidget {
   final ValueNotifier<Student> studentNotifier;
 
-  const Mini_Coin_calculator({Key? key, required this.studentNotifier})
-      : super(key: key);
+  const Mini_Coin_calculator({super.key, required this.studentNotifier});
 
   @override
   Widget build(BuildContext context) {

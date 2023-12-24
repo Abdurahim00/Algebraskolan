@@ -9,9 +9,9 @@ class StudentListPart extends StatefulWidget {
   final TextTheme textTheme;
 
   const StudentListPart({
-    Key? key,
+    super.key,
     required this.textTheme,
-  }) : super(key: key);
+  });
 
   @override
   State<StudentListPart> createState() => _StudentListPartState();

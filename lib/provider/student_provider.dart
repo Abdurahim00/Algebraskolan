@@ -236,7 +236,7 @@ class StudentProvider with ChangeNotifier {
     } catch (e) {
       // Handle any exceptions, such as insufficient coins
       debugPrint('Error updating coins: $e');
-      throw e;
+      rethrow;
     }
   }
 

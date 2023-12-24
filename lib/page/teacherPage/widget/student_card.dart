@@ -13,12 +13,11 @@ class StudentCard extends StatelessWidget {
   final VoidCallback onTap;
 
   StudentCard({
-    Key? key,
+    super.key,
     required this.student,
     bool selected = false,
     required this.onTap,
-  })  : isSelected = ValueNotifier<bool>(selected),
-        super(key: key);
+  }) : isSelected = ValueNotifier<bool>(selected);
 
   @override
   Widget build(BuildContext context) {
