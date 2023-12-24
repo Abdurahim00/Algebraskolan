@@ -40,6 +40,13 @@ class GoogleSignInProvider extends ChangeNotifier {
       final displayNameLower =
           displayName?.toLowerCase(); // Lowercase display name
 
+      // Check if the email domain is allowed
+      if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+        // If the domain is not allowed, throw an exception
+        throw Exception('Access denied for unauthorized domain.');
+      }
+
       // Check if user document exists in Firestore
       final docSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -65,7 +72,7 @@ class GoogleSignInProvider extends ChangeNotifier {
           googleLogin(context, connectivityController);
         });
       } else {
-        // Handle other exceptions
+        // Handle other exceptions including unauthorized domain access
         Exception('Error during sign-in: $e');
         // Show error message or perform other actions
       }
@@ -98,17 +105,26 @@ class GoogleSignInProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Call this method in your main function or initState of your root widget
-  Future<void> initializeUser() async {
+  Future<bool> initializeUser() async {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
-      // User is signed in
       try {
         _user = await _googleSignIn.signInSilently();
+        final email = _user?.email;
+
+        if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+            !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+          await googleLogout();
+          return false; // User is not authorized
+        }
       } catch (error) {
         Exception("Error in silent sign-in: $error");
+        return false; // In case of error, consider the user not authorized
       }
+    } else {
+      return false; // No user is signed in
     }
     notifyListeners();
+    return true; // User is authorized and signed in
   }
 }

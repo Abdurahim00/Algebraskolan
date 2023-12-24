@@ -30,6 +30,7 @@ class AppDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
+            trailing: const Icon(Icons.exit_to_app_rounded),
             onTap: () => showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -81,7 +82,6 @@ class AppDrawer extends StatelessWidget {
             ),
             title: const Text(
               "Logga ut",
-              style: TextStyle(fontFamily: 'montserrat'),
             ),
           ),
           // Add other ListTiles if needed

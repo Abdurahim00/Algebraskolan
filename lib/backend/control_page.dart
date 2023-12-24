@@ -5,6 +5,7 @@ import 'package:algebra/page/login.dart';
 import 'package:algebra/page/studentPage/student_screen.dart';
 import 'package:algebra/page/teacherPage/teacher_screen.dart';
 import '../page/studentPage/question_screen.dart';
+import '../provider/google_sign_In.dart';
 import 'auth_service.dart';
 
 // Create a custom class to hold both user and user data
@@ -21,17 +22,24 @@ class HomePage extends StatelessWidget {
 
   HomePage({super.key});
 
-  Stream<UserData?> getUserDataStream() {
+  Stream<UserData?> getUserDataStream(BuildContext context) {
     return _authService.authStateChanges.asyncMap((user) async {
       if (user == null) return Future.value(null);
+
+      final email = user.email;
+      if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+        await showUnauthorizedDomainDialog(context); // Show the dialog
+        await GoogleSignInProvider.instance.googleLogout();
+        return null;
+      }
 
       try {
         var userDocument = await _authService.getUserDocument(user.uid);
         if (userDocument.exists && userDocument.data() != null) {
           return UserData(user, userDocument.data() as Map<String, dynamic>);
         } else {
-          debugPrint('Creating initial user data for new user');
-          // Initialize new user data here or simply return a UserData with defaults
+          // Handle the case where user data does not exist
           return UserData(user, {
             'role': 'student',
             'classNumber': 0,
@@ -46,11 +54,38 @@ class HomePage extends StatelessWidget {
     });
   }
 
+  Future<void> showUnauthorizedDomainDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap the button to close the dialog
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Obehörig Åtkomst'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('Bara Algebraskolans mail är tillåtet.'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close the dialog
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder<UserData?>(
-        stream: getUserDataStream(),
+        stream: getUserDataStream(context),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingScreen(context);

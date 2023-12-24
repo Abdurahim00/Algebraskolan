@@ -110,9 +110,6 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: LayoutBuilder(builder: (context, constraints) {
-                    double topPosition =
-                        constraints.maxHeight * 0.19; // 10% from the top
-                    double leftPosition = constraints.maxWidth * 0.15;
                     // 10% from the left
                     return Stack(
                       alignment: Alignment
