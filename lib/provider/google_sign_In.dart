@@ -37,6 +37,8 @@ class GoogleSignInProvider extends ChangeNotifier {
       final uid = user.uid;
       final email = user.email;
       final displayName = user.displayName;
+      final displayNameLower =
+          displayName?.toLowerCase(); // Lowercase display name
 
       // Check if user document exists in Firestore
       final docSnapshot =
@@ -47,6 +49,7 @@ class GoogleSignInProvider extends ChangeNotifier {
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'email': email,
           'displayName': displayName,
+          'displayNameLower': displayNameLower, // Add displayNameLower field
           'role': 'student', // Default role
           'classNumber': 0,
           'coins': 0,
@@ -63,7 +66,7 @@ class GoogleSignInProvider extends ChangeNotifier {
         });
       } else {
         // Handle other exceptions
-        print('Error during sign-in: $e');
+        Exception('Error during sign-in: $e');
         // Show error message or perform other actions
       }
     }
@@ -84,7 +87,7 @@ class GoogleSignInProvider extends ChangeNotifier {
       try {
         await _googleSignIn.disconnect();
       } catch (error) {
-        print('Failed to disconnect: $error');
+        Exception('Failed to disconnect: $error');
       }
     }
 
@@ -103,7 +106,7 @@ class GoogleSignInProvider extends ChangeNotifier {
       try {
         _user = await _googleSignIn.signInSilently();
       } catch (error) {
-        print("Error in silent sign-in: $error");
+        Exception("Error in silent sign-in: $error");
       }
     }
     notifyListeners();

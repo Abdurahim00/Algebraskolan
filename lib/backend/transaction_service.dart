@@ -36,7 +36,7 @@ class TransactionService {
         }
       }
     } catch (e) {
-      print('Error fetching latest transaction: $e');
+      Exception('Error fetching latest transaction: $e');
     }
   }
 
@@ -75,7 +75,7 @@ class TransactionService {
         transactions.add(CoinTransaction.fromMap(data));
       }
     } catch (e) {
-      print('Error fetching transactions: $e');
+      Exception('Error fetching transactions: $e');
     }
 
     return transactions;

@@ -27,9 +27,12 @@ class _TransactionWidgetState extends State<TransactionWidget> {
 
   @override
   Widget build(BuildContext context) {
-    // Dynamic font size based on screen width
-    double screenWidth = MediaQuery.of(context).size.width;
-    double fontSize = screenWidth * 0.04; // Example: 4% of screen width
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+
+    // Dynamic font size based on screen width and orientation
+    double fontSize = isLandscape ? screenWidth * 0.03 : screenWidth * 0.045;
 
     return Consumer<TransactionProvider>(
       builder: (context, transactionProvider, child) {

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +19,6 @@ void main() async {
   final connectivityController = ConnectivityController();
   await connectivityController.init();
 
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await initializeDateFormatting('sv_SE', null); // Initialize date format
 
   runApp(MyApp(connectivityController: connectivityController));

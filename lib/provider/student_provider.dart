@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../backend/coin_transaction.dart';
 import '../backend/sound_manager.dart';
 import '../backend/student_service.dart';
 import '../backend/transaction_service.dart';
@@ -224,35 +223,20 @@ class StudentProvider with ChangeNotifier {
 
   Future<void> updateStudentCoins(
       ValueNotifier<Student> studentNotifier, String teacherName) async {
-    // Fetch the current coin balance
-    int currentCoins = await _studentService
-        .fetchCurrentCoinBalance(studentNotifier.value.uid);
-
     int coinsToChange = studentNotifier.value.localCoins.value;
 
-    // Check if the coins to be deducted will not result in a negative balance
-    if (currentCoins + coinsToChange >= 0) {
-      // Create a new transaction
-      CoinTransaction transaction = CoinTransaction(
-        teacherName: teacherName,
-        amount: coinsToChange,
-        timestamp: DateTime.now(),
-      );
-
-      // Use the StudentService to add the transaction and update coins
-      await _studentService.addTransactionToStudent(
-          studentNotifier.value.uid, transaction);
-      await _studentService.updateStudentCoinsInFirestore(
-          studentNotifier.value.uid, coinsToChange);
+    try {
+      // Use the StudentService to handle the transaction
+      await _studentService.updateCoinsWithTransaction(
+          studentNotifier.value.uid, coinsToChange, teacherName);
 
       // Reset local coin count for the student
       studentNotifier.value.localCoins.value = 0;
-
       notifyListeners();
-    } else {
-      // Handle the case where the coin deduction would result in a negative balance
-      // You might want to notify the user or log this event
-      throw Exception('Inte tillräckligt med algebronor.');
+    } catch (e) {
+      // Handle any exceptions, such as insufficient coins
+      debugPrint('Error updating coins: $e');
+      throw e;
     }
   }
 

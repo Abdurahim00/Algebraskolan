@@ -10,8 +10,7 @@ import '../../provider/question_provider.dart';
 class QuestionsScreen extends StatefulWidget {
   final int classNumber;
 
-  const QuestionsScreen({Key? key, required this.classNumber})
-      : super(key: key);
+  const QuestionsScreen({super.key, required this.classNumber});
 
   @override
   QuestionsScreenState createState() => QuestionsScreenState();
@@ -19,15 +18,13 @@ class QuestionsScreen extends StatefulWidget {
 
 class QuestionsScreenState extends State<QuestionsScreen> {
   late final TextEditingController _textController;
-  FocusNode _textFocusNode = FocusNode();
+  final FocusNode _textFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
-    print('QuestionsScreenState initState() called');
     _textController = TextEditingController();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('QuestionsScreenState postFrameCallback called');
       Provider.of<QuestionProvider>(context, listen: false)
           .fetchQuestion(widget.classNumber);
     });
@@ -35,7 +32,6 @@ class QuestionsScreenState extends State<QuestionsScreen> {
 
   @override
   void dispose() {
-    print('QuestionsScreenState dispose() called');
     _textController.dispose();
     _textFocusNode.dispose();
     super.dispose();
@@ -244,9 +240,7 @@ class QuestionsScreenState extends State<QuestionsScreen> {
                                       questionProvider.resetAnimation();
                                     });
                                   }
-                                } else {
-                                  print("No input provided");
-                                }
+                                } else {}
                               },
                             ),
                           ),

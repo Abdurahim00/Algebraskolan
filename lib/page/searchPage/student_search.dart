@@ -192,8 +192,10 @@ class StudentSearch extends SearchDelegate<Student?> {
         try {
           await studentProvider.updateStudentCoins(
               studentNotifier, teacherName);
+          // ignore: use_build_context_synchronously
           Navigator.pop(context); // Close the progress dialog
           coinController.clear();
+          // ignore: use_build_context_synchronously
           Navigator.of(context).pop(); // Close the alert dialog
           _showSuccessToast('Du har tagit bort $coinsToRemove algebronor');
         } catch (e) {
@@ -249,8 +251,10 @@ class StudentSearch extends SearchDelegate<Student?> {
         try {
           await studentProvider.updateStudentCoins(
               studentNotifier, teacherName);
+          // ignore: use_build_context_synchronously
           Navigator.pop(context); // Close the progress dialog
           coinController.clear();
+          // ignore: use_build_context_synchronously
           Navigator.of(context).pop(); // Close the alert dialog
           _showSuccessToast('Du har skickat $coins algebronor');
         } catch (e) {

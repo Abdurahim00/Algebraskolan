@@ -16,7 +16,6 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> fetchAndUpdateTransactions() async {
     if (uid == null) {
       // Handle the null case, maybe throw an error or return
-      print('UID is null, cannot fetch and update transactions');
       return;
     }
 
@@ -29,7 +28,6 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> logTransaction(int coins, String teacherName) async {
     if (uid == null) {
       // Handle the null case, maybe throw an error or return
-      print('UID is null, cannot log transaction');
       return;
     }
 
@@ -39,7 +37,6 @@ class TransactionProvider extends ChangeNotifier {
   Future<List<CoinTransaction>> fetchAllUserTransactions() async {
     if (uid == null) {
       // Handle the null case, maybe throw an error or return
-      print('UID is null, cannot fetch all user transactions');
       return [];
     }
 

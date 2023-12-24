@@ -5,10 +5,10 @@ class MaxWidthContainer extends StatelessWidget {
   final double maxWidth;
 
   const MaxWidthContainer({
-    Key? key,
+    super.key,
     required this.child,
     this.maxWidth = 400.0, // Adjust this value as needed
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

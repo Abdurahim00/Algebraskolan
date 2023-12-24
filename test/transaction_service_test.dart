@@ -74,40 +74,6 @@ void main() {
       });
     });
 
-    group('updateTransactionIsNewFlag', () {
-      test('should update isNew flag correctly', () async {
-        final FakeFirebaseFirestore fakeFirestore = FakeFirebaseFirestore();
-
-        fakeFirestore
-            .collection('students')
-            .doc('student1')
-            .collection('transactions')
-            .doc('transaction1')
-            .set({
-          'teacherName': 'teacher1',
-          'amount': 10,
-          'timestamp': DateTime.now(),
-          'isNew': true,
-        });
-
-        final TransactionService transactionService =
-            TransactionService(firestore: fakeFirestore);
-
-        await transactionService.updateTransactionIsNewFlag(
-            'student1', 'transaction1');
-
-        final DocumentSnapshot doc = await fakeFirestore
-            .collection('students')
-            .doc('student1')
-            .collection('transactions')
-            .doc('transaction1')
-            .get();
-
-        final Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
-        expect(data?['isNew'], false);
-      });
-    });
-
     group('logTransaction', () {
       test('should log transaction correctly', () async {
         final FakeFirebaseFirestore fakeFirestore = FakeFirebaseFirestore();

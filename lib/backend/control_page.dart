@@ -21,15 +21,28 @@ class HomePage extends StatelessWidget {
 
   HomePage({super.key});
 
-  // Method to create a combined stream of user and user data
   Stream<UserData?> getUserDataStream() {
     return _authService.authStateChanges.asyncMap((user) async {
-      if (user != null) {
+      if (user == null) return Future.value(null);
+
+      try {
         var userDocument = await _authService.getUserDocument(user.uid);
-        var userData = userDocument.data() as Map<String, dynamic>;
-        return UserData(user, userData);
+        if (userDocument.exists && userDocument.data() != null) {
+          return UserData(user, userDocument.data() as Map<String, dynamic>);
+        } else {
+          debugPrint('Creating initial user data for new user');
+          // Initialize new user data here or simply return a UserData with defaults
+          return UserData(user, {
+            'role': 'student',
+            'classNumber': 0,
+            'coins': 0,
+            'hasAnsweredQuestionCorrectly': false,
+          });
+        }
+      } catch (e) {
+        debugPrint('Error fetching user data: $e');
+        throw e;
       }
-      return Future.value(null); // Corrected return for null case
     });
   }
 
@@ -44,27 +57,45 @@ class HomePage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return const Center(child: Text("Något gick fel!"));
+            return Center(child: Text("Error: ${snapshot.error}"));
           }
 
-          if (snapshot.hasData && snapshot.data != null) {
-            var data = snapshot.data!.userData;
-            if (data!['role'] == 'teacher') {
-              return const TeacherScreen();
+          if (snapshot.data?.user != null) {
+            var userData = snapshot.data!.userData;
+            if (userData != null) {
+              // User is logged in and userData is available
+              return _buildUserScreen(userData);
             } else {
-              int classNumber = data['classNumber'];
-              if (data['hasAnsweredQuestionCorrectly'] == false) {
-                return QuestionsScreen(
-                    key: _questionsScreenKey, classNumber: classNumber);
-              } else {
-                return const StudentScreen();
-              }
+              // User is logged in but userData is not yet available
+              // Redirect to a default or temporary screen
+              return _buildTemporaryScreen();
             }
-          } else {
-            return const LoginPage();
           }
+
+          return const LoginPage();
         },
       ),
+    );
+  }
+
+  Widget _buildUserScreen(Map<String, dynamic> userData) {
+    if (userData['role'] == 'teacher') {
+      return const TeacherScreen();
+    } else {
+      int classNumber = userData['classNumber'];
+      if (!userData['hasAnsweredQuestionCorrectly']) {
+        return QuestionsScreen(
+            key: _questionsScreenKey, classNumber: classNumber);
+      } else {
+        return const StudentScreen();
+      }
+    }
+  }
+
+  Widget _buildTemporaryScreen() {
+    // This screen is shown while user data is being fetched
+    return Center(
+      child: CircularProgressIndicator(),
     );
   }
 

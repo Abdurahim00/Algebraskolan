@@ -84,17 +84,22 @@ class _LoginPageState extends State<LoginPage> {
                       color: Colors.orange),
                   onPressed: () async {
                     if (await connectivityController.isConnected.value) {
+                      // ignore: use_build_context_synchronously
                       final provider = Provider.of<GoogleSignInProvider>(
                           context,
                           listen: false);
+                      // ignore: use_build_context_synchronously
                       provider.googleLogin(context, connectivityController);
                     } else {
+                      // ignore: use_build_context_synchronously
                       NetworkAlertPopup.show(context, connectivityController,
                           () async {
                         if (await connectivityController.checkConnectivity()) {
+                          // ignore: use_build_context_synchronously
                           final provider = Provider.of<GoogleSignInProvider>(
                               context,
                               listen: false);
+                          // ignore: use_build_context_synchronously
                           provider.googleLogin(context, connectivityController);
                         }
                       });

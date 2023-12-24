@@ -88,7 +88,6 @@ class StudentService {
       'teacherName': transaction.teacherName,
       'amount': transaction.amount,
       'timestamp': transaction.timestamp,
-      'isNew': true,
     };
 
     await _firestore
@@ -113,7 +112,6 @@ class StudentService {
       await batch.commit();
       return updatedStudentUids; // Return the list of updated UIDs
     } catch (e) {
-      print('Error in batch update: $e');
       return []; // Return an empty list in case of error
     }
   }
@@ -130,8 +128,44 @@ class StudentService {
         throw Exception('Student not found or coins field is missing');
       }
     } catch (e) {
-      print('Error fetching coin balance: $e');
       rethrow;
     }
+  }
+
+  Future<void> updateCoinsWithTransaction(
+      String uid, int coinsToChange, String teacherName) async {
+    await _firestore.runTransaction((transaction) async {
+      DocumentReference userRef = _firestore.collection('users').doc(uid);
+
+      // Fetch the current coin balance within the transaction
+      DocumentSnapshot snapshot = await transaction.get(userRef);
+      if (!snapshot.exists) {
+        throw Exception('Student not found');
+      }
+
+      var data = snapshot.data();
+      if (data is Map<String, dynamic>) {
+        int currentCoins = data['coins'] as int? ?? 0;
+
+        if (currentCoins + coinsToChange < 0) {
+          throw Exception('Insufficient coins');
+        }
+
+        // Update coins in Firestore within the transaction
+        transaction
+            .update(userRef, {'coins': FieldValue.increment(coinsToChange)});
+
+        // Log the transaction by calling addTransactionToStudent
+        CoinTransaction transactionData = CoinTransaction(
+          teacherName: teacherName,
+          amount: coinsToChange,
+          timestamp: DateTime.now(), // Using DateTime.now() for the timestamp
+        );
+        await addTransactionToStudent(uid,
+            transactionData); // This might need adjustment to work within a transaction
+      } else {
+        throw Exception('Data is not in expected format');
+      }
+    });
   }
 }

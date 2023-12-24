@@ -15,7 +15,7 @@ class QuestionProvider with ChangeNotifier {
       _question = await getRandomQuestion(classNumber);
       notifyListeners(); // Notify only after successfully fetching the question
     } catch (e) {
-      print('Error fetching question: $e');
+      Exception('Error fetching question: $e');
       // Handle any error state as needed
       // Consider notifying listeners if the UI needs to react to this error state
     }

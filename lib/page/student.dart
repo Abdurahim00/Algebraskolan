@@ -7,9 +7,8 @@ class Student {
   final String displayName;
   final String role;
   final int classNumber;
-  late final int coins;
-  final Timestamp? questionAnsweredAt; // added field
-  final bool hasAnsweredQuestionCorrectly; // added field
+  final int coins;
+  final bool hasAnsweredQuestionCorrectly;
   ValueNotifier<int> localCoins;
   List<CoinTransaction> transactions = [];
 
@@ -20,7 +19,6 @@ class Student {
     required this.classNumber,
     required this.coins,
     required this.transactions,
-    this.questionAnsweredAt, // it can be null
     required this.hasAnsweredQuestionCorrectly,
     ValueNotifier<int>? localCoins, // It is nullable
   }) : localCoins = localCoins ??
@@ -34,9 +32,6 @@ class Student {
       role: data.containsKey('role') ? data['role'] : 'student',
       classNumber: data.containsKey('classNumber') ? data['classNumber'] : 0,
       coins: data.containsKey('coins') ? data['coins'] : 0,
-      questionAnsweredAt: data.containsKey('questionAnsweredAt')
-          ? data['questionAnsweredAt']
-          : null,
       hasAnsweredQuestionCorrectly:
           data.containsKey('hasAnsweredQuestionCorrectly')
               ? data['hasAnsweredQuestionCorrectly']
@@ -51,9 +46,8 @@ class Student {
     String? role,
     int? classNumber,
     int? coins,
-    // added field
-    bool? hasAnsweredQuestionCorrectly, // added field
-    ValueNotifier<int>? localCoins, // It should be ValueNotifier<int>
+    bool? hasAnsweredQuestionCorrectly,
+    ValueNotifier<int>? localCoins,
   }) {
     return Student(
       uid: uid ?? this.uid,
@@ -64,7 +58,7 @@ class Student {
       hasAnsweredQuestionCorrectly:
           hasAnsweredQuestionCorrectly ?? this.hasAnsweredQuestionCorrectly,
       localCoins: localCoins ?? this.localCoins,
-      transactions: [],
+      transactions: this.transactions, // Keep the existing transactions
     );
   }
 
@@ -78,6 +72,7 @@ class Student {
         other.role == role &&
         other.classNumber == classNumber &&
         other.coins == coins &&
+        other.hasAnsweredQuestionCorrectly == hasAnsweredQuestionCorrectly &&
         other.localCoins.value ==
             localCoins.value; // Compare the value of localCoins
   }
@@ -89,5 +84,6 @@ class Student {
       role.hashCode ^
       classNumber.hashCode ^
       coins.hashCode ^
+      hasAnsweredQuestionCorrectly.hashCode ^
       localCoins.value.hashCode; // Calculate hash for the value of localCoins
 }

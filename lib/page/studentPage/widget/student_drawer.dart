@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:algebra/provider/google_sign_In.dart';
@@ -42,7 +41,7 @@ class StudentDrawer extends StatelessWidget {
                       final userDoc = snapshot.data;
                       final classNumber =
                           userDoc?['classNumber'].toString() ?? 'No Class';
-                      classInfo = '$classNumber' + 'an';
+                      classInfo = '$classNumber' 'an';
                     } else if (snapshot.hasError) {
                       classInfo = 'Error';
                     }
@@ -58,11 +57,11 @@ class StudentDrawer extends StatelessWidget {
                     ),
                     otherAccountsPictures: [
                       CircleAvatar(
+                        backgroundColor: Colors.white,
                         child: Text(
                           classInfo,
                           style: const TextStyle(fontFamily: 'Pangolin'),
                         ),
-                        backgroundColor: Colors.white,
                       ),
                     ],
                   );
@@ -70,22 +69,22 @@ class StudentDrawer extends StatelessWidget {
               ),
               ListTile(
                 title: const Text('Historik'),
-                trailing: Icon(Icons.history_rounded),
+                trailing: const Icon(Icons.history_rounded),
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => TransactionHistoryScreen()),
+                        builder: (context) => const TransactionHistoryScreen()),
                   );
                 },
               ),
-              Divider(),
+              const Divider(),
               // Other ListTiles if needed
             ],
           ),
           ListTile(
             onTap: () => _showLogoutDialog(context),
             title: const Text("Logga ut"),
-            trailing: Icon(Icons.exit_to_app_rounded),
+            trailing: const Icon(Icons.exit_to_app_rounded),
           ),
         ],
       ),
