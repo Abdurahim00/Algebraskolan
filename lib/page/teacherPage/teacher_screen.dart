@@ -87,7 +87,7 @@ class TeacherScreenState extends State<TeacherScreen> {
                 Expanded(
                   flex: 4,
                   child: Container(
-                    color: Color.fromARGB(255, 245, 142, 11),
+                    color: const Color.fromARGB(255, 245, 142, 11),
                   ),
                 ),
                 // Update the StudentListPart
@@ -195,10 +195,7 @@ class TeacherScreenState extends State<TeacherScreen> {
                         context: context,
                         delegate: StudentSearch(),
                       ).then((studentNotifier) {
-                        if (studentNotifier != null) {
-                          print(
-                              'Selected student: ${studentNotifier.displayName}');
-                        }
+                        if (studentNotifier != null) {}
                       });
                     },
                   ),
