@@ -1,3 +1,4 @@
+import 'package:algebra/provider/apple_sign_in_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -16,38 +17,50 @@ void main() async {
   await Firebase.initializeApp();
   final googleSignInProvider = GoogleSignInProvider.instance;
   await googleSignInProvider.initializeUser();
+  final appleSignInProvider =
+      AppleSignInProvider(); // Create an instance of AppleSignInProvider
+  await appleSignInProvider.initializeUser(); // Initialize AppleSignInProvider
   final connectivityController = ConnectivityController();
   await connectivityController.init();
 
   await initializeDateFormatting('sv_SE', null); // Initialize date format
 
-  runApp(MyApp(connectivityController: connectivityController));
+  runApp(MyApp(
+    googleSignInProvider: googleSignInProvider,
+    appleSignInProvider: appleSignInProvider,
+    connectivityController: connectivityController,
+  ));
 }
 
 class MyApp extends StatelessWidget {
+  final GoogleSignInProvider googleSignInProvider;
+  final AppleSignInProvider appleSignInProvider;
   final ConnectivityController connectivityController;
 
-  const MyApp({super.key, required this.connectivityController});
+  const MyApp({
+    super.key,
+    required this.googleSignInProvider,
+    required this.appleSignInProvider,
+    required this.connectivityController,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: GoogleSignInProvider.instance),
+        ChangeNotifierProvider.value(value: googleSignInProvider),
+        ChangeNotifierProvider.value(value: appleSignInProvider),
         ChangeNotifierProvider(create: (context) => StudentProvider()),
         ChangeNotifierProvider(create: (context) => QuestionProvider()),
         ChangeNotifierProvider(
           create: (context) {
-            final googleSignInProvider =
-                Provider.of<GoogleSignInProvider>(context, listen: false);
             return TransactionProvider(
               uid: googleSignInProvider.uid,
               googleSignInProvider: googleSignInProvider,
             );
           },
         ),
-        ChangeNotifierProvider.value(
-            value: connectivityController), // Added this line
+        ChangeNotifierProvider.value(value: connectivityController),
       ],
       child: MaterialApp(
         title: 'Algebra App',

@@ -4,6 +4,7 @@ import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
 
+import '../provider/apple_sign_in_provider.dart';
 import '../provider/google_sign_In.dart';
 import '../other/network_alert.dart';
 
@@ -60,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    "Signa up dig med Algebraskolans mail",
+                    "Registrera dig med Algebraskolans mail",
                     style: TextStyle(
                       fontFamily: 'LilitaOne',
                       fontSize: 20,
@@ -105,8 +106,46 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     }
                   },
-                  label: const Text("Registrera dig med Google"),
+                  label: const Text("Registrera dig"),
                 ),
+                // Apple Sign-In Button
+                TextButton.icon(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        MaterialStateProperty.all<Color>(Colors.black),
+                    foregroundColor:
+                        MaterialStateProperty.all<Color>(Colors.white),
+                    minimumSize: MaterialStateProperty.all<Size>(
+                        const Size(double.infinity, 50)),
+                  ),
+                  icon:
+                      const FaIcon(FontAwesomeIcons.apple, color: Colors.white),
+                  onPressed: () async {
+                    if (await connectivityController.isConnected.value) {
+                      // ignore: use_build_context_synchronously
+                      final provider = Provider.of<AppleSignInProvider>(context,
+                          listen: false);
+                      // ignore: use_build_context_synchronously
+                      provider.appleLogin(context, connectivityController);
+                    } else {
+                      // ignore: use_build_context_synchronously
+                      NetworkAlertPopup.show(context, connectivityController,
+                          () async {
+                        if (await connectivityController.checkConnectivity()) {
+                          // ignore: use_build_context_synchronously
+                          final provider = Provider.of<AppleSignInProvider>(
+                              context,
+                              listen: false);
+                          // ignore: use_build_context_synchronously
+                          provider.appleLogin(context, connectivityController);
+                        }
+                      });
+                    }
+                    Spacer();
+                  },
+                  label: const Text("Registrera med Apple"),
+                ),
+
                 SizedBox(height: screenHeight * 0.1),
               ],
             ),

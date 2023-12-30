@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:algebra/provider/google_sign_In.dart';
+import 'package:algebra/provider/apple_sign_in_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../backend/control_page.dart';
 import '../transaction_history.dart';
@@ -10,24 +12,49 @@ import '../transaction_history.dart';
 class StudentDrawer extends StatelessWidget {
   const StudentDrawer({super.key});
 
-  void _handleLogout(BuildContext context) {
-    final provider = Provider.of<GoogleSignInProvider>(context, listen: false);
-    provider.googleLogout();
+  void _handleLogout(BuildContext context) async {
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+
+    if (firebaseUser != null) {
+      // Check the provider used for sign-in
+      final isGoogleUser =
+          firebaseUser.providerData.any((p) => p.providerId == 'google.com');
+      final isAppleUser =
+          firebaseUser.providerData.any((p) => p.providerId == 'apple.com');
+
+      if (isGoogleUser) {
+        // Perform Google Sign-Out
+        final googleProvider =
+            Provider.of<GoogleSignInProvider>(context, listen: false);
+        await googleProvider.googleLogout();
+      } else if (isAppleUser) {
+        // Perform Apple Sign-Out
+        final appleProvider =
+            Provider.of<AppleSignInProvider>(context, listen: false);
+        await appleProvider.appleLogout();
+      }
+
+      // Sign out from Firebase Auth
+      await FirebaseAuth.instance.signOut();
+    }
+
     Navigator.of(context)
         .pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<GoogleSignInProvider>(context, listen: true);
-    final user = provider.user; // This can be null after logout
-    final uid = provider.uid;
+    final firebaseUser = FirebaseAuth.instance.currentUser;
+    final displayName = firebaseUser?.displayName ?? 'Unknown';
+    final email = firebaseUser?.email ?? 'No Email';
+    final photoURL = firebaseUser?.photoURL ?? 'assets/images/favicon.png';
+    final uid = firebaseUser?.uid;
 
     return Drawer(
       child: Column(
         children: [
           ListView(
-            shrinkWrap: true, // Ensures the ListView only occupies needed space
+            shrinkWrap: true,
             children: [
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
@@ -47,13 +74,14 @@ class StudentDrawer extends StatelessWidget {
                     }
                   }
                   return UserAccountsDrawerHeader(
-                    accountName: Text(user?.displayName ?? 'No Name'),
-                    accountEmail: Text(user?.email ?? 'No Email'),
+                    accountName: Text(displayName),
+                    accountEmail: Text(email),
                     currentAccountPicture: CircleAvatar(
-                      backgroundImage: user?.photoUrl != null
-                          ? NetworkImage(user!.photoUrl!)
-                          : const AssetImage('assets/default_user.png')
-                              as ImageProvider,
+                      backgroundImage:
+                          photoURL is String && Uri.parse(photoURL).isAbsolute
+                              ? NetworkImage(photoURL)
+                              : const AssetImage('assets/images/favicon.png')
+                                  as ImageProvider,
                     ),
                     otherAccountsPictures: [
                       CircleAvatar(
@@ -71,10 +99,8 @@ class StudentDrawer extends StatelessWidget {
                 title: const Text('Historik'),
                 trailing: const Icon(Icons.history_rounded),
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (context) => const TransactionHistoryScreen()),
-                  );
+                  Navigator.of(context).push(MaterialPageRoute(
+                      builder: (context) => const TransactionHistoryScreen()));
                 },
               ),
               const Divider(),
@@ -95,35 +121,33 @@ class StudentDrawer extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        if (Theme.of(context).platform == TargetPlatform.iOS) {
-          return CupertinoAlertDialog(
-            title: const Text("Är du säker?"),
-            actions: <Widget>[
-              CupertinoDialogAction(
-                onPressed: () => _handleLogout(context),
-                child: const Text("Ja"),
-              ),
-              CupertinoDialogAction(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Nej"),
-              ),
-            ],
-          );
-        } else {
-          return AlertDialog(
-            title: const Text("Är du säker?"),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => _handleLogout(context),
-                child: const Text("Ja"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Nej"),
-              ),
-            ],
-          );
-        }
+        return Theme.of(context).platform == TargetPlatform.iOS
+            ? CupertinoAlertDialog(
+                title: const Text("Är du säker?"),
+                actions: <Widget>[
+                  CupertinoDialogAction(
+                    onPressed: () => _handleLogout(context),
+                    child: const Text("Ja"),
+                  ),
+                  CupertinoDialogAction(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Nej"),
+                  ),
+                ],
+              )
+            : AlertDialog(
+                title: const Text("Är du säker?"),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () => _handleLogout(context),
+                    child: const Text("Ja"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Nej"),
+                  ),
+                ],
+              );
       },
     );
   }

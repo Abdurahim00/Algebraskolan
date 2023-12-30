@@ -4,11 +4,12 @@ import 'package:lottie/lottie.dart';
 import 'package:algebra/pages/login.dart';
 import 'package:algebra/pages/studentPage/student_screen.dart';
 import 'package:algebra/pages/teacherPage/teacher_screen.dart';
+import 'package:algebra/provider/google_sign_in.dart';
+import 'package:algebra/provider/apple_sign_in_provider.dart'; // Import AppleSignInProvider
+import 'package:provider/provider.dart';
 import '../pages/studentPage/question_screen.dart';
-import '../provider/google_sign_In.dart';
 import 'auth_service.dart';
 
-// Create a custom class to hold both user and user data
 class UserData {
   final User? user;
   final Map<String, dynamic>? userData;
@@ -27,10 +28,10 @@ class HomePage extends StatelessWidget {
       if (user == null) return Future.value(null);
 
       final email = user.email;
-      if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+      if (!(email?.endsWith('@gmail.com') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
         await showUnauthorizedDomainDialog(context); // Show the dialog
-        await GoogleSignInProvider.instance.googleLogout();
+        await signOutUser(context, user); // Sign out the user
         return null;
       }
 
@@ -52,6 +53,15 @@ class HomePage extends StatelessWidget {
         rethrow;
       }
     });
+  }
+
+  Future<void> signOutUser(BuildContext context, User user) async {
+    if (user.providerData.any((p) => p.providerId == 'google.com')) {
+      await GoogleSignInProvider.instance.googleLogout();
+    } else if (user.providerData.any((p) => p.providerId == 'apple.com')) {
+      await Provider.of<AppleSignInProvider>(context, listen: false)
+          .appleLogout();
+    }
   }
 
   Future<void> showUnauthorizedDomainDialog(BuildContext context) async {

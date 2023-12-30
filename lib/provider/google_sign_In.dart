@@ -41,7 +41,7 @@ class GoogleSignInProvider extends ChangeNotifier {
           displayName?.toLowerCase(); // Lowercase display name
 
       // Check if the email domain is allowed
-      if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+      if (!(email?.endsWith('@gmail.com') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
         // If the domain is not allowed, throw an exception
         throw Exception('Access denied for unauthorized domain.');
@@ -112,7 +112,7 @@ class GoogleSignInProvider extends ChangeNotifier {
         _user = await _googleSignIn.signInSilently();
         final email = _user?.email;
 
-        if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
+        if (!(email?.endsWith('@gmail.com') ?? false) &&
             !(email?.endsWith('@algebrautbildning.se') ?? false)) {
           await googleLogout();
           return false; // User is not authorized

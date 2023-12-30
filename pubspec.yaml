@@ -28,7 +28,8 @@ dependencies:
   connectivity_plus: ^5.0.2
   audioplayers: ^5.2.1
   cached_network_image: ^3.3.0
-  firebase_messaging: ^14.7.9
+  sign_in_with_apple: ^5.0.0
+
 
 
   
