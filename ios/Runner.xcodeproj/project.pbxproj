@@ -466,7 +466,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_MODULES_DISABLE_PRIVATE_WARNING = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
-				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 2V26HRJ5B8;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_BITCODE = NO;
@@ -477,6 +477,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				MERGED_BINARY_TYPE = automatic;
 				PRODUCT_BUNDLE_IDENTIFIER = com.algebrona.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -664,7 +665,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_MODULES_DISABLE_PRIVATE_WARNING = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
-				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 2V26HRJ5B8;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_BITCODE = NO;
@@ -675,6 +676,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				MERGED_BINARY_TYPE = automatic;
 				PRODUCT_BUNDLE_IDENTIFIER = com.algebrona.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -698,7 +700,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_MODULES_DISABLE_PRIVATE_WARNING = YES;
 				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
-				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 2V26HRJ5B8;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_BITCODE = NO;
@@ -709,6 +711,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.1;
 				MERGED_BINARY_TYPE = automatic;
 				PRODUCT_BUNDLE_IDENTIFIER = com.algebrona.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";

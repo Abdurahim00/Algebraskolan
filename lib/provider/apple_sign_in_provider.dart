@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../other/network_alert.dart';
 import '../provider/connectivity_provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class AppleSignInProvider extends ChangeNotifier {
   User? _user;
@@ -59,7 +60,13 @@ class AppleSignInProvider extends ChangeNotifier {
         await docRef.update(userData);
       }
 
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
+      // Fetch the feature flag
+      final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.fetchAndActivate();
+      bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+
+      if (!allowAllEmails &&
+          !(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
         await appleLogout();
         throw Exception('Access denied for unauthorized domain.');
@@ -117,7 +124,14 @@ class AppleSignInProvider extends ChangeNotifier {
     if (currentUser != null) {
       _user = currentUser;
       final email = _user?.email;
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
+
+      // Fetch the feature flag
+      final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.fetchAndActivate();
+      bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+
+      if (!allowAllEmails &&
+          !(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
         await appleLogout();
         return false;

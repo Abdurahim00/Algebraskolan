@@ -1,5 +1,6 @@
 import 'package:algebra/backend/coin_transaction.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'student.dart';
 
 class StudentService {
@@ -132,6 +133,25 @@ class StudentService {
     }
   }
 
+  Future<void> deleteUserAccount() async {
+    try {
+      // Get the current user
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // Delete the user
+        await user.delete();
+        print("User account deleted successfully.");
+
+        // Navigate to login page or somewhere else as needed
+        // Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => LoginPage()));
+      }
+    } on FirebaseAuthException catch (e) {
+      print("Error deleting user account: ${e.message}");
+      // Handle errors, like showing an alert dialog
+    }
+  }
+
   Future<void> updateCoinsWithTransaction(
       String uid, int coinsToChange, String teacherName) async {
     await _firestore.runTransaction((transaction) async {
@@ -167,5 +187,15 @@ class StudentService {
         throw Exception('Data is not in expected format');
       }
     });
+  }
+
+  Future<void> deleteUserDocument(String uid) async {
+    try {
+      await _firestore.collection('users').doc(uid).delete();
+      print("User Firestore document deleted successfully.");
+    } catch (e) {
+      print("Error deleting user document: ${e}");
+      rethrow; // Rethrow the error to handle it in the calling function
+    }
   }
 }

@@ -109,42 +109,6 @@ class _LoginPageState extends State<LoginPage> {
                   label: const Text("Registrera dig"),
                 ),
                 // Apple Sign-In Button
-                TextButton.icon(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.black),
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white),
-                    minimumSize: MaterialStateProperty.all<Size>(
-                        const Size(double.infinity, 50)),
-                  ),
-                  icon:
-                      const FaIcon(FontAwesomeIcons.apple, color: Colors.white),
-                  onPressed: () async {
-                    if (await connectivityController.isConnected.value) {
-                      // ignore: use_build_context_synchronously
-                      final provider = Provider.of<AppleSignInProvider>(context,
-                          listen: false);
-                      // ignore: use_build_context_synchronously
-                      provider.appleLogin(context, connectivityController);
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      NetworkAlertPopup.show(context, connectivityController,
-                          () async {
-                        if (await connectivityController.checkConnectivity()) {
-                          // ignore: use_build_context_synchronously
-                          final provider = Provider.of<AppleSignInProvider>(
-                              context,
-                              listen: false);
-                          // ignore: use_build_context_synchronously
-                          provider.appleLogin(context, connectivityController);
-                        }
-                      });
-                    }
-                    Spacer();
-                  },
-                  label: const Text("Registrera med Apple"),
-                ),
 
                 SizedBox(height: screenHeight * 0.1),
               ],
