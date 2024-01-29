@@ -1,20 +1,29 @@
 {
   "project_info": {
     "project_number": "195764286049",
+    "firebase_url": "https://algebra-82c5d-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "algebra-82c5d",
     "storage_bucket": "algebra-82c5d.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:195764286049:android:c06de9b1f515cab70d3020",
+        "mobilesdk_app_id": "1:195764286049:android:cc8d9098cc2d15700d3020",
         "android_client_info": {
-          "package_name": "com.example.algebra"
+          "package_name": "com.aj.algebrona"
         }
       },
       "oauth_client": [
         {
-          "client_id": "195764286049-bq3nbhka5iosa4pr56nb9aarslhqjbqm.apps.googleusercontent.com",
+          "client_id": "195764286049-v7b92m2qa337rele1b8357o76jqng4ma.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aj.algebrona",
+            "certificate_hash": "f9a335eedd6db83fbdfb45e5f42e98302a496914"
+          }
+        },
+        {
+          "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -27,8 +36,163 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "195764286049-bq3nbhka5iosa4pr56nb9aarslhqjbqm.apps.googleusercontent.com",
+              "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.algebra"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195764286049:android:2458702dc5d47d2f0d3020",
+        "android_client_info": {
+          "package_name": "com.algebra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.algebra"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195764286049:android:686c4cbf7f3cd9880d3020",
+        "android_client_info": {
+          "package_name": "com.algebra.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "195764286049-jg12pce4etd046g39bbhq97sbk8v522t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.algebra.app",
+            "certificate_hash": "8a24d9f464852b2750e046ea1890182486091ee7"
+          }
+        },
+        {
+          "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.algebra"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195764286049:android:c06de9b1f515cab70d3020",
+        "android_client_info": {
+          "package_name": "com.example.algebra"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "195764286049-ahopoqfv735tp3sbdd000aibfbu50okc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.algebra",
+            "certificate_hash": "bb93e984de8cba9759f5b72e90ae775f674a8fc3"
+          }
+        },
+        {
+          "client_id": "195764286049-da4gtttfjavlmt07bmq1qmd3fbtt3cpc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.algebra",
+            "certificate_hash": "82b2be581f193f08fc7b812f98195db6e4492956"
+          }
+        },
+        {
+          "client_id": "195764286049-e52r71e1m2cloidusolea44vivhojdkt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.algebra",
+            "certificate_hash": "bcd20f5e7b64d9fe4545398d4335fda622d93912"
+          }
+        },
+        {
+          "client_id": "195764286049-j3bsuh5kkn6j02dchrfie5fma5apbnv7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.algebra",
+            "certificate_hash": "f9a335eedd6db83fbdfb45e5f42e98302a496914"
+          }
+        },
+        {
+          "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.algebra"
+              }
             }
           ]
         }
