@@ -49,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    'Välkommen',
+                    'Welcome',
                     style: TextStyle(
                       fontFamily: 'LilitaOne',
                       fontSize: 36,
@@ -61,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Align(
                   alignment: Alignment.topLeft,
                   child: Text(
-                    "Registrera dig med skolans mail",
+                    "Register with your school email",
                     style: TextStyle(
                       fontFamily: 'LilitaOne',
                       fontSize: 20,
@@ -106,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     }
                   },
-                  label: const Text("Registrera"),
+                  label: const Text("Press here to register"),
                 ),
                 // Apple Sign-In Button
 
