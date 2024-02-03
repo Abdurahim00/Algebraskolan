@@ -3,33 +3,83 @@ import 'package:provider/provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../provider/apple_sign_in_provider.dart';
 import '../provider/google_sign_In.dart';
 import '../other/network_alert.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+class _LoginPageState extends State<LoginPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+
+    // Correct this part
+    Future.delayed(Duration.zero, () {
+      _checkFirstLaunch(); // Call this method to check first launch and show dialog conditionally
+    });
+  }
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      await _showFirstLaunchDialog();
+      await prefs.setBool('isFirstLaunch', false);
+    }
+  }
+
+  Future<void> _showFirstLaunchDialog() async {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false, // User must tap button to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Welcome to Algebraskolan'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('This school uses Google Workspace for education.'),
+                Text('Please sign in with your school email'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Understand'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
     final connectivityController =
         Provider.of<ConnectivityController>(context, listen: false);
 
@@ -37,80 +87,68 @@ class _LoginPageState extends State<LoginPage> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Lottie.asset('assets/images/Gradient Circles Warm.json',
-                fit: BoxFit.cover),
+            child: Lottie.asset(
+              'assets/images/Gradient Circles Warm.json', // Ensure your asset path is correct
+              fit: BoxFit.cover,
+            ),
           ),
           Padding(
-            padding: const EdgeInsets.all(32),
+            padding: const EdgeInsets.all(32.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-                const Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    'Welcome',
-                    style: TextStyle(
-                      fontFamily: 'LilitaOne',
+              children: <Widget>[
+                Spacer(),
+                Text(
+                  'Welcome to Algebraskolan',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
                       fontSize: 36,
                       color: Colors.white,
-                    ),
-                  ),
+                      fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 8),
-                const Align(
-                  alignment: Alignment.topLeft,
-                  child: Text(
-                    "Register with your school email",
-                    style: TextStyle(
-                      fontFamily: 'LilitaOne',
-                      fontSize: 20,
-                      color: Colors.white,
-                    ),
-                  ),
+                SizedBox(height: 16),
+                Text(
+                  "Please sign in with your school email.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, color: Colors.white),
                 ),
-                const Spacer(),
-                TextButton.icon(
-                  style: ButtonStyle(
-                    backgroundColor:
-                        MaterialStateProperty.all<Color>(Colors.white),
-                    foregroundColor:
-                        MaterialStateProperty.all<Color>(Colors.black),
-                    minimumSize: MaterialStateProperty.all<Size>(
-                        const Size(double.infinity, 50)),
-                    overlayColor: MaterialStateProperty.all<Color>(
-                        Colors.orange.withOpacity(0.2)),
+                Spacer(),
+                ScaleTransition(
+                  scale: Tween(begin: 0.95, end: 1.05).animate(
+                    CurvedAnimation(
+                        parent: _animationController, curve: Curves.easeInOut),
                   ),
-                  icon: const FaIcon(FontAwesomeIcons.google,
-                      color: Colors.orange),
-                  onPressed: () async {
-                    if (await connectivityController.isConnected.value) {
-                      // ignore: use_build_context_synchronously
-                      final provider = Provider.of<GoogleSignInProvider>(
+                  child: FloatingActionButton.extended(
+                    onPressed: () async {
+                      if (await connectivityController.isConnected.value) {
+                        final GoogleSignInProvider provider =
+                            Provider.of<GoogleSignInProvider>(context,
+                                listen: false);
+                        provider.googleLogin(context, connectivityController);
+                      } else {
+                        NetworkAlertPopup.show(
                           context,
-                          listen: false);
-                      // ignore: use_build_context_synchronously
-                      provider.googleLogin(context, connectivityController);
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      NetworkAlertPopup.show(context, connectivityController,
+                          connectivityController,
                           () async {
-                        if (await connectivityController.checkConnectivity()) {
-                          // ignore: use_build_context_synchronously
-                          final provider = Provider.of<GoogleSignInProvider>(
-                              context,
-                              listen: false);
-                          // ignore: use_build_context_synchronously
-                          provider.googleLogin(context, connectivityController);
-                        }
-                      });
-                    }
-                  },
-                  label: const Text("Press here to register"),
+                            if (await connectivityController
+                                .checkConnectivity()) {
+                              final GoogleSignInProvider provider =
+                                  Provider.of<GoogleSignInProvider>(context,
+                                      listen: false);
+                              provider.googleLogin(
+                                  context, connectivityController);
+                            }
+                          },
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.login),
+                    label: Text("Sign in with Google"),
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
-                // Apple Sign-In Button
-
-                SizedBox(height: screenHeight * 0.1),
+                SizedBox(height: 32),
               ],
             ),
           ),
