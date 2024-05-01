@@ -11,18 +11,26 @@ class GoogleSignInProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   static final GoogleSignInProvider instance = GoogleSignInProvider._();
   GoogleSignInAccount? _user;
+  bool _isLoading = false; // New property to indicate loading state
 
   GoogleSignInAccount? get user => _user;
   String? get uid => FirebaseAuth.instance.currentUser?.uid;
+  bool get isLoading => _isLoading; // Getter for loading state
 
   GoogleSignInProvider._(); // Private constructor
 
   Future<void> googleLogin(BuildContext context,
       ConnectivityController connectivityController) async {
+    _isLoading = true; // Start loading
+
     try {
       // Sign in with Google
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
+      if (googleUser == null) {
+        _isLoading = false; // Stop loading if no user is found
+        notifyListeners();
+        return;
+      }
       _user = googleUser;
       notifyListeners();
 
@@ -72,6 +80,8 @@ class GoogleSignInProvider extends ChangeNotifier {
         });
       }
     } catch (e) {
+      _isLoading = false; // Stop loading on error
+      notifyListeners();
       // Handle network exceptions
       if (e is FirebaseException && e.code == 'network-request-failed') {
         // Show network alert dialog with a retry callback
@@ -84,6 +94,8 @@ class GoogleSignInProvider extends ChangeNotifier {
         Exception('Error during sign-in: $e');
         // Show error message or perform other actions
       }
+      _isLoading = false; // Stop loading after all operations
+      notifyListeners();
     }
 
     // Notify listeners of any changes
@@ -91,6 +103,9 @@ class GoogleSignInProvider extends ChangeNotifier {
   }
 
   Future<void> googleLogout() async {
+    _isLoading = true; // Start loading
+    notifyListeners();
+
     // Sign out from Firebase
     await FirebaseAuth.instance.signOut();
 
@@ -103,6 +118,10 @@ class GoogleSignInProvider extends ChangeNotifier {
         await _googleSignIn.disconnect();
       } catch (error) {
         Exception('Failed to disconnect: $error');
+      } finally {
+        _isLoading =
+            false; // Ensure loading is stopped whether logout is successful or fails
+        notifyListeners();
       }
     }
 
@@ -169,6 +188,26 @@ class GoogleSignInProvider extends ChangeNotifier {
     } else {
       // No Firebase user is signed in
       return false;
+    }
+  }
+
+  // Function to check if email exists in Firestore
+  Future<bool> checkIfUserExists(String email) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<void> initiateLogin(
+      String email, Function onExists, Function onDoesNotExist) async {
+    bool userExists = await checkIfUserExists(email);
+    if (userExists) {
+      onExists();
+    } else {
+      onDoesNotExist();
     }
   }
 }

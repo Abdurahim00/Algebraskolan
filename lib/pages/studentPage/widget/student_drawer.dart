@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,7 +7,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/apple_sign_in_provider.dart';
-
 import '../../../backend/control_page.dart';
 import '../../../provider/student_provider.dart';
 import '../transaction_history.dart';
