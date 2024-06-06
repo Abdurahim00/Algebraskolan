@@ -137,78 +137,78 @@ class _LoginPageState extends State<LoginPage>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      'Välkommen till Algebraskolan',
+                    const Text(
+                      'Welcome to the Algebra School',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 36,
                           color: Colors.white,
                           fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      "Ange algebraskolans mail för att logga in.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20, color: Colors.white),
-                    ),
-                    SizedBox(height: 48),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: Colors.grey[200],
-                            border: Border.all(color: Colors.white),
-                            borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 20.0),
-                          child: TextField(
-                            controller: emailController,
-                            decoration: const InputDecoration(
-                              border: InputBorder.none,
-                              hintText: 'Email',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                      child: GestureDetector(
-                        onTap: handleLoginPress,
-                        child: Container(
-                          height:
-                              60, // Adjust height to match your design preference
-                          decoration: BoxDecoration(
-                              color: Colors.deepOrange,
-                              borderRadius: BorderRadius.circular(12)),
-                          child: Center(
-                            child: Text(
-                              'Logga In',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text('Inte medlem?',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        Text(
-                          ' Registrera med Google',
-                          style: TextStyle(
-                              color: Colors.deepOrange,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 16),
+                    // Text(
+                    //   "Ange algebraskolans mail för att logga in.",
+                    //   textAlign: TextAlign.center,
+                    //   style: TextStyle(fontSize: 20, color: Colors.white),
+                    // ),
+                    const SizedBox(height: 48),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    //   child: Container(
+                    //     decoration: BoxDecoration(
+                    //         color: Colors.grey[200],
+                    //         border: Border.all(color: Colors.white),
+                    //         borderRadius: BorderRadius.circular(12)),
+                    //     child: Padding(
+                    //       padding: const EdgeInsets.only(left: 20.0),
+                    //       child: TextField(
+                    //         controller: emailController,
+                    //         decoration: const InputDecoration(
+                    //           border: InputBorder.none,
+                    //           hintText: 'Email',
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // SizedBox(height: 20),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                    //   child: GestureDetector(
+                    //     onTap: handleLoginPress,
+                    //     child: Container(
+                    //       height:
+                    //           60, // Adjust height to match your design preference
+                    //       decoration: BoxDecoration(
+                    //           color: Colors.deepOrange,
+                    //           borderRadius: BorderRadius.circular(12)),
+                    //       child: Center(
+                    //         child: Text(
+                    //           'Logga In',
+                    //           style: TextStyle(
+                    //               color: Colors.white,
+                    //               fontWeight: FontWeight.bold,
+                    //               fontSize: 18),
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                    // SizedBox(height: 20),
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.center,
+                    //   children: [
+                    //     Text('Inte medlem?',
+                    //         style: TextStyle(fontWeight: FontWeight.bold)),
+                    //     Text(
+                    //       ' Registrera med Google',
+                    //       style: TextStyle(
+                    //           color: Colors.deepOrange,
+                    //           fontWeight: FontWeight.bold),
+                    //     ),
+                    //   ],
+                    // ),
+                    const SizedBox(height: 10),
                     Consumer<GoogleSignInProvider>(
                       builder: (context, provider, child) {
                         return provider.isLoading
@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage>
                                 ),
                                 child: FloatingActionButton.extended(
                                   onPressed: () async {
-                                    if (await connectivityController
+                                    if (connectivityController
                                         .isConnected.value) {
                                       provider.googleLogin(
                                           context, connectivityController);
@@ -239,7 +239,7 @@ class _LoginPageState extends State<LoginPage>
                                     }
                                   },
                                   icon: const Icon(Icons.login),
-                                  label: const Text("Registrera med Google"),
+                                  label: const Text("Register with Google"),
                                   backgroundColor: Colors.deepOrange,
                                   foregroundColor: Colors.white,
                                 ),
