@@ -14,9 +14,10 @@ class LoginPage extends StatefulWidget {
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
+  late AnimationController _fadeController;
+  late Animation<double> _fadeAnimation;
   final emailController = TextEditingController(); // Controller for email input
 
   @override
@@ -27,85 +28,24 @@ class _LoginPageState extends State<LoginPage>
       duration: const Duration(milliseconds: 1500),
     )..repeat(reverse: true);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstLaunch());
+    _fadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    );
+
+    _fadeAnimation =
+        Tween<double>(begin: 0.0, end: 1.0).animate(_fadeController);
+
+    // Start the fade-in animation when the widget is built
+    _fadeController.forward();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
+    _fadeController.dispose();
     emailController.dispose(); // Dispose the controller
     super.dispose();
-  }
-
-  Future<void> _checkFirstLaunch() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
-
-    if (isFirstLaunch) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showFirstLaunchDialog();
-        prefs.setBool('isFirstLaunch', false);
-      });
-    }
-  }
-
-  Future<void> _showFirstLaunchDialog() async {
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Welcome to Algebraskolan'),
-          content: const SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('This school uses Google Workspace for education.'),
-                Text('Please sign in with your school email'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Understand'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void handleLoginPress() async {
-    final email = emailController.text.trim();
-    if (email.isNotEmpty) {
-      final provider =
-          Provider.of<GoogleSignInProvider>(context, listen: false);
-      final connectivityController =
-          Provider.of<ConnectivityController>(context, listen: false);
-      if (await provider.checkIfUserExists(email)) {
-        provider.googleLogin(context, connectivityController);
-      } else {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: const Text("User Not Found"),
-                content: const Text(
-                    "No account associated with this email. Please check your email address or register."),
-                actions: [
-                  TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text("OK"))
-                ],
-              );
-            });
-      }
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please enter a valid email.")));
-    }
   }
 
   @override
@@ -118,7 +58,7 @@ class _LoginPageState extends State<LoginPage>
         children: [
           Positioned.fill(
             child: Lottie.asset(
-              'assets/images/Gradient Circles Warm.json',
+              'assets/images/background.json',
               controller: _animationController,
               onLoaded: (composition) {
                 _animationController
@@ -128,87 +68,50 @@ class _LoginPageState extends State<LoginPage>
               fit: BoxFit.cover,
             ),
           ),
+          Align(
+            alignment: Alignment.topCenter, // Align the logo at the top center
+            child: Padding(
+              padding: const EdgeInsets.only(top: 50.0), // Add some top padding
+              child: Image.asset(
+                'assets/images/Algebraskolan4.png',
+                height: 80,
+              ),
+            ),
+          ),
           Center(
-            // Center the main column in the stack
             child: SingleChildScrollView(
-              // Makes the content scrollable if it doesn't fit
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    const Text(
-                      'Welcome to the Algebra School',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontSize: 36,
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold),
+                    const SizedBox(height: 100), // Add space below the logo
+                    FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: Column(
+                        children: [
+                          const Text(
+                            'Välkommen',
+                            style: TextStyle(
+                              fontFamily: 'LilitaOne',
+                              fontSize: 36,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Registrera dig med Algebraskolans mail",
+                            style: TextStyle(
+                              fontFamily: 'LilitaOne',
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    // Text(
-                    //   "Ange algebraskolans mail för att logga in.",
-                    //   textAlign: TextAlign.center,
-                    //   style: TextStyle(fontSize: 20, color: Colors.white),
-                    // ),
                     const SizedBox(height: 48),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    //   child: Container(
-                    //     decoration: BoxDecoration(
-                    //         color: Colors.grey[200],
-                    //         border: Border.all(color: Colors.white),
-                    //         borderRadius: BorderRadius.circular(12)),
-                    //     child: Padding(
-                    //       padding: const EdgeInsets.only(left: 20.0),
-                    //       child: TextField(
-                    //         controller: emailController,
-                    //         decoration: const InputDecoration(
-                    //           border: InputBorder.none,
-                    //           hintText: 'Email',
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // SizedBox(height: 20),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                    //   child: GestureDetector(
-                    //     onTap: handleLoginPress,
-                    //     child: Container(
-                    //       height:
-                    //           60, // Adjust height to match your design preference
-                    //       decoration: BoxDecoration(
-                    //           color: Colors.deepOrange,
-                    //           borderRadius: BorderRadius.circular(12)),
-                    //       child: Center(
-                    //         child: Text(
-                    //           'Logga In',
-                    //           style: TextStyle(
-                    //               color: Colors.white,
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 18),
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
-                    // SizedBox(height: 20),
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     Text('Inte medlem?',
-                    //         style: TextStyle(fontWeight: FontWeight.bold)),
-                    //     Text(
-                    //       ' Registrera med Google',
-                    //       style: TextStyle(
-                    //           color: Colors.deepOrange,
-                    //           fontWeight: FontWeight.bold),
-                    //     ),
-                    //   ],
-                    // ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 48),
                     Consumer<GoogleSignInProvider>(
                       builder: (context, provider, child) {
                         return provider.isLoading
@@ -220,7 +123,7 @@ class _LoginPageState extends State<LoginPage>
                                       parent: _animationController,
                                       curve: Curves.easeInOut),
                                 ),
-                                child: FloatingActionButton.extended(
+                                child: OutlinedButton(
                                   onPressed: () async {
                                     if (connectivityController
                                         .isConnected.value) {
@@ -238,15 +141,34 @@ class _LoginPageState extends State<LoginPage>
                                       });
                                     }
                                   },
-                                  icon: const Icon(Icons.login),
-                                  label: const Text("Register with Google"),
-                                  backgroundColor: Colors.deepOrange,
-                                  foregroundColor: Colors.white,
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 20, vertical: 8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/google-logo.png',
+                                        height: 40.0,
+                                      ),
+                                      SizedBox(width: 2),
+                                      Text(
+                                        'Anslut',
+                                        style: TextStyle(
+                                          fontFamily: 'LilitaOne',
+                                          fontSize: 18,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               );
                       },
                     ),
-                    SizedBox(height: 32),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
