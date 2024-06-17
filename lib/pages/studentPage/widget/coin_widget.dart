@@ -1,10 +1,12 @@
+import 'dart:convert';
+import 'dart:math';
+import 'dart:typed_data';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../teacherPage/teacher_screen.dart';
 
 class CoinWidget extends StatefulWidget {
   final String uid;
@@ -13,21 +15,21 @@ class CoinWidget extends StatefulWidget {
   CoinWidget({super.key, required this.uid});
 
   @override
-  // ignore: library_private_types_in_public_api
   _CoinWidgetState createState() => _CoinWidgetState();
 }
 
 class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
   AnimationController? _controller;
   AnimationController? _lottieController;
+  String? _lottieAnimation;
 
   Animation<double>? _animation;
 
   int _coins = 0;
+  String? _displayName;
 
   Stream<DocumentSnapshot>? get coinStream {
-    // ignore: unnecessary_null_comparison
-    if (widget.uid != null && widget.uid.isNotEmpty) {
+    if (widget.uid.isNotEmpty) {
       return widget.firestore.collection('users').doc(widget.uid).snapshots();
     } else {
       return null;
@@ -64,11 +66,61 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
     }
   }
 
+  Future<void> _loadAndModifyLottie(String displayName) async {
+    if (_displayName == displayName && _lottieAnimation != null) {
+      return; // Avoid reloading if the name hasn't changed and animation is already loaded
+    }
+
+    try {
+      String lottieJson = await DefaultAssetBundle.of(context)
+          .loadString('assets/images/Credit_card_final.json');
+      Map<String, dynamic> lottieMap = json.decode(lottieJson);
+
+      _replaceTextInLottie(
+          lottieMap,
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZÅ Ä-Öabcdefghijklmnopqrstuvwxyzåäö",
+          displayName);
+
+      setState(() {
+        _lottieAnimation = json.encode(lottieMap);
+        _displayName = displayName;
+      });
+    } catch (e) {
+      print("Error loading or modifying Lottie JSON: $e");
+    }
+  }
+
+  void _replaceTextInLottie(
+      Map<String, dynamic> json, String placeholder, String newText) {
+    bool placeholderFound = false;
+    if (json.containsKey('layers')) {
+      for (var layer in json['layers']) {
+        if (layer['ty'] == 5 &&
+            layer['t'] != null &&
+            layer['t']['d'] != null &&
+            layer['t']['d']['k'] != null) {
+          for (var k in layer['t']['d']['k']) {
+            if (k['s'] != null && k['s']['t'] != null) {
+              if (k['s']['t'].contains(placeholder)) {
+                k['s']['t'] = k['s']['t'].replaceAll(placeholder, newText);
+                placeholderFound = true;
+              }
+            }
+          }
+        }
+      }
+    }
+    if (!placeholderFound) {
+      print("Placeholder not found in Lottie JSON");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    double fontSize =
-        isTablet(context) ? 48.0 : 30.0; // Larger font size for tablets
-    final width = MediaQuery.of(context).size.width * 0.5;
+    double fontSize = isTablet(context) ? 48.0 : 30.0;
+    final width =
+        MediaQuery.of(context).size.width * 0.8; // Adjust width if needed
+    final scaleFactor = 1.4; // Adjust this value to scale the Lottie animation
 
     return StreamBuilder<DocumentSnapshot>(
       stream: coinStream,
@@ -83,9 +135,11 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
           int newCoinsValue = data?['coins'] ?? 0;
           String? displayName = data?['displayName'];
 
-          // Schedule the animation logic to run after the build process
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _handleAnimation(newCoinsValue);
+            if (displayName != null) {
+              _loadAndModifyLottie(displayName);
+            }
           });
 
           final formattedCoins =
@@ -97,81 +151,50 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
               AutoSizeText(
                 ' $formattedCoins Algebronor',
                 style: TextStyle(
-                  fontFamily:
-                      'LilitaOne', // Use the font family name you declared in pubspec.yaml
-                  fontSize: isTablet(context)
-                      ? 42
-                      : 32, // Larger font size for tablets
+                  fontFamily: 'LilitaOne',
+                  fontSize: isTablet(context) ? 42 : 32,
                   color: Colors.black,
                 ),
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.7,
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: LayoutBuilder(builder: (context, constraints) {
-                    // 10% from the left
-                    return Stack(
-                      alignment: Alignment
-                          .center, // Add this line to center the stack contents
-
-                      children: [
-                        // This is the Lottie animation at the bottom of the stack.
-                        Lottie.asset(
-                          "assets/images/credit-card.json",
-                          controller: _lottieController,
-                          onLoaded: (composition) {
-                            _lottieController!.duration = composition.duration;
-                          },
-                        ),
-                        // Using Positioned to overlay the displayName on the card.
-                        displayName != null
-                            ? Positioned(
-                                top: isTablet(context)
-                                    ? constraints.maxHeight * 0.22
-                                    : constraints.maxHeight *
-                                        0.18, // Adjust for tablet
-                                left: isTablet(context)
-                                    ? constraints.maxWidth * 0.12
-                                    : constraints.maxWidth *
-                                        0.15, // Adjust for tablet
-                                child: Center(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 1.0),
-                                    width: width,
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.transparent,
-                                          width: 2.0),
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    child: AutoSizeText(
-                                      displayName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: 'DancingScript',
-                                        fontSize: fontSize,
-                                      ),
-                                    ),
+              Transform.scale(
+                scale: scaleFactor, // Apply the scale factor here
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width *
+                      0.8, // Adjust width if needed
+                  child: AspectRatio(
+                    aspectRatio: 1, // Keep the aspect ratio
+                    child: _lottieAnimation == null
+                        ? Container()
+                        : LayoutBuilder(
+                            builder: (context, constraints) {
+                              return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  LottieBuilder.memory(
+                                    Uint8List.fromList(
+                                        utf8.encode(_lottieAnimation!)),
+                                    controller: _lottieController,
+                                    onLoaded: (composition) {
+                                      _lottieController!.duration =
+                                          composition.duration;
+                                    },
                                   ),
-                                ),
-                              )
-                            : Container(),
-                      ],
-                    );
-                  }),
+                                ],
+                              );
+                            },
+                          ),
+                  ),
                 ),
               ),
             ],
           );
         } else {
           content = Center(
-              child: Lottie.asset("assets/images/Circle Loading.json",
-                  width: MediaQuery.of(context).size.width *
-                      0.2)); // Placeholder while data is loading
+            child: Lottie.asset(
+              "assets/images/Circle Loading.json",
+              width: MediaQuery.of(context).size.width * 0.2,
+            ),
+          );
         }
 
         return Padding(
@@ -191,4 +214,10 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
     _lottieController?.dispose();
     super.dispose();
   }
+}
+
+bool isTablet(BuildContext context) {
+  final size = MediaQuery.of(context).size;
+  final diagonal = sqrt(size.width * size.width + size.height * size.height);
+  return diagonal > 1100.0;
 }

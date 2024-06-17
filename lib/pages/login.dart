@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         children: [
           Positioned.fill(
             child: Lottie.asset(
-              'assets/images/background.json',
+              'assets/images/Gradient Circles Warm.json',
               controller: _animationController,
               onLoaded: (composition) {
                 _animationController
