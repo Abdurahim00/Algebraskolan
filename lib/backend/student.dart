@@ -10,7 +10,7 @@ class Student {
   final int coins;
   final bool hasAnsweredQuestionCorrectly;
   ValueNotifier<int> localCoins;
-  List<CoinTransaction> transactions = [];
+  List<CoinTransaction> transactions;
 
   Student({
     required this.uid,
@@ -18,25 +18,23 @@ class Student {
     required this.role,
     required this.classNumber,
     required this.coins,
-    required this.transactions,
     required this.hasAnsweredQuestionCorrectly,
-    ValueNotifier<int>? localCoins, // It is nullable
-  }) : localCoins = localCoins ??
-            ValueNotifier<int>(0); // If not passed, it is initialized to 0
+    this.transactions = const [],
+    ValueNotifier<int>? localCoins,
+  }) : localCoins = localCoins ?? ValueNotifier<int>(0);
 
   factory Student.fromDocument(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
+    // Ensure proper handling of potential null values
     return Student(
       uid: doc.id,
-      displayName: data.containsKey('displayName') ? data['displayName'] : '',
-      role: data.containsKey('role') ? data['role'] : 'student',
-      classNumber: data.containsKey('classNumber') ? data['classNumber'] : 0,
-      coins: data.containsKey('coins') ? data['coins'] : 0,
-      hasAnsweredQuestionCorrectly:
-          data.containsKey('hasAnsweredQuestionCorrectly')
-              ? data['hasAnsweredQuestionCorrectly']
-              : false,
-      transactions: [],
+      displayName: data['displayName'] ?? '',
+      role: data['role'] ?? 'student',
+      classNumber: data['classNumber'] ?? 0,
+      coins: data['coins'] ?? 0,
+      hasAnsweredQuestionCorrectly: data['hasAnsweredQuestionCorrectly'] ?? false,
+      transactions: [], // Initialize with an empty list
     );
   }
 
@@ -55,8 +53,7 @@ class Student {
       role: role ?? this.role,
       classNumber: classNumber ?? this.classNumber,
       coins: coins ?? this.coins,
-      hasAnsweredQuestionCorrectly:
-          hasAnsweredQuestionCorrectly ?? this.hasAnsweredQuestionCorrectly,
+      hasAnsweredQuestionCorrectly: hasAnsweredQuestionCorrectly ?? this.hasAnsweredQuestionCorrectly,
       localCoins: localCoins ?? this.localCoins,
       transactions: this.transactions, // Keep the existing transactions
     );
@@ -73,8 +70,7 @@ class Student {
         other.classNumber == classNumber &&
         other.coins == coins &&
         other.hasAnsweredQuestionCorrectly == hasAnsweredQuestionCorrectly &&
-        other.localCoins.value ==
-            localCoins.value; // Compare the value of localCoins
+        other.localCoins.value == localCoins.value;
   }
 
   @override
@@ -85,5 +81,5 @@ class Student {
       classNumber.hashCode ^
       coins.hashCode ^
       hasAnsweredQuestionCorrectly.hashCode ^
-      localCoins.value.hashCode; // Calculate hash for the value of localCoins
+      localCoins.value.hashCode;
 }

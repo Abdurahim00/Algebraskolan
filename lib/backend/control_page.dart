@@ -102,7 +102,13 @@ class HomePage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text("Error: ${snapshot.error}"));
+            // Navigate to login page if there's an error
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const LoginPage()),
+              );
+            });
+            return const SizedBox(); // Return an empty widget here
           }
 
           if (snapshot.data?.user != null) {

@@ -1,5 +1,9 @@
+import 'package:algebra/main.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '../backend/control_page.dart';
 import '../backend/sound_manager.dart';
 import '../backend/student_service.dart';
 import '../backend/transaction_service.dart';
@@ -295,5 +299,42 @@ class StudentProvider with ChangeNotifier {
     failure = false;
     updated = false;
     notifyListeners();
+  }
+
+  Future<void> deleteUserAccount(BuildContext context) async {
+    try {
+      // Get the current user
+      User? user = FirebaseAuth.instance.currentUser;
+
+      if (user != null) {
+        // First, delete the user's document from Firestore
+        await _studentService.deleteUserDocument(user.uid);
+
+        // Disconnect from third-party providers if necessary
+        if (user.providerData.any((p) => p.providerId == 'google.com')) {
+          // Disconnect from Google
+          final googleSignIn = GoogleSignIn();
+          await googleSignIn.disconnect();
+        }
+        // Add similar logic for other providers like Apple if necessary
+
+        // Then delete the user from Authentication
+        await user.delete();
+        print("User account deleted successfully.");
+
+        // Sign out from Firebase Auth to ensure the session is cleared
+        await FirebaseAuth.instance.signOut();
+
+        // Navigate to login page or somewhere else as needed
+        navigatorKey.currentState?.pushReplacement(
+            MaterialPageRoute(builder: (context) => HomePage()));
+      }
+    } on FirebaseAuthException catch (e) {
+      print("Firebase Auth Error: ${e.message}");
+      // Handle Firebase Auth errors
+    } catch (e) {
+      print("Error during the deletion process: ${e}");
+      // Handle other errors (e.g., Firestore document deletion failure or provider disconnect failure)
+    }
   }
 }

@@ -12,6 +12,8 @@ import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:algebra/other/splash_screen.dart';
 import 'package:algebra/other/network_alert.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
@@ -63,6 +65,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: connectivityController),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'Algebra App',
         debugShowCheckedModeBanner: false,
         home: ValueListenableBuilder<bool>(

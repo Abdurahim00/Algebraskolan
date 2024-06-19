@@ -7,12 +7,17 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 class AppleSignInProvider extends ChangeNotifier {
   User? _user;
+  bool _isLoading = false;
 
   User? get user => _user;
+  bool get isLoading => _isLoading;
   String? get uid => FirebaseAuth.instance.currentUser?.uid;
 
   Future<void> appleLogin(BuildContext context,
       ConnectivityController connectivityController) async {
+    _isLoading = true;
+    notifyListeners();
+
     try {
       final appleIdCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
@@ -76,6 +81,7 @@ class AppleSignInProvider extends ChangeNotifier {
       debugPrint('Error during sign-in: $e');
     }
 
+    _isLoading = false;
     notifyListeners();
   }
 

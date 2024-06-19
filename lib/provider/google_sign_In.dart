@@ -2,26 +2,37 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../other/network_alert.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import '../provider/connectivity_provider.dart'; // Import ConnectivityProvider
 
 class GoogleSignInProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   static final GoogleSignInProvider instance = GoogleSignInProvider._();
   GoogleSignInAccount? _user;
+  bool _isLoading = false; // New property to indicate loading state
 
   GoogleSignInAccount? get user => _user;
   String? get uid => FirebaseAuth.instance.currentUser?.uid;
+  bool get isLoading => _isLoading; // Getter for loading state
 
   GoogleSignInProvider._(); // Private constructor
 
   Future<void> googleLogin(BuildContext context,
       ConnectivityController connectivityController) async {
+    _isLoading = true; // Start loading
+
     try {
       // Sign in with Google
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return;
+      if (googleUser == null) {
+        _isLoading = false; // Stop loading if no user is found
+        notifyListeners();
+        return;
+      }
       _user = googleUser;
+      notifyListeners();
 
       // Get authentication credentials
       final googleAuth = await googleUser.authentication;
@@ -40,13 +51,18 @@ class GoogleSignInProvider extends ChangeNotifier {
       final displayNameLower =
           displayName?.toLowerCase(); // Lowercase display name
 
+      // Fetch the feature flag
+      final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
+      await remoteConfig.fetchAndActivate();
+      bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+
       // Check if the email domain is allowed
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
+      if (!allowAllEmails &&
+          !(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        // If the domain is not allowed, throw an exception
         throw Exception('Access denied for unauthorized domain.');
       }
-
       // Check if user document exists in Firestore
       final docSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -64,6 +80,8 @@ class GoogleSignInProvider extends ChangeNotifier {
         });
       }
     } catch (e) {
+      _isLoading = false; // Stop loading on error
+      notifyListeners();
       // Handle network exceptions
       if (e is FirebaseException && e.code == 'network-request-failed') {
         // Show network alert dialog with a retry callback
@@ -76,6 +94,8 @@ class GoogleSignInProvider extends ChangeNotifier {
         Exception('Error during sign-in: $e');
         // Show error message or perform other actions
       }
+      _isLoading = false; // Stop loading after all operations
+      notifyListeners();
     }
 
     // Notify listeners of any changes
@@ -83,6 +103,9 @@ class GoogleSignInProvider extends ChangeNotifier {
   }
 
   Future<void> googleLogout() async {
+    _isLoading = true; // Start loading
+    notifyListeners();
+
     // Sign out from Firebase
     await FirebaseAuth.instance.signOut();
 
@@ -95,6 +118,10 @@ class GoogleSignInProvider extends ChangeNotifier {
         await _googleSignIn.disconnect();
       } catch (error) {
         Exception('Failed to disconnect: $error');
+      } finally {
+        _isLoading =
+            false; // Ensure loading is stopped whether logout is successful or fails
+        notifyListeners();
       }
     }
 
@@ -105,26 +132,82 @@ class GoogleSignInProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> googleDisconnect() async {
+    if (_googleSignIn.currentUser != null) {
+      await _googleSignIn.disconnect();
+    }
+  }
+
   Future<bool> initializeUser() async {
+    // Check if this is the first launch after installation
+    final prefs = await SharedPreferences.getInstance();
+    bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+    if (isFirstLaunch) {
+      // If it's the first launch, clear any existing authentication state
+      await FirebaseAuth.instance.signOut();
+      await _googleSignIn.signOut();
+      prefs.setBool('isFirstLaunch', false);
+      return false; // User needs to sign in again
+    }
+
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser != null) {
       try {
-        _user = await _googleSignIn.signInSilently();
-        final email = _user?.email;
+        // Attempt to sign in with Google silently
+        final GoogleSignInAccount? googleUser =
+            await _googleSignIn.signInSilently();
+        if (googleUser != null) {
+          // Update the _user with the Google user
+          _user = googleUser;
+          notifyListeners();
 
-        if (!(email?.endsWith('@gmail.com') ?? false) &&
-            !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-          await googleLogout();
-          return false; // User is not authorized
+          // Additional checks for email domains or other conditions
+          final email = currentUser.email;
+          final FirebaseRemoteConfig remoteConfig =
+              FirebaseRemoteConfig.instance;
+          await remoteConfig.fetchAndActivate();
+          bool allowAllEmails =
+              remoteConfig.getBool('allow_all_emails_for_review');
+
+          if (!allowAllEmails &&
+              !(email?.endsWith('@algebraskolan.se') ?? false) &&
+              !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+            await googleLogout();
+            return false; // User is not authorized
+          }
+          return true; // User is authorized and signed in
+        } else {
+          // No Google user is signed in
+          return false;
         }
       } catch (error) {
-        Exception("Error in silent sign-in: $error");
+        debugPrint("Error in silent sign-in: $error");
         return false; // In case of error, consider the user not authorized
       }
     } else {
-      return false; // No user is signed in
+      // No Firebase user is signed in
+      return false;
     }
-    notifyListeners();
-    return true; // User is authorized and signed in
+  }
+
+  // Function to check if email exists in Firestore
+  Future<bool> checkIfUserExists(String email) async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+
+    return querySnapshot.docs.isNotEmpty;
+  }
+
+  Future<void> initiateLogin(
+      String email, Function onExists, Function onDoesNotExist) async {
+    bool userExists = await checkIfUserExists(email);
+    if (userExists) {
+      onExists();
+    } else {
+      onDoesNotExist();
+    }
   }
 }
