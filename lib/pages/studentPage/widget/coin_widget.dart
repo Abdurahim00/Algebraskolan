@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
 import 'dart:typed_data';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
-
+import 'package:auto_size_text/auto_size_text.dart';
+import 'dart:ui' as ui;
 
 class CoinWidget extends StatefulWidget {
   final String uid;
@@ -76,10 +76,12 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
           .loadString('assets/images/Credit_card_final.json');
       Map<String, dynamic> lottieMap = json.decode(lottieJson);
 
+      // Adjust the displayName to fit within a specific width
       _replaceTextInLottie(
           lottieMap,
           "ABCDEFGHIJKLMNOPQRSTUVWXYZÅ Ä-Öabcdefghijklmnopqrstuvwxyzåäö",
-          displayName);
+          displayName,
+          maxWidth: 200); // Adjust maxWidth as needed
 
       setState(() {
         _lottieAnimation = json.encode(lottieMap);
@@ -91,7 +93,8 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
   }
 
   void _replaceTextInLottie(
-      Map<String, dynamic> json, String placeholder, String newText) {
+      Map<String, dynamic> json, String placeholder, String newText,
+      {double maxWidth = 200.0}) {
     bool placeholderFound = false;
     if (json.containsKey('layers')) {
       for (var layer in json['layers']) {
@@ -102,7 +105,8 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
           for (var k in layer['t']['d']['k']) {
             if (k['s'] != null && k['s']['t'] != null) {
               if (k['s']['t'].contains(placeholder)) {
-                k['s']['t'] = k['s']['t'].replaceAll(placeholder, newText);
+                String adjustedText = _adjustTextToFit(newText, maxWidth);
+                k['s']['t'] = k['s']['t'].replaceAll(placeholder, adjustedText);
                 placeholderFound = true;
               }
             }
@@ -113,6 +117,30 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
     if (!placeholderFound) {
       print("Placeholder not found in Lottie JSON");
     }
+  }
+
+  String _adjustTextToFit(String text, double maxWidth) {
+    TextPainter painter = TextPainter(
+      text: TextSpan(text: text, style: TextStyle(fontSize: 20)),
+      maxLines: 1,
+      textDirection: ui.TextDirection.ltr, // Ensure TextDirection is set
+    );
+    painter.layout();
+
+    if (painter.width <= maxWidth) {
+      return text;
+    }
+
+    for (int i = text.length; i > 0; i--) {
+      String newText = text.substring(0, i) + '...';
+      painter.text = TextSpan(text: newText, style: TextStyle(fontSize: 20));
+      painter.layout();
+      if (painter.width <= maxWidth) {
+        return newText;
+      }
+    }
+
+    return '...';
   }
 
   @override
@@ -167,19 +195,14 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
                         ? Container()
                         : LayoutBuilder(
                             builder: (context, constraints) {
-                              return Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  LottieBuilder.memory(
-                                    Uint8List.fromList(
-                                        utf8.encode(_lottieAnimation!)),
-                                    controller: _lottieController,
-                                    onLoaded: (composition) {
-                                      _lottieController!.duration =
-                                          composition.duration;
-                                    },
-                                  ),
-                                ],
+                              return LottieBuilder.memory(
+                                Uint8List.fromList(
+                                    utf8.encode(_lottieAnimation!)),
+                                controller: _lottieController,
+                                onLoaded: (composition) {
+                                  _lottieController!.duration =
+                                      composition.duration;
+                                },
                               );
                             },
                           ),

@@ -159,13 +159,26 @@ class StudentDrawer extends StatelessWidget {
     final email = isAppleUser ? '' : (firebaseUser?.email ?? 'No Email');
     final photoURL = firebaseUser?.photoURL ?? 'assets/images/favicon.png';
     final uid = firebaseUser?.uid;
+    final headerColor = const Color.fromRGBO(245, 142, 11, 1); // Matching color
 
     return Drawer(
       child: Column(
         children: [
-          ListView(
-            shrinkWrap: true,
-            children: [
+          Container(
+            height: MediaQuery.of(context).padding.top,
+            color: headerColor, // Match this color with your top padding area
+          ),
+          UserAccountsDrawerHeader(
+            accountName: Text(displayName),
+            accountEmail: isAppleUser ? null : Text(email),
+            currentAccountPicture: CircleAvatar(
+              backgroundImage:
+                  photoURL is String && Uri.parse(photoURL).isAbsolute
+                      ? NetworkImage(photoURL)
+                      : const AssetImage('assets/images/favicon.png')
+                          as ImageProvider,
+            ),
+            otherAccountsPictures: [
               FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance
                     .collection('users')
@@ -183,46 +196,41 @@ class StudentDrawer extends StatelessWidget {
                       classInfo = 'Error';
                     }
                   }
-                  return UserAccountsDrawerHeader(
-                    accountName: Text(displayName),
-                    accountEmail: isAppleUser ? null : Text(email),
-                    currentAccountPicture: CircleAvatar(
-                      backgroundImage:
-                          photoURL is String && Uri.parse(photoURL).isAbsolute
-                              ? NetworkImage(photoURL)
-                              : const AssetImage('assets/images/favicon.png')
-                                  as ImageProvider,
+                  return CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: Text(
+                      classInfo,
+                      style: const TextStyle(fontFamily: 'Pangolin'),
                     ),
-                    otherAccountsPictures: [
-                      CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: Text(
-                          classInfo,
-                          style: const TextStyle(fontFamily: 'Pangolin'),
-                        ),
-                      ),
-                    ],
                   );
                 },
               ),
-              ListTile(
-                title: const Text('Historik'),
-                trailing: const Icon(Icons.history_rounded),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => const TransactionHistoryScreen()));
-                },
-              ),
-              const Divider(),
-              // Other ListTiles if needed
             ],
+            decoration: BoxDecoration(
+              color: headerColor, // Use the same color here
+            ),
           ),
+          ListTile(
+            title: const Text('Historik'),
+            trailing: const Icon(Icons.history_rounded),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => const TransactionHistoryScreen()));
+            },
+          ),
+          const Divider(), // Add Divider here
           ListTile(
             onTap: () => _showLogoutDialog(context),
             title: const Text("Logga ut"),
             trailing: const Icon(Icons.exit_to_app_rounded),
           ),
-          Spacer(),
+          Expanded(
+            child: ListView(
+              children: [
+                // Add other ListTiles if needed
+              ],
+            ),
+          ),
           ListTile(
             onTap: () => _handleDeleteRequest(context),
             leading: const Icon(Icons.delete_forever_rounded),

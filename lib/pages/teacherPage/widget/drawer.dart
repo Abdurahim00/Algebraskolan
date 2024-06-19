@@ -84,7 +84,7 @@ class AppDrawer extends StatelessWidget {
             children: [
               const Text('Vänligen skriv följande text för att bekräfta:'),
               Text(confirmationText,
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               TextField(controller: confirmationTextController),
             ],
           ),
@@ -137,8 +137,13 @@ class AppDrawer extends StatelessWidget {
           ),
           Expanded(
             child: ListView(
+              padding: EdgeInsets.zero, // Ensures no extra padding is added
               children: [
                 ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ), // Adjusts the padding to position it correctly
                   trailing: const Icon(Icons.exit_to_app_rounded),
                   onTap: () => showDialog(
                     context: context,
