@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../provider/google_sign_In.dart'; // Make sure this import is correct
 import '../other/network_alert.dart';

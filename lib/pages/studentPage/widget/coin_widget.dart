@@ -145,9 +145,6 @@ class _CoinWidgetState extends State<CoinWidget> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    double fontSize = isTablet(context) ? 48.0 : 30.0;
-    final width =
-        MediaQuery.of(context).size.width * 0.8; // Adjust width if needed
     final scaleFactor = 1.4; // Adjust this value to scale the Lottie animation
 
     return StreamBuilder<DocumentSnapshot>(

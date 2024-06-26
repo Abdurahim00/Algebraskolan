@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:algebra/provider/google_sign_In.dart';
-import 'package:algebra/provider/apple_sign_in_provider.dart';
 import '../../../backend/control_page.dart';
 import '../../../provider/student_provider.dart';
 import '../transaction_history.dart';
@@ -20,18 +19,12 @@ class StudentDrawer extends StatelessWidget {
     if (firebaseUser != null) {
       final isGoogleUser =
           firebaseUser.providerData.any((p) => p.providerId == 'google.com');
-      final isAppleUser =
-          firebaseUser.providerData.any((p) => p.providerId == 'apple.com');
 
       if (isGoogleUser) {
         final googleProvider =
             Provider.of<GoogleSignInProvider>(context, listen: false);
         await googleProvider.googleLogout();
         await googleProvider.googleDisconnect();
-      } else if (isAppleUser) {
-        final appleProvider =
-            Provider.of<AppleSignInProvider>(context, listen: false);
-        await appleProvider.appleLogout();
       }
 
       await FirebaseAuth.instance.signOut();
@@ -153,10 +146,7 @@ class StudentDrawer extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     final displayName = firebaseUser?.displayName ?? 'Unknown';
-    final isAppleUser =
-        firebaseUser?.providerData.any((p) => p.providerId == 'apple.com') ??
-            false;
-    final email = isAppleUser ? '' : (firebaseUser?.email ?? 'No Email');
+    final email = firebaseUser?.email ?? 'No Email';
     final photoURL = firebaseUser?.photoURL ?? 'assets/images/favicon.png';
     final uid = firebaseUser?.uid;
     final headerColor = const Color.fromRGBO(245, 142, 11, 1); // Matching color
@@ -170,7 +160,7 @@ class StudentDrawer extends StatelessWidget {
           ),
           UserAccountsDrawerHeader(
             accountName: Text(displayName),
-            accountEmail: isAppleUser ? null : Text(email),
+            accountEmail: Text(email),
             currentAccountPicture: CircleAvatar(
               backgroundImage:
                   photoURL is String && Uri.parse(photoURL).isAbsolute
