@@ -18,8 +18,15 @@
 	<string>algebra</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	
+	<!-- Set the new version number -->
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>1.1.8</string> <!-- Increment this value to a new version -->
+
+	<!-- Set the new build number -->
+	<key>CFBundleVersion</key>
+	<string>2</string> <!-- Increment this value -->
+
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -36,8 +43,6 @@
 		</dict>
 		<dict/>
 	</array>
-	<key>CFBundleVersion</key>
-	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>

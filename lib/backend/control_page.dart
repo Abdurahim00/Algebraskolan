@@ -1,3 +1,4 @@
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
@@ -23,36 +24,52 @@ class HomePage extends StatelessWidget {
 
   HomePage({super.key});
 
-  Stream<UserData?> getUserDataStream(BuildContext context) {
-    return _authService.authStateChanges.asyncMap((user) async {
-      if (user == null) return Future.value(null);
+  Stream<UserData?> getUserDataStream(BuildContext context) async* {
+    // Initialize and fetch Firebase Remote Config with immediate effect
+    final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
 
-      final email = user.email;
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
-          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        await showUnauthorizedDomainDialog(context); // Show the dialog
-        await signOutUser(context, user); // Sign out the user
-        return null;
-      }
+    // Set the minimum fetch interval to zero to ensure immediate fetching
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(seconds: 10),
+      minimumFetchInterval: Duration.zero,
+    ));
 
-      try {
-        var userDocument = await _authService.getUserDocument(user.uid);
-        if (userDocument.exists && userDocument.data() != null) {
-          return UserData(user, userDocument.data() as Map<String, dynamic>);
+    // Fetch and activate the config
+    await remoteConfig.fetchAndActivate();
+    bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+
+    // Listening to auth state changes
+    await for (var user in _authService.authStateChanges) {
+      if (user == null) {
+        yield null; // Yield null when no user is signed in
+      } else {
+        final email = user.email;
+
+        // Check if the email domain is allowed based on Remote Config
+        if (!allowAllEmails &&
+            !(email?.endsWith('@algebraskolan.se') ?? false) &&
+            !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+          await showUnauthorizedDomainDialog(context);
+          await signOutUser(context, user);
+          // Do not yield UserData as the user is unauthorized
         } else {
-          // Handle the case where user data does not exist
-          return UserData(user, {
-            'role': 'student',
-            'classNumber': 0,
-            'coins': 0,
-            'hasAnsweredQuestionCorrectly': false,
-          });
+          // Fetch user data from Firestore
+          var userDocument = await _authService.getUserDocument(user.uid);
+          if (userDocument.exists && userDocument.data() != null) {
+            // Yield UserData with user information if available
+            yield UserData(user, userDocument.data() as Map<String, dynamic>);
+          } else {
+            // Yield default UserData if the document doesn't exist
+            yield UserData(user, {
+              'role': 'student',
+              'classNumber': 0,
+              'coins': 0,
+              'hasAnsweredQuestionCorrectly': false,
+            });
+          }
         }
-      } catch (e) {
-        debugPrint('Error fetching user data: $e');
-        rethrow;
       }
-    });
+    }
   }
 
   Future<void> signOutUser(BuildContext context, User user) async {
