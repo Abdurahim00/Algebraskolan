@@ -123,12 +123,14 @@ class TeacherScreenState extends State<TeacherScreen> {
             ],
           ),
           Positioned(
-            top: MediaQuery.of(context).size.height * 0.28 - 10,
+            top: MediaQuery.of(context).size.height * 0.24 - 10,
+            left: 0, // Ensure the container starts from the left edge
+            right: 0, // Ensure the container stretches to the right edge
             child: Container(
               padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
               width: MediaQuery.of(context).size.width,
               height: isTablet(context)
-                  ? MediaQuery.of(context).size.width * 0.3 + 10
+                  ? MediaQuery.of(context).size.width * 0.13 + 10
                   : MediaQuery.of(context).size.width * 0.35 + 20,
               child: ListView(
                 scrollDirection: Axis.horizontal,
@@ -145,12 +147,13 @@ class TeacherScreenState extends State<TeacherScreen> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             margin: EdgeInsets.only(
-                                right: 10.0,
-                                top: selectedClass == classes['number']
-                                    ? 10
-                                    : 0),
-                            width: cardWidth,
-                            height: cardHeight,
+                              right: 10.0,
+                              top: selectedClass == classes['number'] ? 10 : 0,
+                            ),
+                            width: MediaQuery.of(context).size.width *
+                                0.1, // Adjust the width dynamically
+                            height: MediaQuery.of(context).size.width *
+                                0.1, // Adjust the height proportionally
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(30.0),
@@ -176,15 +179,21 @@ class TeacherScreenState extends State<TeacherScreen> {
                             child: Padding(
                               padding: const EdgeInsets.all(10.0),
                               child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                      "assets/images/${classes['image']}"),
+                                  Expanded(
+                                    child: Image.asset(
+                                      "assets/images/${classes['image']}",
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
                                   const SizedBox(height: 10),
                                   Flexible(
-                                    child: AutoSizeText(
+                                    child: Text(
                                       "${classes["name"]}",
                                       style: const TextStyle(
                                           fontFamily: 'montserrat'),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ],
@@ -206,7 +215,7 @@ class TeacherScreenState extends State<TeacherScreen> {
               title: Center(
                 child: SizedBox(
                   width: isTablet(context)
-                      ? screenWidth * 0.18
+                      ? screenWidth * 0.1
                       : screenWidth * 0.4, // Adjust size for tablet
                   child: Image.asset("assets/images/Algebraskolan4.png"),
                 ),
@@ -239,7 +248,7 @@ class TeacherScreenState extends State<TeacherScreen> {
                 )
               : studentProvider.showButton
                   ? Positioned(
-                      top: MediaQuery.of(context).size.height * 0.22 - 50,
+                      top: MediaQuery.of(context).size.height * 0.2 - 50,
                       left: 0,
                       right: 0,
                       child: Center(

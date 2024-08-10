@@ -7,36 +7,51 @@ import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/student_provider.dart';
 import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/transaction_provider.dart';
-import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:algebra/other/splash_screen.dart';
-import 'package:algebra/other/network_alert.dart';
+
+const firebaseConfig = FirebaseOptions(
+  apiKey: "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ",
+  authDomain: "algebra-82c5d.firebaseapp.com",
+  projectId: "algebra-82c5d",
+  storageBucket: "algebra-82c5d.appspot.com",
+  messagingSenderId: "195764286049",
+  appId: "1:195764286049:web:9f5b88875060f1450d3020",
+  databaseURL:
+      "https://algebra-82c5d-default-rtdb.europe-west1.firebasedatabase.app",
+);
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  final googleSignInProvider = GoogleSignInProvider.instance;
-  await googleSignInProvider.initializeUser();
-  final connectivityController = ConnectivityController();
-  await connectivityController.init();
 
-  await initializeDateFormatting('sv_SE', null); // Initialize date format
+  try {
+    await Firebase.initializeApp(options: firebaseConfig);
+    print("Firebase initialized successfully.");
+  } catch (e) {
+    print("Firebase initialization error: $e");
+  }
+
+  final googleSignInProvider = GoogleSignInProvider.instance;
+  try {
+    await googleSignInProvider.initializeUser();
+  } catch (e) {
+    print("Google Sign-In initialization error: $e");
+  }
+
+  await initializeDateFormatting('sv_SE', null);
 
   runApp(MyApp(
     googleSignInProvider: googleSignInProvider,
-    connectivityController: connectivityController,
   ));
 }
 
 class MyApp extends StatelessWidget {
   final GoogleSignInProvider googleSignInProvider;
-  final ConnectivityController connectivityController;
 
   const MyApp({
     super.key,
     required this.googleSignInProvider,
-    required this.connectivityController,
   });
 
   @override
@@ -54,29 +69,28 @@ class MyApp extends StatelessWidget {
             );
           },
         ),
-        ChangeNotifierProvider.value(value: connectivityController),
       ],
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        title: 'Algebra App',
-        debugShowCheckedModeBanner: false,
-        home: ValueListenableBuilder<bool>(
-          valueListenable: connectivityController.isConnected,
-          builder: (context, isConnected, child) {
-            if (isConnected) {
-              return SplashScreen(
-                  connectivityController: connectivityController);
-            } else {
-              // Show network alert popup
-              Future.microtask(() => NetworkAlertPopup.show(
-                    context,
-                    connectivityController,
-                    () => connectivityController.checkConnectivity(),
-                  ));
-              return Container(); // Return an empty container
-            }
-          },
-        ),
+      child: Consumer<GoogleSignInProvider>(
+        builder: (context, provider, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: 'Algebra App',
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              body: MaterialApp(
+                builder: (context, child) {
+                  return MediaQuery(
+                    data: MediaQuery.of(context).copyWith(
+                        // Use the default screen size and device pixel ratio
+                        ),
+                    child: child!,
+                  );
+                },
+                home: SplashScreen(), // Your splash screen widget
+              ),
+            ),
+          );
+        },
       ),
     );
   }

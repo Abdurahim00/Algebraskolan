@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:lottie/lottie.dart';
 
 import '../provider/google_sign_In.dart'; // Make sure this import is correct
-import '../other/network_alert.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -49,9 +47,6 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final connectivityController =
-        Provider.of<ConnectivityController>(context, listen: false);
-
     return Scaffold(
       body: Stack(
         children: [
@@ -124,25 +119,11 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 ),
                                 child: OutlinedButton(
                                   onPressed: () async {
-                                    if (connectivityController
-                                        .isConnected.value) {
-                                      provider.googleLogin(
-                                          context, connectivityController);
-                                    } else {
-                                      NetworkAlertPopup.show(
-                                          context, connectivityController,
-                                          () async {
-                                        if (await connectivityController
-                                            .checkConnectivity()) {
-                                          provider.googleLogin(
-                                              context, connectivityController);
-                                        }
-                                      });
-                                    }
+                                    provider.googleLogin(context);
                                   },
                                   style: OutlinedButton.styleFrom(
                                     backgroundColor: Colors.white,
-                                    padding: EdgeInsets.symmetric(
+                                    padding: const EdgeInsets.symmetric(
                                         horizontal: 20, vertical: 8),
                                   ),
                                   child: Row(
@@ -152,8 +133,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                         'assets/images/google-logo.png',
                                         height: 40.0,
                                       ),
-                                      SizedBox(width: 2),
-                                      Text(
+                                      const SizedBox(width: 2),
+                                      const Text(
                                         'Anslut',
                                         style: TextStyle(
                                           fontFamily: 'LilitaOne',

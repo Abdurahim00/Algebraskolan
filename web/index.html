@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base href="$FLUTTER_BASE_HREF">
+  <base href="/">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="A new Flutter project.">
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,45 +15,12 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
   <title>algebraskolan2</title>
   <link rel="manifest" href="manifest.json">
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = null;
-  </script>
-  <!-- This script adds the Flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
+  
+  <!-- Add your Google Sign-In client ID -->
+  <meta name="google-signin-client_id" content="195764286049-bq3nbhka5iosa4pr56nb9aarslhqjbqm.apps.googleusercontent.com">
+  
+  <script src="flutter_bootstrap.js" async></script>
 </head>
 <body>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/8.2.0/firebase-app.js"></script>
-  <!-- Add other Firebase SDKs you need -->
-  
-  <!-- Firebase Initialization -->
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB4PX0FB4N15-dtPT6h1HXuOzKsKfu9NBI",
-      authDomain: "algebra-82c5d.firebaseapp.com",
-      projectId: "algebra-82c5d",
-      storageBucket: "algebra-82c5d.appspot.com",
-      messagingSenderId: "195764286049",
-      appId: "1:195764286049:web:9f5b88875060f1450d3020"
-    };
-    firebase.initializeApp(firebaseConfig);
-  </script>
-
-  <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
-        }
-      });
-    });
-  </script>
 </body>
 </html>

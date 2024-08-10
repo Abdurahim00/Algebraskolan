@@ -32,7 +32,7 @@ class StudentCard extends StatelessWidget {
     const double maxFontSize = 18.0; // Maximum font size
 
     // Calculate dimensions with limits
-    double cardWidth = math.min(screenWidth * 0.30, maxCardWidth);
+    double cardWidth = math.min(screenWidth * 0.25, maxCardWidth);
     double imageSideLength = math.min(cardWidth * 0.5, maxImageSideLength);
     double fontSize = math.min(screenWidth * 0.04, maxFontSize);
 
