@@ -43,16 +43,17 @@ class StudentProvider with ChangeNotifier {
 
   void setIsUpdatingCoins(bool value) {
     _isUpdatingCoins = value;
-    notifyListeners(); // Notify listeners about the change
+    notifyListeners();
   }
 
-// Fetch and sort all students by coins
+// Fetch and sort all students by coins, excluding teachers
   Future<List<ValueNotifier<Student>>> fetchAllStudentsSortedByCoins() async {
     try {
       List<Student> fetchedStudents = await _studentService.fetchAllStudents();
       fetchedStudents.sort((a, b) =>
           b.coins.compareTo(a.coins)); // Sort by coins in descending order
       return fetchedStudents
+          .where((student) => student.role == 'student')
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {
@@ -66,6 +67,7 @@ class StudentProvider with ChangeNotifier {
       List<Student> fetchedStudents =
           await _studentService.fetchStudentsByClassNumber(classNumber);
       _students = fetchedStudents
+          .where((student) => student.role == 'student')
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {
@@ -79,6 +81,7 @@ class StudentProvider with ChangeNotifier {
     try {
       List<Student> fetchedStudents = await _studentService.fetchAllStudents();
       return fetchedStudents
+          .where((student) => student.role == 'student')
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {
@@ -99,6 +102,7 @@ class StudentProvider with ChangeNotifier {
             await _studentService.searchStudentsByDisplayName(query);
       }
       return searchResults
+          .where((student) => student.role == 'student')
           .map((student) => ValueNotifier<Student>(student))
           .toList();
     } catch (error) {

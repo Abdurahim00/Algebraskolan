@@ -79,11 +79,38 @@ class MyApp extends StatelessWidget {
             home: Scaffold(
               body: MaterialApp(
                 builder: (context, child) {
-                  return MediaQuery(
-                    data: MediaQuery.of(context).copyWith(
-                        // Use the default screen size and device pixel ratio
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      const double iphone15ProMaxWidth = 430.0;
+                      const double iphone15ProMaxHeight = 932.0;
+
+                      double horizontalPadding =
+                          (constraints.maxWidth - iphone15ProMaxWidth) / 2;
+                      horizontalPadding =
+                          horizontalPadding < 0 ? 0 : horizontalPadding;
+
+                      return Container(
+                        color: Colors.black,
+                        padding:
+                            EdgeInsets.symmetric(horizontal: horizontalPadding),
+                        alignment: Alignment.center,
+                        child: AspectRatio(
+                          aspectRatio:
+                              iphone15ProMaxWidth / iphone15ProMaxHeight,
+                          child: MediaQuery(
+                            data: MediaQuery.of(context).copyWith(
+                              size: const Size(
+                                  iphone15ProMaxWidth, iphone15ProMaxHeight),
+                              devicePixelRatio: 3.0,
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: child!,
+                            ),
+                          ),
                         ),
-                    child: child!,
+                      );
+                    },
                   );
                 },
                 home: SplashScreen(), // Your splash screen widget
