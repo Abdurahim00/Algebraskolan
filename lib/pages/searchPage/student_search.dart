@@ -233,7 +233,8 @@ class StudentSearch extends SearchDelegate<Student?> {
           builder: (BuildContext context) {
             return const Dialog(
               child: Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.all(
+                    20), // Ensure this line has named argument 'padding'
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -246,6 +247,7 @@ class StudentSearch extends SearchDelegate<Student?> {
             );
           },
         );
+
         studentNotifier.value.localCoins.value += coins;
         final teacherName = googleSignInProvider.user?.displayName ?? "Unknown";
         try {

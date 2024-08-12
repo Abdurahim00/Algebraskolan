@@ -23,40 +23,30 @@ class HomePage extends StatelessWidget {
   final googleSignInProvider = GoogleSignInProvider.instance;
 
   HomePage({super.key});
+
   Stream<UserData?> getUserDataStream(BuildContext context) async* {
-    // Initialize and fetch Firebase Remote Config
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     await remoteConfig.fetchAndActivate();
     bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
 
-    // Listening to auth state changes
     await for (var user in _authService.authStateChanges) {
       if (user == null) {
-        yield null; // Yield null when no user is signed in
+        yield null;
       } else {
         final email = user.email;
 
-        // Check if the email domain is allowed based on Remote Config
         if (!allowAllEmails &&
             !(email?.endsWith('@algebraskolan.se') ?? false) &&
             !(email?.endsWith('@algebrautbildning.se') ?? false)) {
           await showUnauthorizedDomainDialog(context);
           await signOutUser(context, user);
-          // Do not yield UserData as the user is unauthorized
         } else {
-          // Fetch user data from Firestore
           var userDocument = await _authService.getUserDocument(user.uid);
           if (userDocument.exists && userDocument.data() != null) {
-            // Yield UserData with user information if available
             yield UserData(user, userDocument.data() as Map<String, dynamic>);
           } else {
-            // Yield default UserData if the document doesn't exist
-            yield UserData(user, {
-              'role': 'student',
-              'classNumber': 0,
-              'coins': 0,
-              'hasAnsweredQuestionCorrectly': false,
-            });
+            // Handle case where document does not exist
+            yield null;
           }
         }
       }
@@ -66,7 +56,6 @@ class HomePage extends StatelessWidget {
   Future<void> signOutUser(BuildContext context, User user) async {
     if (user.providerData.any((p) => p.providerId == 'google.com')) {
       await GoogleSignInProvider.instance.googleLogout();
-      // Now you can call the new method
       await GoogleSignInProvider.instance.googleDisconnect();
     }
   }
@@ -74,7 +63,7 @@ class HomePage extends StatelessWidget {
   Future<void> showUnauthorizedDomainDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
-      barrierDismissible: false, // User must tap the button to close the dialog
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: const Text('Obehörig Åtkomst'),
@@ -89,7 +78,7 @@ class HomePage extends StatelessWidget {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the dialog
+                Navigator.of(dialogContext).pop();
               },
             ),
           ],
@@ -115,11 +104,8 @@ class HomePage extends StatelessWidget {
           if (snapshot.data?.user != null) {
             var userData = snapshot.data!.userData;
             if (userData != null) {
-              // User is logged in and userData is available
               return _buildUserScreen(userData);
             } else {
-              // User is logged in but userData is not yet available
-              // Redirect to a default or temporary screen
               return _buildTemporaryScreen();
             }
           }
@@ -131,9 +117,10 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildUserScreen(Map<String, dynamic> userData) {
+    // Check the role and redirect accordingly
     if (userData['role'] == 'teacher') {
       return const TeacherScreen();
-    } else {
+    } else if (userData['role'] == 'student') {
       int classNumber = userData['classNumber'];
       if (!userData['hasAnsweredQuestionCorrectly']) {
         return QuestionsScreen(
@@ -141,11 +128,12 @@ class HomePage extends StatelessWidget {
       } else {
         return const StudentScreen();
       }
+    } else {
+      return const LoginPage(); // Or another default page
     }
   }
 
   Widget _buildTemporaryScreen() {
-    // This screen is shown while user data is being fetched
     return const Center(
       child: CircularProgressIndicator(),
     );
