@@ -125,13 +125,14 @@ class TeacherScreenState extends State<TeacherScreen> {
           Positioned(
             top: MediaQuery.of(context).size.height * 0.28 - 10,
             child: Container(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+              padding: const EdgeInsets.only(top: 10.0, bottom: 0.0),
               width: MediaQuery.of(context).size.width,
               height: isTablet(context)
                   ? MediaQuery.of(context).size.width * 0.3 + 10
                   : MediaQuery.of(context).size.width * 0.35 + 20,
               child: ListView(
                 scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.only(bottom: 12),
                 physics: const BouncingScrollPhysics(),
                 children: classesNr
                     .map((classes) => GestureDetector(

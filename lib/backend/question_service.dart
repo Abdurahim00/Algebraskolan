@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
-
 Future<List<Map<String, dynamic>>> getQuestionsByClass(int classNumber,
     {@visibleForTesting FirebaseFirestore? firestore}) async {
   firestore ??= FirebaseFirestore.instance;

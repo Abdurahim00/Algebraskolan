@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -116,11 +117,12 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<GoogleSignInProvider>(context, listen: true);
-    final user = provider.user; // This can be null after logout
+    // final user = provider.user; // This can be null after logout
+    final user = FirebaseAuth.instance.currentUser;
 
     ImageProvider<Object>? imageProvider;
-    if (user != null && user.photoUrl != null) {
-      imageProvider = NetworkImage(user.photoUrl!);
+    if (user != null && user.photoURL != null) {
+      imageProvider = NetworkImage(user.photoURL!);
     } else {
       imageProvider = const AssetImage('assets/default_user.png');
     }
