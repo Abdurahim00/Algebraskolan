@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter/services.dart'; // Add this import for SystemChrome
+import 'package:flutter/services.dart';
 
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/student_provider.dart';
@@ -11,6 +11,7 @@ import 'package:algebra/provider/transaction_provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:algebra/other/splash_screen.dart';
 import 'package:algebra/other/network_alert.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -24,8 +25,11 @@ void main() async {
   ]);
 
   await Firebase.initializeApp();
+  await setupRemoteConfig(); // Fetch and activate remote config with quick settings
+
   final googleSignInProvider = GoogleSignInProvider.instance;
   await googleSignInProvider.initializeUser();
+
   final connectivityController = ConnectivityController();
   await connectivityController.init();
 
@@ -35,6 +39,26 @@ void main() async {
     googleSignInProvider: googleSignInProvider,
     connectivityController: connectivityController,
   ));
+}
+
+Future<void> setupRemoteConfig() async {
+  final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+
+  // Set the minimum fetch interval to 0 during development for faster results.
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: const Duration(seconds: 10),
+    minimumFetchInterval: const Duration(
+        seconds: 0), // Set to 0 for fast fetch during development
+  ));
+
+  await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
+
+  try {
+    await remoteConfig.fetchAndActivate();
+    print("Remote Config fetched and activated");
+  } catch (e) {
+    print("Remote Config fetch failed: $e");
+  }
 }
 
 class MyApp extends StatelessWidget {

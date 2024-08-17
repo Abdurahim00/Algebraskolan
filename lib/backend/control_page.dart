@@ -45,7 +45,6 @@ class HomePage extends StatelessWidget {
           if (userDocument.exists && userDocument.data() != null) {
             yield UserData(user, userDocument.data() as Map<String, dynamic>);
           } else {
-            // Handle case where document does not exist
             yield null;
           }
         }
@@ -66,11 +65,11 @@ class HomePage extends StatelessWidget {
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Obehörig Åtkomst'),
+          title: const Text('Obehörig åtkomst'),
           content: const SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Bara Algebraskolans mail är tillåtet.'),
+                Text('Bara Algebraskolan mail är tillåtet'),
               ],
             ),
           ),
@@ -117,7 +116,6 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildUserScreen(Map<String, dynamic> userData) {
-    // Check the role and redirect accordingly
     if (userData['role'] == 'teacher') {
       return const TeacherScreen();
     } else if (userData['role'] == 'student') {
