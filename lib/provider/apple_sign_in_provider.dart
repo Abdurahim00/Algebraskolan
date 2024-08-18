@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../other/network_alert.dart';
 import '../provider/connectivity_provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 
 class AppleSignInProvider extends ChangeNotifier {
   User? _user;
@@ -37,6 +38,20 @@ class AppleSignInProvider extends ChangeNotifier {
       final uid = _user?.uid;
       final email = _user?.email;
 
+      // Fetch the feature flag
+      final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
+      await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
+      await remoteConfig.fetchAndActivate();
+      bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+
+      // Check if the email domain is allowed
+      if (!allowAllEmails &&
+          !(email?.endsWith('@algebraskolan.se') ?? false) &&
+          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+        throw Exception('Access denied for unauthorized domain.');
+      }
+
+      // Prompt for display name if not provided
       String displayName = _user?.displayName ?? '';
       String displayNameLower = displayName.toLowerCase();
 
@@ -46,28 +61,21 @@ class AppleSignInProvider extends ChangeNotifier {
         await _user!.updateProfile(displayName: displayName);
       }
 
-      Map<String, dynamic> userData = {
-        'email': email,
-        'displayName': displayName,
-        'displayNameLower': displayNameLower,
-        'role': 'student',
-        'classNumber': 0,
-        'coins': 0,
-        'hasAnsweredQuestionCorrectly': false,
-      };
-
+      // Check if user document exists in Firestore
       final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
       final docSnapshot = await docRef.get();
-      if (!docSnapshot.exists) {
-        await docRef.set(userData);
-      } else {
-        await docRef.update(userData);
-      }
 
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
-          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        await appleLogout();
-        throw Exception('Access denied for unauthorized domain.');
+      if (!docSnapshot.exists) {
+        // Create new user document if it doesn't exist
+        await docRef.set({
+          'email': email,
+          'displayName': displayName,
+          'displayNameLower': displayNameLower,
+          'role': 'student', // Default role
+          'classNumber': 0,
+          'coins': 0,
+          'hasAnsweredQuestionCorrectly': false,
+        });
       }
     } on FirebaseException catch (e) {
       if (e.code == 'network-request-failed') {
@@ -79,6 +87,8 @@ class AppleSignInProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint('Error during sign-in: $e');
+      // Ensure user is logged out and not registered in Firestore if the domain is unauthorized
+      await appleLogout();
     }
 
     _isLoading = false;
@@ -123,7 +133,7 @@ class AppleSignInProvider extends ChangeNotifier {
     if (currentUser != null) {
       _user = currentUser;
       final email = _user?.email;
-      if (!(email?.endsWith('@gmail.com') ?? false) &&
+      if (!(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
         await appleLogout();
         return false;
