@@ -5,7 +5,7 @@ import 'package:lottie/lottie.dart';
 import 'package:algebra/pages/login.dart';
 import 'package:algebra/pages/studentPage/student_screen.dart';
 import 'package:algebra/pages/teacherPage/teacher_screen.dart';
-import 'package:algebra/provider/google_sign_In.dart';
+import 'package:algebra/provider/google_sign_in.dart';
 
 import '../pages/studentPage/question_screen.dart';
 import 'auth_service.dart';
@@ -20,7 +20,6 @@ class UserData {
 class HomePage extends StatelessWidget {
   final UserAuthService _authService = UserAuthService();
   final GlobalKey<QuestionsScreenState> _questionsScreenKey = GlobalKey();
-  final googleSignInProvider = GoogleSignInProvider.instance;
 
   HomePage({super.key});
 
@@ -97,12 +96,14 @@ class HomePage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
+            print("Error during user data fetch: ${snapshot.error}");
             return Center(child: Text("Error: ${snapshot.error}"));
           }
 
           if (snapshot.data?.user != null) {
             var userData = snapshot.data!.userData;
             if (userData != null) {
+              print('User data received: $userData');
               return _buildUserScreen(userData);
             } else {
               return _buildTemporaryScreen();

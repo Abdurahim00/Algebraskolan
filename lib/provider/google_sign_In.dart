@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../other/network_alert.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import '../other/network_alert.dart';
 import '../provider/connectivity_provider.dart';
+import '/backend/control_page.dart'; // Ensure HomePage is imported correctly
 
 class GoogleSignInProvider extends ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
@@ -25,13 +26,16 @@ class GoogleSignInProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      print('Attempting Google Sign-In...');
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
+        print('Google Sign-In was canceled by the user.');
         _isLoading = false;
         notifyListeners();
         return;
       }
       _user = googleUser;
+      print('Google Sign-In successful: ${googleUser.email}');
       notifyListeners();
 
       final googleAuth = await googleUser.authentication;
@@ -40,97 +44,73 @@ class GoogleSignInProvider extends ChangeNotifier {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
       final user = userCredential.user!;
       final uid = user.uid;
       final email = user.email;
       final displayName = user.displayName;
-      final displayNameLower =
-          displayName?.toLowerCase(); // Lowercase display name
+      final displayNameLower = displayName?.toLowerCase();
 
-      // Fetch the feature flag
+      print('Firebase Sign-In successful for UID: $uid');
+
       final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
       await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
       await remoteConfig.fetchAndActivate();
+      print('Remote Config fetched and activated');
       bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
 
       if (!allowAllEmails &&
           !(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        throw Exception('Access denied for unauthorized domain.');
+        throw Exception('Access denied for unauthorized domain: $email');
       }
 
-      // Check for existing documents with the same email
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .where('email', isEqualTo: email)
-          .get();
-
-      // Delete duplicate documents
-      for (var doc in querySnapshot.docs) {
-        if (doc.id != uid) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(doc.id)
-              .delete();
-        }
-      }
-
-      // Proceed with the current user's document
-      final docSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      if (docSnapshot.exists) {
-        // Document exists, update it if necessary
-        final data = docSnapshot.data() as Map<String, dynamic>;
-
-        if (data['role'] != 'teacher') {
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'role': 'teacher',
-            'classNumber': -1,
-          });
-        }
-      } else {
-        // Create new user document if it doesn't exist
+      final docSnapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (!docSnapshot.exists) {
+        print('Creating new user document for UID: $uid');
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'email': email,
           'displayName': displayName,
           'displayNameLower': displayNameLower,
-          'role': 'teacher',
-          'classNumber': -1,
+          'role': 'student',  // Default to 'student'
+          'classNumber': 0,
           'coins': 0,
           'hasAnsweredQuestionCorrectly': false,
         });
+      } else {
+        final data = docSnapshot.data() as Map<String, dynamic>;
+        if (data['role'] == null) {
+          print('Updating user role to default "student" for UID: $uid');
+          await FirebaseFirestore.instance.collection('users').doc(uid).update({
+            'role': 'student',
+          });
+        }
       }
 
-      // Force a reload of the current user's data
-      await FirebaseAuth.instance.currentUser?.reload();
-      final reloadedUser = FirebaseAuth.instance.currentUser;
-      final updatedDocSnapshot = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(reloadedUser?.uid)
-          .get();
+      print('Sign-In process completed successfully for ${googleUser.email}');
+      
+      // Navigate to HomePage using context
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
 
-      if (updatedDocSnapshot.exists) {
-        _user = googleUser;
-        notifyListeners(); // Trigger UI update after ensuring the document is updated
-      }
+      _isLoading = false;
+      notifyListeners();
     } catch (e) {
       _isLoading = false;
       notifyListeners();
 
       if (e is FirebaseException && e.code == 'network-request-failed') {
+        print('Network request failed: $e');
         NetworkAlertPopup.show(context, connectivityController, () {
           googleLogin(context, connectivityController);
         });
       } else {
-        debugPrint('Error during sign-in: $e');
+        print('Error during sign-in: $e');
       }
     }
-
-    _isLoading = false;
-    notifyListeners();
   }
 
   Future<void> googleLogout() async {
