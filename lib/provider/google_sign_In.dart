@@ -93,12 +93,14 @@ class GoogleSignInProvider extends ChangeNotifier {
       }
 
       // Check if user already exists in Firestore
-      final docSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
       if (!docSnapshot.exists) {
         // Create user document in Firestore
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'email': email,
           'displayName': displayName,
           'displayNameLower': displayNameLower,
