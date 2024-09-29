@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "algebra-82c5d"
+  },
+  "targets": {
+    "algebra-82c5d": {
+      "hosting": {
+        "app2": [
+          "algebra-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
