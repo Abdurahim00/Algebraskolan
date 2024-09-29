@@ -59,6 +59,8 @@ class _AdminSignupPageState extends State<AdminSignupPage> {
             'classNumber': classNumber,
             'coins': 0,
             'hasAnsweredQuestionCorrectly': false,
+            'created_at': Timestamp.now(),
+            'created_by': 'admin'
           });
 
           ScaffoldMessenger.of(context).showSnackBar(
