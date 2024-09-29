@@ -39,6 +39,7 @@ class GoogleSignInProvider extends ChangeNotifier {
         idToken: googleAuth.idToken,
       );
 
+      // Sign in with Google credential
       final userCredential =
           await FirebaseAuth.instance.signInWithCredential(credential);
       final user = userCredential.user!;
@@ -58,10 +59,45 @@ class GoogleSignInProvider extends ChangeNotifier {
         throw Exception('Access denied for unauthorized domain.');
       }
 
+      // Check if the user already has an email/password account
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email!,
+          password: "Algebraskolan1", // Default password
+        );
+      } catch (e) {
+        // Handle if the email is already in use by an email/password account
+        if (e is FirebaseAuthException && e.code == 'email-already-in-use') {
+          // The email is already in use, proceed to link Google account to it
+          print("Email already has an email/password account.");
+        } else {
+          print("Error creating email/password account: $e");
+        }
+      }
+
+      // Link Google account to email/password account
+      try {
+        await user.linkWithCredential(EmailAuthProvider.credential(
+          email: email!,
+          password: "Algebraskolan1",
+        ));
+        print(
+            "Google account successfully linked with email/password account.");
+      } catch (e) {
+        if (e is FirebaseAuthException &&
+            e.code == 'credential-already-in-use') {
+          print("Google account already linked to the email.");
+        } else {
+          print("Error linking accounts: $e");
+        }
+      }
+
+      // Check if user already exists in Firestore
       final docSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
       if (!docSnapshot.exists) {
+        // Create user document in Firestore
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'email': email,
           'displayName': displayName,
