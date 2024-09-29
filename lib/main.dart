@@ -1,16 +1,9 @@
+import 'package:algebra/admin_register.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart'; // For SystemChrome
-
-import 'package:algebra/provider/google_sign_In.dart';
-import 'package:algebra/provider/student_provider.dart';
-import 'package:algebra/provider/question_provider.dart';
-import 'package:algebra/provider/transaction_provider.dart';
-import 'package:algebra/other/splash_screen.dart';
-import 'add_math_questions.dart'; 
-import 'package:algebra/backend/control_page.dart'; // Correct import for HomePage
 
 const firebaseConfig = FirebaseOptions(
   apiKey: "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ",
@@ -41,27 +34,14 @@ void main() async {
     print("Firebase initialization error: $e");
   }
 
-  final googleSignInProvider = GoogleSignInProvider.instance;
-
-  try {
-    await googleSignInProvider.initializeUser();
-  } catch (e) {
-    print("Google Sign-In initialization error: $e");
-  }
-
   await initializeDateFormatting('sv_SE', null);
 
-  runApp(MyApp(
-    googleSignInProvider: googleSignInProvider,
-  ));
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  final GoogleSignInProvider googleSignInProvider;
-
   const MyApp({
     super.key,
-    required this.googleSignInProvider,
   });
 
   @override
@@ -88,41 +68,11 @@ class MyApp extends StatelessWidget {
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: MultiProvider(
-                  providers: [
-                    ChangeNotifierProvider.value(value: googleSignInProvider),
-                    ChangeNotifierProvider(create: (context) => StudentProvider()),
-                    ChangeNotifierProvider(create: (context) => QuestionProvider()),
-                    ChangeNotifierProvider(
-                      create: (context) {
-                        return TransactionProvider(
-                          uid: googleSignInProvider.uid,
-                          googleSignInProvider: googleSignInProvider,
-                        );
-                      },
-                    ),
-                  ],
-                  child: Consumer<GoogleSignInProvider>(
-                    builder: (context, provider, child) {
-                      return MaterialApp(
-                        navigatorKey: navigatorKey,
-                        title: 'Algebra App',
-                        debugShowCheckedModeBanner: false,
-                        home: FutureBuilder<bool>(
-                          future: provider.isUserSignedIn(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            } else if (snapshot.hasData && snapshot.data == true) {
-                              return HomePage(); // Ensure HomePage is properly defined and imported
-                            } else {
-                              return SplashScreen(); // Ensure SplashScreen is properly defined and imported
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                child: MaterialApp(
+                  navigatorKey: navigatorKey,
+                  title: 'Algebra App',
+                  debugShowCheckedModeBanner: false,
+                  home: AdminSignupPage(),
                 ),
               ),
             ),
