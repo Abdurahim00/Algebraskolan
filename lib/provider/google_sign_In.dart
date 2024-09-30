@@ -22,95 +22,119 @@ class GoogleSignInProvider extends ChangeNotifier {
 
   Future<void> googleLogin(BuildContext context,
       ConnectivityController connectivityController) async {
-    _isLoading = true;
-    notifyListeners();
+    _isLoading = true; // Start loading
 
     try {
-      print('Attempting Google Sign-In...');
+      // Sign in with Google
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        print('Google Sign-In was canceled by the user.');
-        _isLoading = false;
+        _isLoading = false; // Stop loading if no user is found
         notifyListeners();
         return;
       }
       _user = googleUser;
-      print('Google Sign-In successful: ${googleUser.email}');
       notifyListeners();
 
+      // Get authentication credentials
       final googleAuth = await googleUser.authentication;
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      // Sign in to Firebase with Google credentials
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
       final user = userCredential.user!;
       final uid = user.uid;
       final email = user.email;
       final displayName = user.displayName;
-      final displayNameLower = displayName?.toLowerCase();
+      final displayNameLower =
+          displayName?.toLowerCase(); // Lowercase display name
 
-      print('Firebase Sign-In successful for UID: $uid');
-
+      // Fetch the feature flag
       final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
       await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
       await remoteConfig.fetchAndActivate();
-      print('Remote Config fetched and activated');
       bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
 
+      // Check if the email domain is allowed
       if (!allowAllEmails &&
           !(email?.endsWith('@algebraskolan.se') ?? false) &&
           !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        throw Exception('Access denied for unauthorized domain: $email');
+        throw Exception('Access denied for unauthorized domain.');
       }
 
-      final docSnapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      // Check if the user already has an email/password account
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email!,
+          password: "Algebraskolan1", // Default password
+        );
+      } catch (e) {
+        // Handle if the email is already in use by an email/password account
+        if (e is FirebaseAuthException && e.code == 'email-already-in-use') {
+          // The email is already in use, proceed to link Google account to it
+          print("Email already has an email/password account.");
+        } else {
+          print("Error creating email/password account: $e");
+        }
+      }
+
+      // Link Google account to email/password account
+      try {
+        await user.linkWithCredential(EmailAuthProvider.credential(
+          email: email!,
+          password: "Algebraskolan1",
+        ));
+        print(
+            "Google account successfully linked with email/password account.");
+      } catch (e) {
+        if (e is FirebaseAuthException &&
+            e.code == 'credential-already-in-use') {
+          print("Google account already linked to the email.");
+        } else {
+          print("Error linking accounts: $e");
+        }
+      }
+
+      // Check if user document exists in Firestore
+      final docSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
       if (!docSnapshot.exists) {
-        print('Creating new user document for UID: $uid');
+        // Create new user document if it doesn't exist
         await FirebaseFirestore.instance.collection('users').doc(uid).set({
           'email': email,
           'displayName': displayName,
-          'displayNameLower': displayNameLower,
-          'role': 'student',  // Default to 'student'
+          'displayNameLower': displayNameLower, // Add displayNameLower field
+          'role': 'student', // Default role
           'classNumber': 0,
           'coins': 0,
           'hasAnsweredQuestionCorrectly': false,
         });
-      } else {
-        final data = docSnapshot.data() as Map<String, dynamic>;
-        if (data['role'] == null) {
-          print('Updating user role to default "student" for UID: $uid');
-          await FirebaseFirestore.instance.collection('users').doc(uid).update({
-            'role': 'student',
-          });
-        }
       }
-
-      print('Sign-In process completed successfully for ${googleUser.email}');
-      
-      // Navigate to HomePage using context
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
-
-      _isLoading = false;
-      notifyListeners();
     } catch (e) {
-      _isLoading = false;
+      _isLoading = false; // Stop loading on error
       notifyListeners();
-
+      // Handle network exceptions
       if (e is FirebaseException && e.code == 'network-request-failed') {
-        print('Network request failed: $e');
+        // Show network alert dialog with a retry callback
         NetworkAlertPopup.show(context, connectivityController, () {
+          // Retry logic for Google login
           googleLogin(context, connectivityController);
         });
       } else {
-        print('Error during sign-in: $e');
+        // Handle other exceptions including unauthorized domain access
+        Exception('Error during sign-in: $e');
+        // Show error message or perform other actions
       }
+      _isLoading = false; // Stop loading after all operations
+      notifyListeners();
     }
+
+    // Notify listeners of any changes
+    notifyListeners();
   }
 
   Future<void> googleLogout() async {
