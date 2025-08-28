@@ -6,9 +6,8 @@ import 'package:algebra/pages/login.dart';
 import 'package:algebra/pages/studentPage/student_screen.dart';
 import 'package:algebra/pages/teacherPage/teacher_screen.dart';
 import 'package:algebra/provider/google_sign_in.dart';
-
+import '../core/di/injection_container.dart';
 import '../pages/studentPage/question_screen.dart';
-import 'auth_service.dart';
 
 class UserData {
   final User? user;
@@ -18,17 +17,19 @@ class UserData {
 }
 
 class HomePage extends StatelessWidget {
-  final UserAuthService _authService = UserAuthService();
   final GlobalKey<QuestionsScreenState> _questionsScreenKey = GlobalKey();
 
   HomePage({super.key});
 
   Stream<UserData?> getUserDataStream(BuildContext context) async* {
+    final authRepository = InjectionContainer.authRepository;
+    final userRepository = InjectionContainer.userRepository;
+    
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     await remoteConfig.fetchAndActivate();
     bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
 
-    await for (var user in _authService.authStateChanges) {
+    await for (var user in authRepository.authStateChanges) {
       if (user == null) {
         yield null;
       } else {
@@ -40,9 +41,9 @@ class HomePage extends StatelessWidget {
           await showUnauthorizedDomainDialog(context);
           await signOutUser(context, user);
         } else {
-          var userDocument = await _authService.getUserDocument(user.uid);
-          if (userDocument.exists && userDocument.data() != null) {
-            yield UserData(user, userDocument.data() as Map<String, dynamic>);
+          var userData = await userRepository.getUserData(user.uid);
+          if (userData != null) {
+            yield UserData(user, userData);
           } else {
             yield null;
           }
@@ -52,26 +53,101 @@ class HomePage extends StatelessWidget {
   }
 
   Future<void> signOutUser(BuildContext context, User user) async {
-    if (user.providerData.any((p) => p.providerId == 'google.com')) {
-      await GoogleSignInProvider.instance.googleLogout();
-      await GoogleSignInProvider.instance.googleDisconnect();
-    }
+    final authRepository = InjectionContainer.authRepository;
+    await authRepository.signOut();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (route) => false,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<UserData?>(
+      stream: getUserDataStream(context),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showDialog(
+              context: context,
+              builder: (BuildContext dialogContext) {
+                return AlertDialog(
+                  title: const Text('Fel'),
+                  content: const Text('Ett fel uppstod. Försök igen senare.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(),
+                      child: const Text('OK'),
+                    ),
+                  ],
+                );
+              },
+            );
+          });
+        }
+
+        if (snapshot.connectionState == ConnectionState.active ||
+            snapshot.connectionState == ConnectionState.done) {
+          var userData = snapshot.data;
+
+          if (userData != null && userData.user != null) {
+            if (userData.userData?['role'] == 'teacher') {
+              return TeacherScreen();
+            } else if (userData.userData?['role'] == 'student') {
+              if (userData.userData?['hasAnsweredQuestionCorrectly'] ==
+                  false) {
+                final classNumber = userData.userData?['classNumber'] ?? 0;
+                return QuestionsScreen(
+                  key: _questionsScreenKey,
+                  classNumber: classNumber,
+                );
+              } else {
+                return StudentScreen();
+              }
+            }
+          }
+        }
+
+        return Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 150,
+                  height: 150,
+                  child: Lottie.asset(
+                    'assets/images/Circle Loading.json',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Laddar...',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> showUnauthorizedDomainDialog(BuildContext context) async {
-    return showDialog<void>(
+    await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Obehörig åtkomst'),
-          content: const SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('Bara Algebraskolan mail är tillåtet'),
-              ],
-            ),
-          ),
+          title: const Text('Obehörig domän'),
+          content: const Text(
+              'Endast användare med @algebraskolan.se eller @algebrautbildning.se e-postadresser kan logga in.'),
           actions: <Widget>[
             TextButton(
               child: const Text('OK'),
@@ -82,67 +158,6 @@ class HomePage extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: StreamBuilder<UserData?>(
-        stream: getUserDataStream(context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildLoadingScreen(context);
-          }
-
-          if (snapshot.hasError) {
-            print("Error during user data fetch: ${snapshot.error}");
-            return Center(child: Text("Error: ${snapshot.error}"));
-          }
-
-          if (snapshot.data?.user != null) {
-            var userData = snapshot.data!.userData;
-            if (userData != null) {
-              print('User data received: $userData');
-              return _buildUserScreen(userData);
-            } else {
-              return _buildTemporaryScreen();
-            }
-          }
-
-          return const LoginPage();
-        },
-      ),
-    );
-  }
-
-  Widget _buildUserScreen(Map<String, dynamic> userData) {
-    if (userData['role'] == 'teacher') {
-      return const TeacherScreen();
-    } else if (userData['role'] == 'student') {
-      int classNumber = userData['classNumber'];
-      if (!userData['hasAnsweredQuestionCorrectly']) {
-        return QuestionsScreen(
-            key: _questionsScreenKey, classNumber: classNumber);
-      } else {
-        return const StudentScreen();
-      }
-    } else {
-      return const LoginPage(); // Or another default page
-    }
-  }
-
-  Widget _buildTemporaryScreen() {
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
-  }
-
-  Widget _buildLoadingScreen(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    return Center(
-      child: Lottie.asset("assets/images/Circle Loading.json",
-          width: screenWidth * 0.2),
     );
   }
 }

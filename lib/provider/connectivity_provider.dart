@@ -6,18 +6,20 @@ class ConnectivityController extends ChangeNotifier {
 
   Future<void> init() async {
     await checkConnectivity(); // Initial check
-    Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
-      isInternetConnected(result);
+    Connectivity()
+        .onConnectivityChanged
+        .listen((List<ConnectivityResult> results) {
+      isInternetConnected(results);
     });
   }
 
   Future<bool> checkConnectivity() async {
-    ConnectivityResult result = await Connectivity().checkConnectivity();
-    return isInternetConnected(result);
+    List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+    return isInternetConnected(results);
   }
 
-  bool isInternetConnected(ConnectivityResult? result) {
-    if (result == ConnectivityResult.none) {
+  bool isInternetConnected(List<ConnectivityResult> results) {
+    if (results.contains(ConnectivityResult.none) || results.isEmpty) {
       isConnected.value = false;
       return false;
     } else {

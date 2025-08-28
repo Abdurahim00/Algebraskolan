@@ -1,18 +1,20 @@
 import 'package:algebra/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../backend/control_page.dart';
 import '../backend/sound_manager.dart';
-import '../backend/student_service.dart';
-import '../backend/transaction_service.dart';
 import '../backend/student.dart';
+import '../core/di/injection_container.dart';
+import '../core/result/result.dart';
+import '../domain/models/student_model.dart';
+import '../domain/usecases/student/fetch_students_usecase.dart';
+import '../domain/usecases/student/search_students_usecase.dart';
+import '../domain/usecases/coins/update_coins_usecase.dart';
+import '../domain/usecases/coins/batch_update_coins_usecase.dart';
+import '../domain/usecases/auth/logout_usecase.dart';
 
 class StudentProvider with ChangeNotifier {
-  final StudentService _studentService =
-      StudentService(FirebaseFirestore.instance);
-
   List<ValueNotifier<Student>> _students = [];
   int selectedClass = 0;
   final Set<ValueNotifier<Student>> _selectedStudents = {};
@@ -46,30 +48,70 @@ class StudentProvider with ChangeNotifier {
     notifyListeners();
   }
 
-// Fetch and sort all students by coins, excluding teachers
+  // Convert domain model to legacy Student model
+  Student _domainToLegacyStudent(StudentModel domainStudent) {
+    return Student(
+      uid: domainStudent.uid,
+      displayName: domainStudent.displayName,
+      classNumber: domainStudent.classNumber,
+      role: domainStudent.role,
+      coins: domainStudent.coins,
+      hasAnsweredQuestionCorrectly: domainStudent.hasAnsweredQuestionCorrectly,
+      transactions: [], // Empty transactions list
+    );
+  }
+
+  // Fetch and sort all students by coins, excluding teachers
   Future<List<ValueNotifier<Student>>> fetchAllStudentsSortedByCoins() async {
     try {
-      List<Student> fetchedStudents = await _studentService.fetchAllStudents();
-      fetchedStudents.sort((a, b) =>
-          b.coins.compareTo(a.coins)); // Sort by coins in descending order
-      return fetchedStudents
-          .where((student) => student.role == 'student')
-          .map((student) => ValueNotifier<Student>(student))
-          .toList();
+      final fetchStudentsUseCase = InjectionContainer.fetchStudentsUseCase;
+      final result = await fetchStudentsUseCase(
+        const FetchStudentsParams(),
+      );
+      
+      return result.fold(
+        onSuccess: (students) {
+          // Sort by coins in descending order and filter students only
+          final sorted = students
+              .where((student) => student.role == 'student')
+              .toList()
+            ..sort((a, b) => b.coins.compareTo(a.coins));
+          
+          return sorted
+              .map((student) => ValueNotifier<Student>(_domainToLegacyStudent(student)))
+              .toList();
+        },
+        onFailure: (error) {
+          print('Error fetching students sorted by coins: ${error.message}');
+          throw Exception(error.message);
+        },
+      );
     } catch (error) {
       rethrow;
     }
   }
 
-//done
   Future<void> fetchStudents(int classNumber) async {
     try {
-      List<Student> fetchedStudents =
-          await _studentService.fetchStudentsByClassNumber(classNumber);
-      _students = fetchedStudents
-          .where((student) => student.role == 'student')
-          .map((student) => ValueNotifier<Student>(student))
-          .toList();
+      final fetchStudentsUseCase = InjectionContainer.fetchStudentsUseCase;
+      final result = await fetchStudentsUseCase(
+        FetchStudentsParams(
+          classNumber: classNumber,
+        ),
+      );
+      
+      result.fold(
+        onSuccess: (fetchedStudents) {
+          _students = fetchedStudents
+              .where((student) => student.role == 'student')
+              .map((student) => ValueNotifier<Student>(_domainToLegacyStudent(student)))
+              .toList();
+        },
+        onFailure: (error) {
+          print('Error fetching students: ${error.message}');
+          throw Exception(error.message);
+        },
+      );
     } catch (error) {
       rethrow;
     } finally {
@@ -79,32 +121,54 @@ class StudentProvider with ChangeNotifier {
 
   Future<List<ValueNotifier<Student>>> fetchAllStudents() async {
     try {
-      List<Student> fetchedStudents = await _studentService.fetchAllStudents();
-      return fetchedStudents
-          .where((student) => student.role == 'student')
-          .map((student) => ValueNotifier<Student>(student))
-          .toList();
+      final fetchStudentsUseCase = InjectionContainer.fetchStudentsUseCase;
+      final result = await fetchStudentsUseCase(
+        const FetchStudentsParams(),
+      );
+      
+      return result.fold(
+        onSuccess: (students) {
+          return students
+              .where((student) => student.role == 'student')
+              .map((student) => ValueNotifier<Student>(_domainToLegacyStudent(student)))
+              .toList();
+        },
+        onFailure: (error) {
+          print('Error fetching all students: ${error.message}');
+          throw Exception(error.message);
+        },
+      );
     } catch (error) {
       rethrow;
     }
   }
 
-//done
   Future<List<ValueNotifier<Student>>> fetchSearch(String query) async {
     try {
-      List<Student> searchResults;
       if (query.isEmpty) {
         // Return all students if the query is empty
-        searchResults = await _studentService.fetchAllStudents();
-      } else {
-        // Only search by name if there's a query
-        searchResults =
-            await _studentService.searchStudentsByDisplayName(query);
+        return await fetchAllStudents();
       }
-      return searchResults
-          .where((student) => student.role == 'student')
-          .map((student) => ValueNotifier<Student>(student))
-          .toList();
+      
+      final searchStudentsUseCase = InjectionContainer.searchStudentsUseCase;
+      final result = await searchStudentsUseCase(
+        SearchStudentsParams(
+          query: query,
+        ),
+      );
+      
+      return result.fold(
+        onSuccess: (students) {
+          return students
+              .where((student) => student.role == 'student')
+              .map((student) => ValueNotifier<Student>(_domainToLegacyStudent(student)))
+              .toList();
+        },
+        onFailure: (error) {
+          print('Error searching students: ${error.message}');
+          throw Exception(error.message);
+        },
+      );
     } catch (error) {
       rethrow;
     }
@@ -119,16 +183,30 @@ class StudentProvider with ChangeNotifier {
       return false;
     }
 
-    bool updateSuccess = await _studentService.updateStudentCoinsInFirestore(
-        currentStudent.uid, currentStudent.localCoins.value);
+    final updateCoinsUseCase = InjectionContainer.updateCoinsUseCase;
+    final currentUser = InjectionContainer.authRepository.currentUser;
+    final teacherName = currentUser?.displayName ?? 'Lärare';
+    
+    final result = await updateCoinsUseCase(
+      UpdateCoinsParams(
+        studentId: currentStudent.uid,
+        coinAmount: currentStudent.localCoins.value,
+        teacherName: teacherName,
+      ),
+    );
 
-    if (updateSuccess) {
-      // Reset the local coins value
-      currentStudent.localCoins.value = 0;
-      notifyListeners();
-    }
-
-    return updateSuccess;
+    return result.fold(
+      onSuccess: (_) {
+        // Reset the local coins value
+        currentStudent.localCoins.value = 0;
+        notifyListeners();
+        return true;
+      },
+      onFailure: (error) {
+        print('Error updating coins: ${error.message}');
+        return false;
+      },
+    );
   }
 
   void addSelectedStudent(ValueNotifier<Student> student) {
@@ -234,15 +312,27 @@ class StudentProvider with ChangeNotifier {
     int coinsToChange = studentNotifier.value.localCoins.value;
 
     try {
-      // Use the StudentService to handle the transaction
-      await _studentService.updateCoinsWithTransaction(
-          studentNotifier.value.uid, coinsToChange, teacherName);
+      final updateCoinsUseCase = InjectionContainer.updateCoinsUseCase;
+      final result = await updateCoinsUseCase(
+        UpdateCoinsParams(
+          studentId: studentNotifier.value.uid,
+          coinAmount: coinsToChange,
+          teacherName: teacherName,
+        ),
+      );
 
-      // Reset local coin count for the student
-      studentNotifier.value.localCoins.value = 0;
-      notifyListeners();
+      result.fold(
+        onSuccess: (_) {
+          // Reset local coin count for the student
+          studentNotifier.value.localCoins.value = 0;
+          notifyListeners();
+        },
+        onFailure: (error) {
+          debugPrint('Error updating coins: ${error.message}');
+          throw Exception(error.message);
+        },
+      );
     } catch (e) {
-      // Handle any exceptions, such as insufficient coins
       debugPrint('Error updating coins: $e');
       rethrow;
     }
@@ -261,42 +351,49 @@ class StudentProvider with ChangeNotifier {
     }
 
     if (studentCoinsUpdates.isNotEmpty) {
-      var updatedStudentUids = await _studentService
-          .updateCoinsForMultipleStudents(studentCoinsUpdates);
+      final batchUpdateUseCase = InjectionContainer.batchUpdateCoinsUseCase;
+      final result = await batchUpdateUseCase(
+        BatchUpdateCoinsParams(
+          studentCoinsUpdates: studentCoinsUpdates,
+          teacherName: teacherName,
+        ),
+      );
 
-      // Log transactions asynchronously
-      logTransactionsInBackground(studentCoinsUpdates, teacherName);
+      return result.fold(
+        onSuccess: (batchResult) async {
+          if (batchResult.allSuccessful) {
+            // Play success sound here
+            await SoundManager.playSuccessSound();
 
-      // Check if the coin update was successful
-      if (updatedStudentUids.isEmpty) {
-        failure = true;
-        _isUpdatingCoins = false;
-        notifyListeners();
-        return false;
-      }
+            // Deselect all students after successful coin update
+            handleDeselectAllStudents();
+            _showCoinCalculator = false;
 
-      // Play success sound here
-      await SoundManager.playSuccessSound();
-
-      // Deselect all students after successful coin update
-      handleDeselectAllStudents(); // Add this line
-      _showCoinCalculator = false;
+            updated = true;
+            _isUpdatingCoins = false;
+            notifyListeners();
+            return true;
+          } else {
+            print('Some updates failed: ${batchResult.failedUpdates.join(', ')}');
+            failure = true;
+            _isUpdatingCoins = false;
+            notifyListeners();
+            return false;
+          }
+        },
+        onFailure: (error) {
+          print('Batch update failed: ${error.message}');
+          failure = true;
+          _isUpdatingCoins = false;
+          notifyListeners();
+          return false;
+        },
+      );
     }
 
-    updated = true;
     _isUpdatingCoins = false;
     notifyListeners();
     return true;
-  }
-
-  Future<void> logTransactionsInBackground(
-      Map<String, int> studentCoinsUpdates, String teacherName) async {
-    for (var entry in studentCoinsUpdates.entries) {
-      String uid = entry.key;
-      int coins = entry.value;
-      // Log transaction for each student without awaiting
-      TransactionService().logTransaction(uid, coins, teacherName);
-    }
   }
 
   void resetUpdated() {
@@ -312,7 +409,8 @@ class StudentProvider with ChangeNotifier {
 
       if (user != null) {
         // First, delete the user's document from Firestore
-        await _studentService.deleteUserDocument(user.uid);
+        final userRepository = InjectionContainer.userRepository;
+        await userRepository.deleteUserData(user.uid);
 
         // Disconnect from third-party providers if necessary
         if (user.providerData.any((p) => p.providerId == 'google.com')) {
@@ -320,14 +418,14 @@ class StudentProvider with ChangeNotifier {
           final googleSignIn = GoogleSignIn();
           await googleSignIn.disconnect();
         }
-        // Add similar logic for other providers like Apple if necessary
 
         // Then delete the user from Authentication
         await user.delete();
         print("User account deleted successfully.");
 
-        // Sign out from Firebase Auth to ensure the session is cleared
-        await FirebaseAuth.instance.signOut();
+        // Sign out using LogoutUseCase
+        final logoutUseCase = InjectionContainer.logoutUseCase;
+        await logoutUseCase();
 
         // Navigate to login page or somewhere else as needed
         navigatorKey.currentState?.pushReplacement(
@@ -338,7 +436,7 @@ class StudentProvider with ChangeNotifier {
       // Handle Firebase Auth errors
     } catch (e) {
       print("Error during the deletion process: ${e}");
-      // Handle other errors (e.g., Firestore document deletion failure or provider disconnect failure)
+      // Handle other errors
     }
   }
 }

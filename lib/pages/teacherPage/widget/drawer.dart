@@ -3,12 +3,26 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../provider/google_sign_In.dart';
 import '../../../provider/student_provider.dart';
+import '../../set_password_page.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
+
+  bool _shouldShowPasswordSetup() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    
+    // Check if user has Google provider but no password provider
+    final hasGoogle = user.providerData.any((p) => p.providerId == 'google.com');
+    final hasPassword = user.providerData.any((p) => p.providerId == 'password');
+    
+    return hasGoogle && !hasPassword;
+  }
 
   void _handleDeleteRequest(BuildContext context) {
     showDialog(
@@ -196,6 +210,25 @@ class AppDrawer extends StatelessWidget {
                   ),
                   title: const Text("Logga ut"),
                 ),
+                // Show password setup option if user is logged in with Google only
+                if (_shouldShowPasswordSetup()) ...[
+                  ListTile(
+                    title: const Text('Lägg till lösenord'),
+                    subtitle: const Text('Aktivera inloggning med e-post', style: TextStyle(fontSize: 12)),
+                    trailing: const Icon(Icons.lock_outline),
+                    onTap: () async {
+                      final result = await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const SetPasswordPage()),
+                      );
+                      if (result == true) {
+                        Fluttertoast.showToast(
+                          msg: "Lösenord tillagt! Du kan nu logga in med e-post också.",
+                          toastLength: Toast.LENGTH_LONG,
+                        );
+                      }
+                    },
+                  ),
+                ],
                 // Add other ListTiles if needed
               ],
             ),

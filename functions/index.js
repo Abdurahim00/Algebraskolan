@@ -2,6 +2,64 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
+// Cloud Function to handle class progression (increase class numbers and remove class 9)
+exports.progressClasses = functions.https.onCall(async (data, context) => {
+    try {
+        console.log('Starting class progression...');
+        
+        const db = admin.firestore();
+        
+        // Step 1: Get all students with classNumber 9 and delete them
+        console.log('Deleting students in class 9...');
+        const class9Query = await db.collection('users')
+            .where('classNumber', '==', 9)
+            .where('role', '==', 'student')
+            .get();
+        
+        const deletePromises = [];
+        class9Query.forEach(doc => {
+            deletePromises.push(doc.ref.delete());
+        });
+        
+        await Promise.all(deletePromises);
+        console.log(`Deleted ${class9Query.size} students from class 9`);
+        
+        // Step 2: Get all remaining students (classes 1-8) and increment their class numbers
+        console.log('Incrementing class numbers for remaining students...');
+        const studentsQuery = await db.collection('users')
+            .where('role', '==', 'student')
+            .get();
+        
+        const batch = db.batch();
+        let updateCount = 0;
+        
+        studentsQuery.forEach(doc => {
+            const studentData = doc.data();
+            const currentClass = studentData.classNumber;
+            
+            // Only update if classNumber is between 1-8
+            if (currentClass >= 1 && currentClass <= 8) {
+                batch.update(doc.ref, { classNumber: currentClass + 1 });
+                updateCount++;
+            }
+        });
+        
+        await batch.commit();
+        console.log(`Updated class numbers for ${updateCount} students`);
+        
+        return {
+            success: true,
+            deletedStudents: class9Query.size,
+            updatedStudents: updateCount,
+            message: `Successfully progressed classes: Deleted ${class9Query.size} graduating students, promoted ${updateCount} students to next grade`
+        };
+        
+    } catch (error) {
+        console.error('Error during class progression:', error);
+        throw new functions.https.HttpsError('internal', 'Class progression failed', error);
+    }
+});
+
 exports.setUserRole = functions.firestore
     .document('users/{userId}')
     .onCreate(async (snap, context) => {

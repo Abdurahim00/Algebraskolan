@@ -3,7 +3,7 @@
     "project_number": "195764286049",
     "firebase_url": "https://algebra-82c5d-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "algebra-82c5d",
-    "storage_bucket": "algebra-82c5d.appspot.com"
+    "storage_bucket": "algebra-82c5d.firebasestorage.app"
   },
   "client": [
     {
@@ -15,11 +15,27 @@
       },
       "oauth_client": [
         {
-          "client_id": "195764286049-v7b92m2qa337rele1b8357o76jqng4ma.apps.googleusercontent.com",
+          "client_id": "195764286049-20iltvdb2jl5na53gpbku69dklerjd6u.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.aj.algebrona",
-            "certificate_hash": "f9a335eedd6db83fbdfb45e5f42e98302a496914"
+            "certificate_hash": "894bd35d847553dde784b59ffcec5a5dd642275a"
+          }
+        },
+        {
+          "client_id": "195764286049-egpc0t1l9d3kvfind4ci9d7ubdfn6m1r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aj.algebrona",
+            "certificate_hash": "06d4e245f01cd6c0ef95ac24e120e667e10366d0"
+          }
+        },
+        {
+          "client_id": "195764286049-sca47181o398ctlj9mgdpsivs2nbio6g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aj.algebrona",
+            "certificate_hash": "863958cfc64544d230cd7b3f0415f464bfbaddc9"
           }
         },
         {
@@ -40,10 +56,10 @@
               "client_type": 3
             },
             {
-              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_id": "195764286049-0h6ditcsbc080krc4hr7roshmpsmbsdc.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.algebra"
+                "bundle_id": "com.fitness.aliai"
               }
             }
           ]
@@ -76,10 +92,10 @@
               "client_type": 3
             },
             {
-              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_id": "195764286049-0h6ditcsbc080krc4hr7roshmpsmbsdc.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.algebra"
+                "bundle_id": "com.fitness.aliai"
               }
             }
           ]
@@ -120,10 +136,10 @@
               "client_type": 3
             },
             {
-              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_id": "195764286049-0h6ditcsbc080krc4hr7roshmpsmbsdc.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.algebra"
+                "bundle_id": "com.fitness.aliai"
               }
             }
           ]
@@ -188,10 +204,46 @@
               "client_type": 3
             },
             {
-              "client_id": "195764286049-jos30lft7dbmt79nj58mdbji893n5ktr.apps.googleusercontent.com",
+              "client_id": "195764286049-0h6ditcsbc080krc4hr7roshmpsmbsdc.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.example.algebra"
+                "bundle_id": "com.fitness.aliai"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:195764286049:android:31f081cdfdabecc50d3020",
+        "android_client_info": {
+          "package_name": "com.fitness.aliai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjr0gCk-FRGj5bwSVoju4iXHfg6OqgyQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "195764286049-78b7mqd5hnak6ns086d9b3mdpot14apo.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "195764286049-0h6ditcsbc080krc4hr7roshmpsmbsdc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.fitness.aliai"
               }
             }
           ]

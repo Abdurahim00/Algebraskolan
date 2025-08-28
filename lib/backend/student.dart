@@ -25,17 +25,29 @@ class Student {
             ValueNotifier<int>(0); // If not passed, it is initialized to 0
 
   factory Student.fromDocument(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+    
+    // Handle null data
+    if (data == null) {
+      return Student(
+        uid: doc.id,
+        displayName: 'Unknown',
+        role: 'student',
+        classNumber: 0,
+        coins: 0,
+        hasAnsweredQuestionCorrectly: false,
+        transactions: [],
+      );
+    }
+    
     return Student(
       uid: doc.id,
-      displayName: data.containsKey('displayName') ? data['displayName'] : '',
-      role: data.containsKey('role') ? data['role'] : 'student',
-      classNumber: data.containsKey('classNumber') ? data['classNumber'] : 0,
-      coins: data.containsKey('coins') ? data['coins'] : 0,
+      displayName: data['displayName'] ?? '',
+      role: data['role'] ?? 'student',
+      classNumber: data['classNumber'] ?? 0,
+      coins: data['coins'] ?? 0,
       hasAnsweredQuestionCorrectly:
-          data.containsKey('hasAnsweredQuestionCorrectly')
-              ? data['hasAnsweredQuestionCorrectly']
-              : false,
+          data['hasAnsweredQuestionCorrectly'] ?? false,
       transactions: [],
     );
   }

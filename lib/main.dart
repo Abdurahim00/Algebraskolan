@@ -13,6 +13,10 @@ import 'package:algebra/other/splash_screen.dart';
 import 'package:algebra/other/network_alert.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 
+// Dependency Injection
+import 'core/di/service_locator.dart';
+import 'core/config/app_config.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -25,12 +29,24 @@ void main() async {
   ]);
 
   await Firebase.initializeApp();
+  
+  // Initialize app configuration
+  const environment = String.fromEnvironment(
+    'ENVIRONMENT',
+    defaultValue: 'development',
+  );
+  initializeAppConfig(environment);
+  
+  // Initialize dependency injection
+  await setupServiceLocator();
+  
   await setupRemoteConfig(); // Fetch and activate remote config with quick settings
 
-  final googleSignInProvider = GoogleSignInProvider.instance;
+  // Get instances from service locator
+  final googleSignInProvider = sl<GoogleSignInProvider>();
   await googleSignInProvider.initializeUser();
 
-  final connectivityController = ConnectivityController();
+  final connectivityController = sl<ConnectivityController>();
   await connectivityController.init();
 
   await initializeDateFormatting('sv_SE', null); // Initialize date format

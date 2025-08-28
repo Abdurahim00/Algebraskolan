@@ -1,163 +1,163 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+import '../core/di/injection_container.dart';
+import '../core/result/result.dart';
+import '../domain/usecases/auth/google_login_usecase.dart';
+import '../domain/usecases/auth/logout_usecase.dart';
+import '../domain/usecases/base_usecase.dart';
 import '../other/network_alert.dart';
 import '../provider/connectivity_provider.dart';
-import '/backend/control_page.dart'; // Ensure HomePage is imported correctly
+import '/backend/control_page.dart';
 
 class GoogleSignInProvider extends ChangeNotifier {
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   static final GoogleSignInProvider instance = GoogleSignInProvider._();
+  
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
   GoogleSignInAccount? _user;
   bool _isLoading = false;
+  String? _errorMessage;
 
   GoogleSignInAccount? get user => _user;
-  String? get uid => FirebaseAuth.instance.currentUser?.uid;
+  String? get uid => InjectionContainer.authRepository.currentUser?.uid;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   GoogleSignInProvider._();
 
   Future<void> googleLogin(BuildContext context,
       ConnectivityController connectivityController) async {
-    _isLoading = true; // Start loading
+    print('=== GOOGLE LOGIN STARTED ===');
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      // Sign in with Google
+      // Step 1: Start Google Sign-In
+      print('Step 1: Starting Google Sign-In...');
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        _isLoading = false; // Stop loading if no user is found
+        print('Step 1 FAILED: User cancelled Google Sign-In');
+        _isLoading = false;
         notifyListeners();
         return;
       }
+      print('Step 1 SUCCESS: Google user signed in: ${googleUser.email}');
       _user = googleUser;
       notifyListeners();
 
-      // Get authentication credentials
+      // Step 2: Get authentication credentials
+      print('Step 2: Getting authentication credentials...');
       final googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+      
+      // Step 3: Use GoogleLoginUseCase
+      print('Step 3: Executing Google login use case...');
+      final googleLoginUseCase = InjectionContainer.googleLoginUseCase;
+      final result = await googleLoginUseCase(
+        GoogleLoginParams(
+          accessToken: googleAuth.accessToken!,
+          idToken: googleAuth.idToken!,
+        ),
       );
 
-      // Sign in to Firebase with Google credentials
-      final userCredential =
-          await FirebaseAuth.instance.signInWithCredential(credential);
-      final user = userCredential.user!;
-      final uid = user.uid;
-      final email = user.email;
-      final displayName = user.displayName;
-      final displayNameLower =
-          displayName?.toLowerCase(); // Lowercase display name
-
-      // Fetch the feature flag
-      final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
-      await remoteConfig.fetchAndActivate();
-      bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
-
-      // Check if the email domain is allowed
-      if (!allowAllEmails &&
-          !(email?.endsWith('@algebraskolan.se') ?? false) &&
-          !(email?.endsWith('@algebrautbildning.se') ?? false)) {
-        throw Exception('Access denied for unauthorized domain.');
-      }
-
-      // Check if the user already has an email/password account
-      try {
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: email!,
-          password: "Algebraskolan1", // Default password
-        );
-      } catch (e) {
-        // Handle if the email is already in use by an email/password account
-        if (e is FirebaseAuthException && e.code == 'email-already-in-use') {
-          // The email is already in use, proceed to link Google account to it
-          print("Email already has an email/password account.");
-        } else {
-          print("Error creating email/password account: $e");
-        }
-      }
-
-      // Link Google account to email/password account
-      try {
-        await user.linkWithCredential(EmailAuthProvider.credential(
-          email: email!,
-          password: "Algebraskolan1",
-        ));
-        print(
-            "Google account successfully linked with email/password account.");
-      } catch (e) {
-        if (e is FirebaseAuthException &&
-            e.code == 'credential-already-in-use') {
-          print("Google account already linked to the email.");
-        } else {
-          print("Error linking accounts: $e");
-        }
-      }
-
-      // Check if user document exists in Firestore
-      final docSnapshot =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
-      if (!docSnapshot.exists) {
-        // Create new user document if it doesn't exist
-        await FirebaseFirestore.instance.collection('users').doc(uid).set({
-          'email': email,
-          'displayName': displayName,
-          'displayNameLower': displayNameLower, // Add displayNameLower field
-          'role': 'student', // Default role
-          'classNumber': 0,
-          'coins': 0,
-          'hasAnsweredQuestionCorrectly': false,
-        });
-      }
+      // Handle the result
+      await result.fold(
+        onSuccess: (user) async {
+          print('Step 3 SUCCESS: User logged in: ${user.email} (UID: ${user.uid})');
+          
+          // Set loading to false after successful sign-in
+          print('Step 4: Setting loading to false and notifying listeners...');
+          _isLoading = false;
+          notifyListeners();
+          
+          // Navigate to home page after successful sign-in
+          print('Step 5: Navigating to HomePage...');
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (route) => false,
+          );
+          print('=== GOOGLE LOGIN COMPLETED SUCCESSFULLY ===');
+        },
+        onFailure: (error) async {
+          print('Step 3 FAILED: ${error.message}');
+          _errorMessage = error.message;
+          _isLoading = false;
+          notifyListeners();
+          
+          // Handle specific errors
+          if (error is NetworkError) {
+            // Show network alert dialog with a retry callback
+            NetworkAlertPopup.show(context, connectivityController, () {
+              // Retry logic for Google login
+              googleLogin(context, connectivityController);
+            });
+          } else if (error is UnauthorizedError) {
+            // Show unauthorized domain message
+            _showErrorDialog(
+              context,
+              'Åtkomst nekad',
+              'Endast användare med @algebraskolan.se eller @algebrautbildning.se e-postadresser kan logga in.',
+            );
+          } else {
+            // Show general error message
+            _showErrorDialog(
+              context,
+              'Inloggningsfel',
+              error.message ?? 'Ett fel uppstod vid inloggning. Försök igen.',
+            );
+          }
+        },
+      );
     } catch (e) {
-      _isLoading = false; // Stop loading on error
+      print('Unexpected error during sign-in: $e');
+      _isLoading = false;
+      _errorMessage = 'Ett oväntat fel uppstod';
       notifyListeners();
-      // Handle network exceptions
-      if (e is FirebaseException && e.code == 'network-request-failed') {
-        // Show network alert dialog with a retry callback
-        NetworkAlertPopup.show(context, connectivityController, () {
-          // Retry logic for Google login
-          googleLogin(context, connectivityController);
-        });
-      } else {
-        // Handle other exceptions including unauthorized domain access
-        Exception('Error during sign-in: $e');
-        // Show error message or perform other actions
-      }
-      _isLoading = false; // Stop loading after all operations
-      notifyListeners();
+      
+      _showErrorDialog(
+        context,
+        'Fel',
+        'Ett oväntat fel uppstod. Försök igen senare.',
+      );
     }
-
-    // Notify listeners of any changes
-    notifyListeners();
   }
 
   Future<void> googleLogout() async {
     _isLoading = true;
     notifyListeners();
 
-    await FirebaseAuth.instance.signOut();
-
-    if (_googleSignIn.currentUser != null) {
-      await _googleSignIn.signOut();
-
-      try {
-        await _googleSignIn.disconnect();
-      } catch (error) {
-        debugPrint('Failed to disconnect: $error');
-      } finally {
-        _isLoading = false;
-        notifyListeners();
-      }
+    try {
+      // Use LogoutUseCase
+      final logoutUseCase = InjectionContainer.logoutUseCase;
+      final result = await logoutUseCase();
+      
+      result.fold(
+        onSuccess: (_) async {
+          // Also disconnect from Google Sign-In
+          if (_googleSignIn.currentUser != null) {
+            await _googleSignIn.signOut();
+            try {
+              await _googleSignIn.disconnect();
+            } catch (error) {
+              debugPrint('Failed to disconnect: $error');
+            }
+          }
+          
+          _user = null;
+          _isLoading = false;
+          notifyListeners();
+        },
+        onFailure: (error) {
+          debugPrint('Logout failed: ${error.message}');
+          _isLoading = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      debugPrint('Unexpected error during logout: $e');
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _user = null;
-    notifyListeners();
   }
 
   Future<void> googleDisconnect() async {
@@ -171,46 +171,42 @@ class GoogleSignInProvider extends ChangeNotifier {
     bool isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
 
     if (isFirstLaunch) {
-      await FirebaseAuth.instance.signOut();
-      await _googleSignIn.signOut();
+      await googleLogout();
       prefs.setBool('isFirstLaunch', false);
       return false;
     }
 
-    final currentUser = FirebaseAuth.instance.currentUser;
+    final currentUser = InjectionContainer.authRepository.currentUser;
     if (currentUser != null) {
       try {
+        // Try silent sign-in with Google
         final GoogleSignInAccount? googleUser =
             await _googleSignIn.signInSilently();
         if (googleUser != null) {
           _user = googleUser;
           notifyListeners();
 
-          final email = currentUser.email;
-          final FirebaseRemoteConfig remoteConfig =
-              FirebaseRemoteConfig.instance;
-          await remoteConfig.fetchAndActivate();
-          bool allowAllEmails =
-              remoteConfig.getBool('allow_all_emails_for_review');
+          // Validate domain through repository
+          final authRepository = InjectionContainer.authRepository;
+          final isValidDomain = await authRepository.isEmailDomainAllowed(
+            currentUser.email ?? '',
+          );
 
-          if (!allowAllEmails &&
-              !(email?.endsWith('@algebraskolan.se') ?? false) &&
-              !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+          if (!isValidDomain) {
             await googleLogout();
             return false;
           }
 
-          final docSnapshot = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(currentUser.uid)
-              .get();
-
-          if (docSnapshot.exists) {
-            final userData = docSnapshot.data();
+          // Check if user exists in database
+          final userRepository = InjectionContainer.userRepository;
+          final userData = await userRepository.getUserData(currentUser.uid);
+          
+          if (userData != null) {
             _user = googleUser;
+            return true;
           }
-
-          return true;
+          
+          return false;
         } else {
           return false;
         }
@@ -221,5 +217,21 @@ class GoogleSignInProvider extends ChangeNotifier {
     } else {
       return false;
     }
+  }
+  
+  void _showErrorDialog(BuildContext context, String title, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }
