@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../backend/coin_transaction.dart';
 import '../../provider/transaction_provider.dart';
+import '../../widgets/skeleton_loading.dart';
 
 class TransactionHistoryScreen extends StatelessWidget {
   const TransactionHistoryScreen({super.key});
@@ -29,7 +30,10 @@ class TransactionHistoryScreen extends StatelessWidget {
         future: transactionProvider.fetchAllUserTransactions(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return ListView.builder(
+              itemCount: 10,
+              itemBuilder: (context, index) => const SkeletonHistoryItem(),
+            );
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (snapshot.data == null || snapshot.data!.isEmpty) {

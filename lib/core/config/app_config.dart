@@ -8,11 +8,15 @@ class AppConfig {
   final int sessionTimeout;
   final int maxRetryAttempts;
   final Duration connectionTimeout;
+  final String firebaseProjectId;
+  final String firebaseStorageBucket;
   final Map<String, dynamic>? additionalConfig;
 
   const AppConfig({
     required this.environment,
     required this.apiBaseUrl,
+    required this.firebaseProjectId,
+    required this.firebaseStorageBucket,
     this.enableLogging = false,
     this.enableCrashlytics = false,
     this.sessionTimeout = 3600, // 1 hour in seconds
@@ -26,6 +30,8 @@ class AppConfig {
     return const AppConfig(
       environment: 'development',
       apiBaseUrl: 'https://dev-api.algebraskolan.se',
+      firebaseProjectId: 'algebra-dev',
+      firebaseStorageBucket: 'algebra-dev.appspot.com',
       enableLogging: true,
       enableCrashlytics: false,
       sessionTimeout: 7200, // 2 hours for development
@@ -37,6 +43,8 @@ class AppConfig {
     return const AppConfig(
       environment: 'staging',
       apiBaseUrl: 'https://staging-api.algebraskolan.se',
+      firebaseProjectId: 'algebra-82c5d',
+      firebaseStorageBucket: 'algebra-82c5d.firebasestorage.app',
       enableLogging: true,
       enableCrashlytics: true,
     );
@@ -47,6 +55,8 @@ class AppConfig {
     return const AppConfig(
       environment: 'production',
       apiBaseUrl: 'https://api.algebraskolan.se',
+      firebaseProjectId: 'algebra-82c5d',
+      firebaseStorageBucket: 'algebra-82c5d.firebasestorage.app',
       enableLogging: false,
       enableCrashlytics: true,
     );
@@ -57,6 +67,8 @@ class AppConfig {
     return const AppConfig(
       environment: 'test',
       apiBaseUrl: 'http://localhost:8080',
+      firebaseProjectId: 'algebra-dev',
+      firebaseStorageBucket: 'algebra-dev.appspot.com',
       enableLogging: true,
       enableCrashlytics: false,
       connectionTimeout: Duration(seconds: 5),

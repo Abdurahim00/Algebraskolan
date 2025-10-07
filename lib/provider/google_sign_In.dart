@@ -49,7 +49,16 @@ class GoogleSignInProvider extends ChangeNotifier {
       // Step 2: Get authentication credentials
       print('Step 2: Getting authentication credentials...');
       final googleAuth = await googleUser.authentication;
-      
+
+      // Check if tokens are available
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        print('ERROR: Google auth tokens are null');
+        _errorMessage = 'Authentication failed. Please try again.';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
       // Step 3: Use GoogleLoginUseCase
       print('Step 3: Executing Google login use case...');
       final googleLoginUseCase = InjectionContainer.googleLoginUseCase;

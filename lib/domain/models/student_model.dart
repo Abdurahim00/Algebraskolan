@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'fritids_group.dart';
 
 /// Domain model for Student
 /// This is a clean model without Firebase dependencies
@@ -14,6 +15,7 @@ class StudentModel {
   final ValueNotifier<int> localCoins;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final FritidsGroup? fritidsGroup;
 
   StudentModel({
     required this.uid,
@@ -27,26 +29,47 @@ class StudentModel {
     ValueNotifier<int>? localCoins,
     this.createdAt,
     this.updatedAt,
+    this.fritidsGroup,
   }) : localCoins = localCoins ?? ValueNotifier<int>(0);
 
   /// Create from map (for database operations)
   factory StudentModel.fromMap(Map<String, dynamic> map, {String? id}) {
+    // Handle Timestamp conversion
+    DateTime? parseTimestamp(dynamic value) {
+      if (value == null) return null;
+      if (value is int) {
+        return DateTime.fromMillisecondsSinceEpoch(value);
+      }
+      // Handle Firestore Timestamp
+      if (value.runtimeType.toString().contains('Timestamp')) {
+        return (value as dynamic).toDate();
+      }
+      return null;
+    }
+
+    // Parse fritidsGroup if present
+    FritidsGroup? fritidsGroup;
+    if (map['fritidsGroup'] != null) {
+      try {
+        fritidsGroup = FritidsGroup.fromString(map['fritidsGroup']);
+      } catch (e) {
+        // Invalid group, leave as null
+      }
+    }
+
     return StudentModel(
       uid: id ?? map['uid'] ?? '',
       email: map['email'] ?? '',
       displayName: map['displayName'] ?? '',
-      displayNameLower: map['displayNameLower'] ?? 
+      displayNameLower: map['displayNameLower'] ??
                         (map['displayName'] ?? '').toLowerCase(),
       role: map['role'] ?? 'student',
       classNumber: map['classNumber'] ?? 0,
       coins: map['coins'] ?? 0,
       hasAnsweredQuestionCorrectly: map['hasAnsweredQuestionCorrectly'] ?? false,
-      createdAt: map['createdAt'] != null 
-          ? DateTime.fromMillisecondsSinceEpoch(map['createdAt'])
-          : null,
-      updatedAt: map['updatedAt'] != null 
-          ? DateTime.fromMillisecondsSinceEpoch(map['updatedAt'])
-          : null,
+      createdAt: parseTimestamp(map['createdAt']),
+      updatedAt: parseTimestamp(map['updatedAt']),
+      fritidsGroup: fritidsGroup,
     );
   }
 
@@ -63,6 +86,7 @@ class StudentModel {
       'hasAnsweredQuestionCorrectly': hasAnsweredQuestionCorrectly,
       'createdAt': createdAt?.millisecondsSinceEpoch,
       'updatedAt': DateTime.now().millisecondsSinceEpoch,
+      if (fritidsGroup != null) 'fritidsGroup': fritidsGroup!.toValue(),
     };
   }
 
@@ -79,6 +103,7 @@ class StudentModel {
     ValueNotifier<int>? localCoins,
     DateTime? createdAt,
     DateTime? updatedAt,
+    FritidsGroup? fritidsGroup,
   }) {
     return StudentModel(
       uid: uid ?? this.uid,
@@ -88,11 +113,12 @@ class StudentModel {
       role: role ?? this.role,
       classNumber: classNumber ?? this.classNumber,
       coins: coins ?? this.coins,
-      hasAnsweredQuestionCorrectly: 
+      hasAnsweredQuestionCorrectly:
           hasAnsweredQuestionCorrectly ?? this.hasAnsweredQuestionCorrectly,
       localCoins: localCoins ?? this.localCoins,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      fritidsGroup: fritidsGroup ?? this.fritidsGroup,
     );
   }
 

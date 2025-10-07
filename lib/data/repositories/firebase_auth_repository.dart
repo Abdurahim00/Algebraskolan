@@ -92,6 +92,25 @@ class FirebaseAuthRepository implements IAuthRepository {
     }
   }
 
+  Future<User?> signInWithGoogleTokens({
+    required String accessToken,
+    required String idToken,
+  }) async {
+    try {
+      final credential = GoogleAuthProvider.credential(
+        accessToken: accessToken,
+        idToken: idToken,
+      );
+
+      // Sign in to Firebase with the Google credentials
+      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+      return userCredential.user;
+    } catch (e) {
+      print('FirebaseAuthRepository - signInWithGoogleTokens error: $e');
+      rethrow;
+    }
+  }
+
   @override
   Future<void> signOut() async {
     try {

@@ -2,27 +2,21 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../provider/google_sign_In.dart';
 import '../../../provider/student_provider.dart';
-import '../../set_password_page.dart';
 
 class AppDrawer extends StatelessWidget {
-  const AppDrawer({super.key});
+  final VoidCallback? onRevertTransaction;
 
-  bool _shouldShowPasswordSetup() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return false;
-    
-    // Check if user has Google provider but no password provider
-    final hasGoogle = user.providerData.any((p) => p.providerId == 'google.com');
-    final hasPassword = user.providerData.any((p) => p.providerId == 'password');
-    
-    return hasGoogle && !hasPassword;
-  }
+  const AppDrawer({
+    super.key,
+    this.onRevertTransaction,
+  });
+
 
   void _handleDeleteRequest(BuildContext context) {
     showDialog(
@@ -142,102 +136,312 @@ class AppDrawer extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(user?.displayName ?? 'No Name'),
-            accountEmail: Text(user?.email ?? 'No Email'),
-            currentAccountPicture: CircleAvatar(
-              backgroundImage: imageProvider,
-            ),
-          ),
+          _buildHeader(user, imageProvider),
           Expanded(
             child: ListView(
-              padding: EdgeInsets.zero, // Ensures no extra padding is added
+              padding: EdgeInsets.zero,
               children: [
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ), // Adjusts the padding to position it correctly
-                  trailing: const Icon(Icons.exit_to_app_rounded),
-                  onTap: () => showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      // Check the platform
-                      if (Theme.of(context).platform == TargetPlatform.iOS) {
-                        // Use CupertinoAlertDialog for iOS
-                        return CupertinoAlertDialog(
-                          title: const Text("Är du säker?"),
-                          actions: <Widget>[
-                            CupertinoDialogAction(
-                              onPressed: () {
-                                // Perform logout action
-                                provider.googleLogout();
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text("Ja"),
-                            ),
-                            CupertinoDialogAction(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text("Nej"),
-                            ),
-                          ],
-                        );
-                      } else {
-                        // Fallback to AlertDialog for Android and other platforms
-                        return AlertDialog(
-                          title: const Text("Är du säker?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () {
-                                // Perform logout action
-                                provider.googleLogout();
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text("Ja"),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: const Text("Nej"),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  ),
-                  title: const Text("Logga ut"),
+                const SizedBox(height: 8),
+                _buildSection(
+                  title: 'ALGEBRONOR',
+                  children: [
+                    _DrawerItem(
+                      icon: Icons.school,
+                      title: 'Huvudsida',
+                      iconColor: Colors.green,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        // Close drawer first, then navigate
+                        Navigator.of(context).pop();
+                        // Pop all routes back to home
+                        Navigator.of(context).popUntil((route) => route.isFirst);
+                      },
+                    ),
+                  ],
                 ),
-                // Show password setup option if user is logged in with Google only
-                if (_shouldShowPasswordSetup()) ...[
-                  ListTile(
-                    title: const Text('Lägg till lösenord'),
-                    subtitle: const Text('Aktivera inloggning med e-post', style: TextStyle(fontSize: 12)),
-                    trailing: const Icon(Icons.lock_outline),
-                    onTap: () async {
-                      final result = await Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => const SetPasswordPage()),
-                      );
-                      if (result == true) {
-                        Fluttertoast.showToast(
-                          msg: "Lösenord tillagt! Du kan nu logga in med e-post också.",
-                          toastLength: Toast.LENGTH_LONG,
-                        );
-                      }
-                    },
-                  ),
-                ],
-                // Add other ListTiles if needed
+                const Divider(height: 32, thickness: 1),
+                _buildSection(
+                  title: 'FRITIDS',
+                  children: [
+                    _DrawerItem(
+                      icon: Icons.child_care,
+                      title: 'Fritids',
+                      iconColor: Colors.purple,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        // Close drawer
+                        Navigator.of(context).pop();
+                        // Navigate to Fritids
+                        Navigator.of(context).pushNamed('/fritids');
+                      },
+                    ),
+                    _DrawerItem(
+                      icon: Icons.history,
+                      title: 'Fritids Historik',
+                      iconColor: Colors.blue,
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        // Close drawer
+                        Navigator.of(context).pop();
+                        // Navigate to Fritids History
+                        Navigator.of(context).pushNamed('/fritids-history');
+                      },
+                    ),
+                  ],
+                ),
+                // Add flexible space to push bottom items down
+                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+                const Divider(thickness: 1, height: 1),
+                const SizedBox(height: 8),
+                _DrawerItem(
+                  icon: Icons.undo,
+                  title: 'Återställ felaktiga algebrona-utdelningar',
+                  iconColor: Colors.orange,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.pop(context);
+                    onRevertTransaction?.call();
+                  },
+                ),
+                const Divider(thickness: 1, height: 1),
+                _DrawerItem(
+                  icon: Icons.exit_to_app_rounded,
+                  title: 'Logga ut',
+                  iconColor: Colors.grey,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  // Check the platform
+                  if (Theme.of(context).platform == TargetPlatform.iOS) {
+                    // Use CupertinoAlertDialog for iOS
+                    return CupertinoAlertDialog(
+                      title: const Text("Är du säker?"),
+                      actions: <Widget>[
+                        CupertinoDialogAction(
+                          onPressed: () {
+                            // Perform logout action
+                            provider.googleLogout();
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Ja"),
+                        ),
+                        CupertinoDialogAction(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Nej"),
+                        ),
+                      ],
+                    );
+                  } else {
+                    // Fallback to AlertDialog for Android and other platforms
+                    return AlertDialog(
+                      title: const Text("Är du säker?"),
+                      actions: <Widget>[
+                        TextButton(
+                          onPressed: () {
+                            // Perform logout action
+                            provider.googleLogout();
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Ja"),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text("Nej"),
+                        ),
+                      ],
+                    );
+                  }
+                },
+              );
+            },
+          ),
+          const Divider(thickness: 1, height: 1),
+          _DrawerItem(
+            icon: Icons.delete_forever_rounded,
+            title: 'Radera konto',
+            iconColor: Colors.red,
+            textColor: Colors.red,
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              _handleDeleteRequest(context);
+            },
+          ),
+          const SizedBox(height: 16),
               ],
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.delete_forever_rounded),
-            onTap: () => _handleDeleteRequest(context),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(GoogleSignInAccount? user, ImageProvider imageProvider) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.fromRGBO(245, 142, 11, 1),
+            Color.fromRGBO(255, 170, 60, 1),
+          ],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 32,
+                  backgroundImage: imageProvider,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.displayName ?? 'No Name',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? 'No Email',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSection({required String title, required List<Widget> children}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
+              letterSpacing: 0.5,
+            ),
+          ),
+        ),
+        ...children,
+      ],
+    );
+  }
+}
+
+class _DrawerItem extends StatefulWidget {
+  final IconData icon;
+  final String title;
+  final Color iconColor;
+  final Color? textColor;
+  final VoidCallback onTap;
+
+  const _DrawerItem({
+    required this.icon,
+    required this.title,
+    required this.iconColor,
+    this.textColor,
+    required this.onTap,
+  });
+
+  @override
+  State<_DrawerItem> createState() => _DrawerItemState();
+}
+
+class _DrawerItemState extends State<_DrawerItem> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      onTap: widget.onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOut,
+        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        decoration: BoxDecoration(
+          color: _isPressed ? Colors.grey[100] : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              AnimatedScale(
+                scale: _isPressed ? 0.9 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: widget.iconColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(
+                    widget.icon,
+                    color: widget.iconColor,
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  widget.title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
+                    color: widget.textColor ?? Colors.black87,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey[400],
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

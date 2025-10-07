@@ -40,7 +40,10 @@ class GoogleLoginUseCase extends BaseUseCase<User, GoogleLoginParams> {
   Future<Result<User>> call(GoogleLoginParams params) async {
     try {
       // Sign in with Google using the provided tokens
-      final user = await _authRepository.signInWithGoogle();
+      final user = await (_authRepository as dynamic).signInWithGoogleTokens(
+        accessToken: params.accessToken,
+        idToken: params.idToken,
+      );
       
       if (user == null) {
         return const Failure(
@@ -114,14 +117,26 @@ class GoogleLoginUseCase extends BaseUseCase<User, GoogleLoginParams> {
 
   Future<void> _createUserDocument(User user) async {
     final displayName = user.displayName ?? user.email?.split('@')[0] ?? 'User';
-    
+    final email = user.email ?? '';
+
+    // Determine role based on email patterns
+    String role = 'student';
+
+    // Check for teacher patterns in email
+    if (email.contains('listor') ||
+        email.contains('teacher') ||
+        email.contains('lärare') ||
+        email.contains('pedagog')) {
+      role = 'teacher';
+    }
+
     await _userRepository.createUserDocument(
       uid: user.uid,
-      email: user.email ?? '',
+      email: email,
       displayName: displayName,
-      role: 'student', // Default role for Google sign-in
-      classNumber: 0,
-      coins: 0,
+      role: role,
+      classNumber: role == 'teacher' ? -1 : 0,
+      coins: role == 'teacher' ? 9999 : 0,
       hasAnsweredQuestionCorrectly: false,
     );
   }

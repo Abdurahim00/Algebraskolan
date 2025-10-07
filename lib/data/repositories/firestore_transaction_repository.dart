@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:injectable/injectable.dart';
 import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/models/coin_transaction_model.dart';
+import '../../domain/models/batch_transaction_model.dart';
 
 /// Firestore implementation of ITransactionRepository
 @LazySingleton(as: ITransactionRepository)
@@ -269,6 +270,133 @@ class FirestoreTransactionRepository implements ITransactionRepository {
         'netBalance': 0,
         'transactionCount': 0,
       };
+    }
+  }
+
+  @override
+  Future<String> saveBatchTransaction(BatchTransactionModel batch) async {
+    try {
+      print('FirestoreTransactionRepository: Saving batch transaction for teacher ${batch.teacherId}');
+      final map = batch.toMap();
+      print('FirestoreTransactionRepository: Batch data: $map');
+      final docRef = await _firestore
+          .collection('batchTransactions')
+          .add(map);
+      print('FirestoreTransactionRepository: Batch saved with ID: ${docRef.id}');
+      return docRef.id;
+    } catch (e) {
+      print('FirestoreTransactionRepository - saveBatchTransaction error: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<BatchTransactionModel?> getLastBatchTransaction(String teacherId) async {
+    try {
+      print('FirestoreTransactionRepository: Getting last batch for teacher: $teacherId');
+      final snapshot = await _firestore
+          .collection('batchTransactions')
+          .where('teacherId', isEqualTo: teacherId)
+          .where('isReverted', isEqualTo: false)
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .get();
+
+      print('FirestoreTransactionRepository: Found ${snapshot.docs.length} batch transactions');
+
+      if (snapshot.docs.isEmpty) {
+        print('FirestoreTransactionRepository: No batch transactions found');
+        return null;
+      }
+
+      final data = snapshot.docs.first.data();
+      print('FirestoreTransactionRepository: Last batch data: $data');
+
+      return BatchTransactionModel.fromMap(
+        data,
+        id: snapshot.docs.first.id,
+      );
+    } catch (e) {
+      print('FirestoreTransactionRepository - getLastBatchTransaction error: $e');
+      return null;
+    }
+  }
+
+  @override
+  Future<bool> revertBatchTransaction(String batchId, String teacherId) async {
+    try {
+      print('FirestoreTransactionRepository: Reverting batch $batchId for teacher $teacherId');
+
+      // Get the batch transaction
+      final batchDoc = await _firestore
+          .collection('batchTransactions')
+          .doc(batchId)
+          .get();
+
+      if (!batchDoc.exists) {
+        print('FirestoreTransactionRepository: Batch document does not exist');
+        return false;
+      }
+
+      final batch = BatchTransactionModel.fromMap(
+        batchDoc.data()!,
+        id: batchDoc.id,
+      );
+
+      print('FirestoreTransactionRepository: Batch found - isReverted: ${batch.isReverted}, students: ${batch.studentTransactions.length}');
+
+      // Check if already reverted
+      if (batch.isReverted) {
+        print('FirestoreTransactionRepository: Batch already reverted');
+        return false;
+      }
+
+      // Start a batch write
+      final writeBatch = _firestore.batch();
+
+      // Revert coins for each student
+      for (final studentTransaction in batch.studentTransactions) {
+        final studentRef = _firestore
+            .collection('users')
+            .doc(studentTransaction.studentId);
+
+        // Update student coins back to previous amount
+        writeBatch.update(studentRef, {
+          'coins': studentTransaction.previousCoins,
+        });
+
+        // Add a revert transaction record
+        final transactionRef = _firestore
+            .collection('students')
+            .doc(studentTransaction.studentId)
+            .collection('transactions')
+            .doc();
+
+        writeBatch.set(transactionRef, {
+          'teacherName': teacherId,
+          'amount': -studentTransaction.amount,
+          'timestamp': FieldValue.serverTimestamp(),
+          'type': 'revert',
+          'description': 'Ångra transaktion från ${batch.teacherName}',
+        });
+      }
+
+      // Mark batch transaction as reverted
+      writeBatch.update(batchDoc.reference, {
+        'isReverted': true,
+        'revertedBy': teacherId,
+        'revertedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Commit all changes
+      print('FirestoreTransactionRepository: Committing revert batch write');
+      await writeBatch.commit();
+      print('FirestoreTransactionRepository: Revert successful');
+      return true;
+    } catch (e, stackTrace) {
+      print('FirestoreTransactionRepository - revertBatchTransaction error: $e');
+      print('Stack trace: $stackTrace');
+      return false;
     }
   }
 }

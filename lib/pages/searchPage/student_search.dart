@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 import 'package:algebra/provider/google_sign_In.dart';
 import 'package:algebra/provider/student_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:algebra/backend/student.dart';
+import 'package:algebra/widgets/skeleton_loading.dart';
 
 class StudentSearch extends SearchDelegate<Student?> {
   final GoogleSignInProvider googleSignInProvider =
@@ -38,7 +38,6 @@ class StudentSearch extends SearchDelegate<Student?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
     final studentProvider =
         Provider.of<StudentProvider>(context, listen: false);
 
@@ -51,9 +50,9 @@ class StudentSearch extends SearchDelegate<Student?> {
       builder: (BuildContext context,
           AsyncSnapshot<List<ValueNotifier<Student>>> snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-            child: Lottie.asset("assets/images/Circle Loading.json",
-                width: screenWidth * 0.2),
+          return ListView.builder(
+            itemCount: 10,
+            itemBuilder: (context, index) => const SkeletonSearchItem(),
           );
         } else if (snapshot.hasError) {
           _showToast("Error: ${snapshot.error}");

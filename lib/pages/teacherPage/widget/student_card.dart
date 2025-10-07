@@ -21,8 +21,6 @@ class StudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final studentProvider = context.watch<StudentProvider>();
-
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -42,66 +40,73 @@ class StudentCard extends StatelessWidget {
         math.min(screenWidth * 0.01, 10.0); // Example: max 10.0
 
     return GestureDetector(
-      onTap: () => studentProvider.toggleSelection(student),
+      onTap: () {
+        // Use context.read instead of context.watch for actions
+        final studentProvider = Provider.of<StudentProvider>(context, listen: false);
+        studentProvider.toggleSelection(student);
+      },
       child: ValueListenableBuilder<bool>(
         valueListenable: isSelected,
         builder: (context, isSelectedValue, child) {
-          return Transform.translate(
-            offset:
-                isSelectedValue ? Offset(0, -screenHeight * 0.01) : Offset.zero,
-            child: Container(
-              width: cardWidth,
-              margin: EdgeInsets.symmetric(
-                horizontal: horizontalPadding,
-                vertical: verticalPadding,
-              ),
-              child: AspectRatio(
-                aspectRatio: 3 / 4,
-                child: Card(
-                  color: isSelectedValue
-                      ? const Color.fromRGBO(245, 142, 11, 1)
-                      : Colors.lightBlue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  elevation: 2.0,
-                  child: Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (!isSelectedValue) ...[
-                          SizedBox(
-                            height: imageSideLength * 1.2,
-                            width: imageSideLength * 1.2,
-                            child: Image.asset(
-                              "assets/images/profile5.png",
-                              fit: BoxFit.scaleDown,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                        ],
-                        if (isSelectedValue) ...[
-                          Mini_Coin_calculator(
-                            studentNotifier: student,
-                          ),
-                        ],
-                        Flexible(
-                          child: AutoSizeText(
-                            student.value.displayName,
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: fontSize,
-                            ),
-                            minFontSize: 8,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            transform: Matrix4.translationValues(
+              0,
+              isSelectedValue ? -screenHeight * 0.01 : 0,
+              0,
+            ),
+            width: cardWidth,
+            margin: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: verticalPadding,
+            ),
+            child: AspectRatio(
+              aspectRatio: 3 / 4,
+              child: Card(
+                color: isSelectedValue
+                    ? const Color.fromRGBO(245, 142, 11, 1)
+                    : Colors.lightBlue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15.0),
+                ),
+                elevation: isSelectedValue ? 6.0 : 2.0, // More shadow when selected
+                child: Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (!isSelectedValue) ...[
+                        SizedBox(
+                          height: imageSideLength * 1.2,
+                          width: imageSideLength * 1.2,
+                          child: Image.asset(
+                            "assets/images/profile5.png",
+                            fit: BoxFit.scaleDown,
                           ),
                         ),
+                        const SizedBox(height: 10),
                       ],
-                    ),
+                      if (isSelectedValue) ...[
+                        Mini_Coin_calculator(
+                          studentNotifier: student,
+                        ),
+                      ],
+                      Flexible(
+                        child: AutoSizeText(
+                          student.value.displayName,
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: fontSize,
+                          ),
+                          minFontSize: 8,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

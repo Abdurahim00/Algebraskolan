@@ -9,12 +9,14 @@ import '../../domain/repositories/i_auth_repository.dart';
 import '../../domain/repositories/i_student_repository.dart';
 import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_user_repository.dart';
+import '../../domain/repositories/i_fritids_repository.dart';
 
 // Data layer
 import '../../data/repositories/firebase_auth_repository.dart';
 import '../../data/repositories/firestore_student_repository.dart';
 import '../../data/repositories/firestore_transaction_repository.dart';
 import '../../data/repositories/firestore_user_repository.dart';
+import '../../data/repositories/firestore_fritids_repository.dart';
 
 // Services (existing)
 import '../../backend/student_service.dart';
@@ -45,6 +47,12 @@ import '../../domain/usecases/student/search_students_usecase.dart';
 import '../../domain/usecases/coins/update_coins_usecase.dart';
 import '../../domain/usecases/coins/batch_update_coins_usecase.dart';
 import '../../domain/usecases/coins/fetch_transactions_usecase.dart';
+
+// Use cases - Fritids
+import '../../domain/usecases/fritids/register_fritids_pass_usecase.dart';
+import '../../domain/usecases/fritids/get_today_fritids_registrations_usecase.dart';
+import '../../domain/usecases/fritids/get_registrations_by_period_usecase.dart';
+import '../../domain/usecases/fritids/get_fritids_statistics_usecase.dart';
 
 /// Service locator instance
 final GetIt sl = GetIt.instance;
@@ -105,6 +113,13 @@ void _registerRepositories() {
       firestore: sl<FirebaseFirestore>(),
     ),
   );
+
+  // Fritids Repository
+  sl.registerLazySingleton<IFritidsRepository>(
+    () => FirestoreFritidsRepository(
+      firestore: sl<FirebaseFirestore>(),
+    ),
+  );
 }
 
 void _registerServices() {
@@ -142,8 +157,8 @@ void _registerProviders() {
     () => CustomAuthProvider.instance,
   );
   
-  // Student Provider (Factory - creates new instance each time)
-  sl.registerFactory<StudentProvider>(
+  // Student Provider (Singleton - same instance throughout app lifecycle)
+  sl.registerLazySingleton<StudentProvider>(
     () => StudentProvider(),
   );
   
@@ -210,6 +225,7 @@ void _registerUseCases() {
     () => UpdateCoinsUseCase(
       sl<IStudentRepository>(),
       sl<ITransactionRepository>(),
+      sl<IAuthRepository>(),
     ),
   );
   
@@ -226,6 +242,27 @@ void _registerUseCases() {
   
   sl.registerLazySingleton<GetTransactionStatsUseCase>(
     () => GetTransactionStatsUseCase(sl<ITransactionRepository>()),
+  );
+
+  // Fritids use cases
+  sl.registerLazySingleton<RegisterFritidsPassUseCase>(
+    () => RegisterFritidsPassUseCase(
+      sl<IFritidsRepository>(),
+      sl<IStudentRepository>(),
+      sl<IAuthRepository>(),
+    ),
+  );
+
+  sl.registerLazySingleton<GetTodayFritidsRegistrationsUseCase>(
+    () => GetTodayFritidsRegistrationsUseCase(sl<IFritidsRepository>()),
+  );
+
+  sl.registerLazySingleton<GetRegistrationsByPeriodUseCase>(
+    () => GetRegistrationsByPeriodUseCase(sl<IFritidsRepository>()),
+  );
+
+  sl.registerLazySingleton<GetFritidsStatisticsUseCase>(
+    () => GetFritidsStatisticsUseCase(sl<IFritidsRepository>()),
   );
 }
 

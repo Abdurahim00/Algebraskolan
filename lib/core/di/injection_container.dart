@@ -31,6 +31,10 @@ import '../../domain/usecases/student/search_students_usecase.dart';
 import '../../domain/usecases/coins/update_coins_usecase.dart';
 import '../../domain/usecases/coins/batch_update_coins_usecase.dart';
 import '../../domain/usecases/coins/fetch_transactions_usecase.dart';
+import '../../domain/usecases/fritids/register_fritids_pass_usecase.dart';
+import '../../domain/usecases/fritids/get_today_fritids_registrations_usecase.dart';
+import '../../domain/usecases/fritids/get_registrations_by_period_usecase.dart';
+import '../../domain/usecases/fritids/get_fritids_statistics_usecase.dart';
 
 /// Injection container for easy access to dependencies
 /// This provides a cleaner API for accessing registered services
@@ -73,7 +77,13 @@ class InjectionContainer {
   static BatchUpdateCoinsUseCase get batchUpdateCoinsUseCase => _sl<BatchUpdateCoinsUseCase>();
   static FetchTransactionsUseCase get fetchTransactionsUseCase => _sl<FetchTransactionsUseCase>();
   static GetTransactionStatsUseCase get transactionStatsUseCase => _sl<GetTransactionStatsUseCase>();
-  
+
+  // Use Cases - Fritids
+  static RegisterFritidsPassUseCase get registerFritidsPassUseCase => _sl<RegisterFritidsPassUseCase>();
+  static GetTodayFritidsRegistrationsUseCase get getTodayFritidsRegistrationsUseCase => _sl<GetTodayFritidsRegistrationsUseCase>();
+  static GetRegistrationsByPeriodUseCase get getRegistrationsByPeriodUseCase => _sl<GetRegistrationsByPeriodUseCase>();
+  static GetFritidsStatisticsUseCase get getFritidsStatisticsUseCase => _sl<GetFritidsStatisticsUseCase>();
+
   // Generic getter for any registered type
   static T get<T extends Object>() => _sl<T>();
   

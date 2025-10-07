@@ -1,0 +1,289 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../provider/fritids_history_provider.dart';
+import '../../domain/models/fritids_group.dart';
+import '../../domain/models/pass_type.dart';
+import '../../widgets/skeleton_loading.dart';
+import 'widgets/fritids_statistics_widget.dart';
+import 'widgets/registration_list_item.dart';
+
+class FritidsHistoryScreen extends StatefulWidget {
+  const FritidsHistoryScreen({super.key});
+
+  @override
+  State<FritidsHistoryScreen> createState() => _FritidsHistoryScreenState();
+}
+
+class _FritidsHistoryScreenState extends State<FritidsHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Fetch data on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FritidsHistoryProvider>().fetchRegistrations();
+    });
+  }
+
+  Future<void> _selectDateRange(BuildContext context) async {
+    final provider = context.read<FritidsHistoryProvider>();
+
+    final DateTimeRange? picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2024),
+      lastDate: DateTime.now(),
+      initialDateRange: DateTimeRange(
+        start: provider.startDate,
+        end: provider.endDate,
+      ),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color.fromRGBO(245, 142, 11, 1),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      provider.setDateRange(picked.start, picked.end);
+      provider.fetchRegistrations();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final historyProvider = context.watch<FritidsHistoryProvider>();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Fritids Historik'),
+        backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              historyProvider.fetchRegistrations();
+            },
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Statistics card
+          if (historyProvider.statistics != null)
+            FritidsStatisticsWidget(
+              statistics: historyProvider.statistics!,
+            ),
+          // Filters
+          _buildFilters(context, historyProvider),
+          // Registrations list
+          Expanded(
+            child: _buildRegistrationsList(historyProvider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilters(
+      BuildContext context, FritidsHistoryProvider provider) {
+    final dateFormat = DateFormat('d MMM yyyy', 'sv_SE');
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.grey[100],
+      child: Column(
+        children: [
+          // Date range selector
+          InkWell(
+            onTap: () => _selectDateRange(context),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${dateFormat.format(provider.startDate)} - ${dateFormat.format(provider.endDate)}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Group and Pass type filters
+          Row(
+            children: [
+              Expanded(
+                child: _buildGroupFilter(provider),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildPassTypeFilter(provider),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGroupFilter(FritidsHistoryProvider provider) {
+    return DropdownButtonFormField<FritidsGroup?>(
+      value: provider.selectedGroup,
+      decoration: InputDecoration(
+        labelText: 'Grupp',
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: [
+        const DropdownMenuItem<FritidsGroup?>(
+          value: null,
+          child: Text('Alla grupper'),
+        ),
+        ...FritidsGroup.values.map((group) {
+          return DropdownMenuItem<FritidsGroup?>(
+            value: group,
+            child: Text(group.displayName),
+          );
+        }),
+      ],
+      onChanged: (value) {
+        provider.setGroupFilter(value);
+        provider.fetchRegistrations();
+      },
+    );
+  }
+
+  Widget _buildPassTypeFilter(FritidsHistoryProvider provider) {
+    return DropdownButtonFormField<PassType?>(
+      value: provider.selectedPassType,
+      decoration: InputDecoration(
+        labelText: 'Pass',
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+      items: [
+        const DropdownMenuItem<PassType?>(
+          value: null,
+          child: Text('Alla pass'),
+        ),
+        ...PassType.values.map((passType) {
+          return DropdownMenuItem<PassType?>(
+            value: passType,
+            child: Text(passType.fullDisplayName),
+          );
+        }),
+      ],
+      onChanged: (value) {
+        provider.setPassTypeFilter(value);
+        provider.fetchRegistrations();
+      },
+    );
+  }
+
+  Widget _buildRegistrationsList(FritidsHistoryProvider provider) {
+    if (provider.isLoading) {
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: 8,
+        itemBuilder: (context, index) => const SkeletonHistoryItem(),
+      );
+    }
+
+    if (provider.errorMessage != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              provider.errorMessage!,
+              style: const TextStyle(fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => provider.fetchRegistrations(),
+              child: const Text('Försök igen'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (provider.registrations.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              'Inga registreringar hittades',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Group registrations by date
+    final groupedRegistrations = provider.getRegistrationsGroupedByDate();
+    final sortedDates = groupedRegistrations.keys.toList();
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: sortedDates.length,
+      itemBuilder: (context, index) {
+        final dateKey = sortedDates[index];
+        final registrations = groupedRegistrations[dateKey]!;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Date header
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Text(
+                dateKey,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(245, 142, 11, 1),
+                ),
+              ),
+            ),
+            // Registrations for this date
+            ...registrations.map((registration) {
+              return RegistrationListItem(registration: registration);
+            }),
+            const SizedBox(height: 8),
+          ],
+        );
+      },
+    );
+  }
+}

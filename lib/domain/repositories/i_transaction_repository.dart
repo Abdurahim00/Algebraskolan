@@ -1,4 +1,5 @@
 import '../models/coin_transaction_model.dart';
+import '../models/batch_transaction_model.dart';
 
 /// Interface for transaction repository
 /// Defines all transaction-related operations
@@ -43,4 +44,13 @@ abstract class ITransactionRepository {
   
   /// Get transaction statistics for a student
   Future<Map<String, dynamic>> getTransactionStats(String studentId);
+
+  /// Save a batch transaction
+  Future<String> saveBatchTransaction(BatchTransactionModel batch);
+
+  /// Get the last batch transaction for a teacher
+  Future<BatchTransactionModel?> getLastBatchTransaction(String teacherId);
+
+  /// Revert a batch transaction
+  Future<bool> revertBatchTransaction(String batchId, String teacherId);
 }

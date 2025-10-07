@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:lottie/lottie.dart';
+import 'package:algebra/pages/admin_menu.dart';
 
 import '../provider/google_sign_In.dart';
 import '../provider/custom_auth_provider.dart';
 import '../other/network_alert.dart';
+import '../widgets/skeleton_loading.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -79,6 +81,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
       _confirmPasswordController.clear();
     });
   }
+
 
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
@@ -169,9 +172,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             alignment: Alignment.topCenter,
             child: Padding(
               padding: const EdgeInsets.only(top: 50.0),
-              child: Image.asset(
-                'assets/images/Algebraskolan4.png',
-                height: 80,
+              child: GestureDetector(
+                onLongPress: () {
+                  // Hidden admin access
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AdminMenu(),
+                    ),
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/Algebraskolan4.png',
+                  height: 80,
+                ),
               ),
             ),
           ),
@@ -220,8 +234,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                       Consumer<GoogleSignInProvider>(
                         builder: (context, provider, child) {
                           return provider.isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.orange)
+                              ? Center(
+                                  child: Container(
+                                    width: 300,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                    child: const SkeletonLoader(
+                                      width: 300,
+                                      height: 50,
+                                      borderRadius: BorderRadius.all(Radius.circular(30)),
+                                    ),
+                                  ),
+                                )
                               : ScaleTransition(
                                   scale: Tween(begin: 0.95, end: 1.05).animate(
                                     CurvedAnimation(
@@ -381,9 +407,20 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                                 child: Consumer<CustomAuthProvider>(
                                   builder: (context, provider, child) {
                                     return provider.isLoading
-                                        ? const Center(
-                                            child: CircularProgressIndicator(
-                                                color: Colors.orange))
+                                        ? Center(
+                                            child: Container(
+                                              width: 200,
+                                              height: 50,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: const SkeletonLoader(
+                                                width: 200,
+                                                height: 50,
+                                                borderRadius: BorderRadius.all(Radius.circular(8)),
+                                              ),
+                                            ),
+                                          )
                                         : ElevatedButton(
                                             onPressed: _handleSubmit,
                                             style: ElevatedButton.styleFrom(

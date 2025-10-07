@@ -1,0 +1,148 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:auto_size_text/auto_size_text.dart';
+import '../../../provider/fritids_provider.dart';
+import '../../../domain/models/pass_type.dart';
+import 'fritids_student_card.dart';
+
+class FritidsStudentList extends StatelessWidget {
+  const FritidsStudentList({super.key});
+
+  bool _isTablet(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return screenWidth > 600;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final fritidsProvider = context.watch<FritidsProvider>();
+    final students = fritidsProvider.students;
+    final screenWidth = MediaQuery.of(context).size.width;
+    double fontSize = screenWidth * 0.04;
+    double baseFontSize = _isTablet(context) ? 18 : fontSize;
+
+    if (fritidsProvider.selectedGroup == null) {
+      return Expanded(
+        flex: 6,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10.0, bottom: 10.0, top: 30.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Center(
+                child: Text(
+                  'Välj en grupp',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.grey,
+                    fontFamily: 'Roboto',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Expanded(
+      flex: 6,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10.0, bottom: 10.0, top: 30.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            // FM/EM Toggle - segmented control style
+            Padding(
+              padding: EdgeInsets.only(bottom: fontSize * 0.5),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => fritidsProvider.selectPassType(PassType.fm),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: fritidsProvider.selectedPassType == PassType.fm
+                              ? const Color.fromRGBO(245, 142, 11, 1)
+                              : Colors.white,
+                          border: Border.all(
+                            color: const Color.fromRGBO(245, 142, 11, 1),
+                            width: 2,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(8),
+                            bottomLeft: Radius.circular(8),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'FM',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: baseFontSize,
+                              fontWeight: FontWeight.bold,
+                              color: fritidsProvider.selectedPassType == PassType.fm
+                                  ? Colors.white
+                                  : const Color.fromRGBO(245, 142, 11, 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => fritidsProvider.selectPassType(PassType.em),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: fritidsProvider.selectedPassType == PassType.em
+                              ? const Color.fromRGBO(245, 142, 11, 1)
+                              : Colors.white,
+                          border: Border.all(
+                            color: const Color.fromRGBO(245, 142, 11, 1),
+                            width: 2,
+                          ),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(8),
+                            bottomRight: Radius.circular(8),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'EM',
+                            style: TextStyle(
+                              fontFamily: 'Montserrat',
+                              fontSize: baseFontSize,
+                              fontWeight: FontWeight.bold,
+                              color: fritidsProvider.selectedPassType == PassType.em
+                                  ? Colors.white
+                                  : const Color.fromRGBO(245, 142, 11, 1),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Horizontal scrolling student cards (EXACTLY like teacher screen)
+            Flexible(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: students.map((student) {
+                    return FritidsStudentCard(student: student);
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

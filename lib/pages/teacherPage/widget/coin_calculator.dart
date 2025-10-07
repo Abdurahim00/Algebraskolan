@@ -36,15 +36,17 @@ class Coin_calculator extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            GestureDetector(
+            _AnimatedIconButton(
               onTap: minus,
-              child: Icon(UniconsLine.minus_circle,
-                  size: iconSize, color: const Color.fromRGBO(245, 142, 11, 1)),
+              icon: UniconsLine.minus_circle,
+              size: iconSize,
+              color: const Color.fromRGBO(245, 142, 11, 1),
             ),
-            GestureDetector(
+            _AnimatedIconButton(
               onTap: add,
-              child: Icon(UniconsLine.plus_circle,
-                  size: iconSize, color: const Color.fromRGBO(245, 142, 11, 1)),
+              icon: UniconsLine.plus_circle,
+              size: iconSize,
+              color: const Color.fromRGBO(245, 142, 11, 1),
             ),
           ],
         ),
@@ -87,10 +89,11 @@ class Mini_Coin_calculator extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            GestureDetector(
+            _AnimatedIconButton(
               onTap: add,
-              child: Icon(UniconsLine.plus_circle,
-                  size: iconSize, color: Colors.white),
+              icon: UniconsLine.plus_circle,
+              size: iconSize,
+              color: Colors.white,
             ),
             ValueListenableBuilder<Student>(
                 valueListenable: studentNotifier,
@@ -103,12 +106,57 @@ class Mini_Coin_calculator extends StatelessWidget {
                         color: Colors.white),
                   );
                 }),
-            GestureDetector(
+            _AnimatedIconButton(
               onTap: minus,
-              child: Icon(UniconsLine.minus_circle,
-                  size: iconSize, color: Colors.white),
+              icon: UniconsLine.minus_circle,
+              size: iconSize,
+              color: Colors.white,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// Smooth animated icon button for satisfying press effect
+class _AnimatedIconButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final IconData icon;
+  final double size;
+  final Color color;
+
+  const _AnimatedIconButton({
+    required this.onTap,
+    required this.icon,
+    required this.size,
+    required this.color,
+  });
+
+  @override
+  State<_AnimatedIconButton> createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<_AnimatedIconButton> {
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.85 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut,
+        child: Icon(
+          widget.icon,
+          size: widget.size,
+          color: widget.color,
         ),
       ),
     );

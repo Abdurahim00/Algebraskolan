@@ -64,6 +64,21 @@ android {
         multiDexEnabled true
     }
 
+    flavorDimensions "environment"
+    productFlavors {
+        dev {
+            dimension "environment"
+            applicationId "algebrona.dev"
+            versionNameSuffix "-dev"
+            resValue "string", "app_name", "Algebra Dev"
+        }
+        prod {
+            dimension "environment"
+            applicationId "com.aj.algebrona"
+            resValue "string", "app_name", "Algebraskolan"
+        }
+    }
+
     signingConfigs {
         release {
             keyAlias keystoreProperties['keyAlias']
@@ -86,7 +101,8 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation platform('com.google.firebase:firebase-bom:32.1.0')
+    implementation platform('com.google.firebase:firebase-bom:34.3.0')
+    implementation 'com.google.firebase:firebase-analytics'
       implementation 'com.android.support:multidex:1.0.3'
     
 }

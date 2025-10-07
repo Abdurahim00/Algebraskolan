@@ -8,6 +8,7 @@ import '../backend/student.dart';
 import '../core/di/injection_container.dart';
 import '../core/result/result.dart';
 import '../domain/models/student_model.dart';
+import '../domain/models/batch_transaction_model.dart';
 import '../domain/usecases/student/fetch_students_usecase.dart';
 import '../domain/usecases/student/search_students_usecase.dart';
 import '../domain/usecases/coins/update_coins_usecase.dart';
@@ -438,5 +439,16 @@ class StudentProvider with ChangeNotifier {
       print("Error during the deletion process: ${e}");
       // Handle other errors
     }
+  }
+
+  @override
+  void dispose() {
+    // Dispose all ValueNotifiers
+    for (var student in _students) {
+      student.dispose();
+    }
+    _students.clear();
+    _selectedStudents.clear();
+    super.dispose();
   }
 }

@@ -24,27 +24,40 @@ class HomePage extends StatelessWidget {
   Stream<UserData?> getUserDataStream(BuildContext context) async* {
     final authRepository = InjectionContainer.authRepository;
     final userRepository = InjectionContainer.userRepository;
-    
+
+    print('HomePage: Starting getUserDataStream');
+
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
     await remoteConfig.fetchAndActivate();
     bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
+    print('HomePage: allowAllEmails = $allowAllEmails');
 
     await for (var user in authRepository.authStateChanges) {
+      print('HomePage: Auth state changed - user: ${user?.uid}');
       if (user == null) {
+        print('HomePage: No user logged in');
         yield null;
       } else {
         final email = user.email;
+        print('HomePage: User email: $email');
 
         if (!allowAllEmails &&
             !(email?.endsWith('@algebraskolan.se') ?? false) &&
             !(email?.endsWith('@algebrautbildning.se') ?? false)) {
+          print('HomePage: Unauthorized email domain');
           await showUnauthorizedDomainDialog(context);
           await signOutUser(context, user);
         } else {
+          print('HomePage: Fetching user data for uid: ${user.uid}');
           var userData = await userRepository.getUserData(user.uid);
           if (userData != null) {
+            print('HomePage: User data found - role: ${userData['role']}');
             yield UserData(user, userData);
           } else {
+            // User exists in Auth but not in Firestore - likely a new user
+            // Redirect to login page to complete registration
+            print('HomePage: User ${user.uid} exists in Auth but not in Firestore');
+            await signOutUser(context, user);
             yield null;
           }
         }
@@ -105,6 +118,9 @@ class HomePage extends StatelessWidget {
                 return StudentScreen();
               }
             }
+          } else if (snapshot.connectionState == ConnectionState.active && userData == null) {
+            // No user logged in, show login page
+            return const LoginPage();
           }
         }
 
@@ -130,6 +146,25 @@ class HomePage extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                     color: Colors.grey,
                   ),
+                ),
+                const SizedBox(height: 16),
+                if (snapshot.connectionState == ConnectionState.waiting)
+                  const Text(
+                    'Kontrollerar inloggning...',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                  ),
+                const SizedBox(height: 32),
+                // Add a button to go to login page if stuck
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: const Text('Gå till inloggning'),
                 ),
               ],
             ),
