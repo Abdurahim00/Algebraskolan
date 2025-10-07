@@ -15,7 +15,7 @@ class FritidsStudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fritidsProvider = context.watch<FritidsProvider>();
+    final fritidsProvider = context.read<FritidsProvider>();
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
@@ -31,12 +31,26 @@ class FritidsStudentCard extends StatelessWidget {
     double verticalPadding = math.min(screenHeight * 0.01, 10.0);
     double horizontalPadding = math.min(screenWidth * 0.01, 10.0);
 
-    final bool hasFM = fritidsProvider.hasRegisteredForFM(student.uid);
-    final bool hasEM = fritidsProvider.hasRegisteredForEM(student.uid);
-    final bool canRegister =
-        !fritidsProvider.hasRegisteredForCurrentPass(student.uid);
-    final bool isSelected = fritidsProvider.selectedStudents.contains(student);
-    final bool isRegistering = fritidsProvider.isRegistering;
+    return Selector<FritidsProvider, ({
+      bool hasFM,
+      bool hasEM,
+      bool canRegister,
+      bool isSelected,
+      bool isRegistering,
+    })>(
+      selector: (_, provider) => (
+        hasFM: provider.hasRegisteredForFM(student.uid),
+        hasEM: provider.hasRegisteredForEM(student.uid),
+        canRegister: !provider.hasRegisteredForCurrentPass(student.uid),
+        isSelected: provider.selectedStudents.contains(student),
+        isRegistering: provider.isRegistering,
+      ),
+      builder: (context, data, _) {
+        final bool hasFM = data.hasFM;
+        final bool hasEM = data.hasEM;
+        final bool canRegister = data.canRegister;
+        final bool isSelected = data.isSelected;
+        final bool isRegistering = data.isRegistering;
 
     // Determine card color
     Color cardColor;
@@ -172,6 +186,8 @@ class FritidsStudentCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

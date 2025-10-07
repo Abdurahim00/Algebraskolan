@@ -125,49 +125,9 @@ class HomePage extends StatelessWidget {
         }
 
         return Scaffold(
+          backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
           body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 150,
-                  height: 150,
-                  child: Lottie.asset(
-                    'assets/images/Circle Loading.json',
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Laddar...',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                if (snapshot.connectionState == ConnectionState.waiting)
-                  const Text(
-                    'Kontrollerar inloggning...',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                    ),
-                  ),
-                const SizedBox(height: 32),
-                // Add a button to go to login page if stuck
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                  },
-                  child: const Text('Gå till inloggning'),
-                ),
-              ],
-            ),
+            child: _SpinningLogo(),
           ),
         );
       },
@@ -193,6 +153,58 @@ class HomePage extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+class _SpinningLogo extends StatefulWidget {
+  @override
+  State<_SpinningLogo> createState() => _SpinningLogoState();
+}
+
+class _SpinningLogoState extends State<_SpinningLogo>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RotationTransition(
+      turns: _controller,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 30,
+              spreadRadius: 10,
+            ),
+          ],
+        ),
+        child: Image.asset(
+          "assets/images/favicon.png",
+          width: 120,
+          height: 120,
+          fit: BoxFit.contain,
+        ),
+      ),
     );
   }
 }

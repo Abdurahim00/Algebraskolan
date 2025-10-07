@@ -6,9 +6,9 @@ import 'dart:math' as math;
 import '../../provider/fritids_provider.dart';
 import '../../domain/models/fritids_group.dart';
 import '../../domain/models/pass_type.dart';
+import '../../domain/models/student_model.dart';
 import '../teacherPage/widget/drawer.dart';
 import 'widgets/fritids_student_list.dart';
-import 'widgets/pass_type_selector.dart';
 import 'fritids_history_screen.dart';
 
 class FritidsScreen extends StatefulWidget {
@@ -20,7 +20,6 @@ class FritidsScreen extends StatefulWidget {
 
 class _FritidsScreenState extends State<FritidsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  FritidsGroup? selectedGroup = FritidsGroup.solen;
 
   bool _isInitialized = false;
 
@@ -50,7 +49,7 @@ class _FritidsScreenState extends State<FritidsScreen> {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
-    final fritidsProvider = context.watch<FritidsProvider>();
+    final fritidsProvider = context.read<FritidsProvider>();
 
     const double maxCardWidth = 180.0;
     double cardWidth = math.min(screenWidth * 0.30, maxCardWidth);
@@ -102,19 +101,25 @@ class _FritidsScreenState extends State<FritidsScreen> {
               child: Row(
                 children: [
                   Expanded(
-                    child: _PassTypeButton(
-                      label: 'FM',
-                      isSelected: fritidsProvider.selectedPassType == PassType.fm,
-                      onTap: () => fritidsProvider.selectPassType(PassType.fm),
-                      isLeft: true,
+                    child: Selector<FritidsProvider, PassType>(
+                      selector: (_, provider) => provider.selectedPassType,
+                      builder: (_, selectedPassType, __) => _PassTypeButton(
+                        label: 'FM',
+                        isSelected: selectedPassType == PassType.fm,
+                        onTap: () => fritidsProvider.selectPassType(PassType.fm),
+                        isLeft: true,
+                      ),
                     ),
                   ),
                   Expanded(
-                    child: _PassTypeButton(
-                      label: 'EM',
-                      isSelected: fritidsProvider.selectedPassType == PassType.em,
-                      onTap: () => fritidsProvider.selectPassType(PassType.em),
-                      isLeft: false,
+                    child: Selector<FritidsProvider, PassType>(
+                      selector: (_, provider) => provider.selectedPassType,
+                      builder: (_, selectedPassType, __) => _PassTypeButton(
+                        label: 'EM',
+                        isSelected: selectedPassType == PassType.em,
+                        onTap: () => fritidsProvider.selectPassType(PassType.em),
+                        isLeft: false,
+                      ),
                     ),
                   ),
                 ],
@@ -134,92 +139,11 @@ class _FritidsScreenState extends State<FritidsScreen> {
             ],
           ),
           // Group cards (Solen & Havet)
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.28 - 10,
-            child: Container(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-              width: MediaQuery.of(context).size.width,
-              height: _isTablet(context)
-                  ? MediaQuery.of(context).size.width * 0.3 + 10
-                  : MediaQuery.of(context).size.width * 0.35 + 20,
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: groupCards
-                      .map((groupData) => Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: GestureDetector(
-                            onTap: () {
-                              HapticFeedback.mediumImpact();
-                              final group = groupData["group"] as FritidsGroup;
-                              setState(() {
-                                selectedGroup = group;
-                                fritidsProvider.selectGroup(group);
-                              });
-                            },
-                            child: AnimatedScale(
-                            scale: selectedGroup == groupData['group'] ? 1.05 : 1.0,
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeInOut,
-                            child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            curve: Curves.easeInOut,
-                            width: cardWidth,
-                            height: cardHeight,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(30.0),
-                              boxShadow: selectedGroup == groupData['group']
-                                  ? [
-                                      BoxShadow(
-                                        color: Colors.blue.withOpacity(0.4),
-                                        blurRadius: 20.0,
-                                        spreadRadius: 5.0,
-                                      ),
-                                    ]
-                                  : const [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        offset: Offset(0, 2),
-                                        blurRadius: 6.0,
-                                      ),
-                                    ],
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(10.0),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  // Emoji icon
-                                  Text(
-                                    groupData['icon'] as String,
-                                    style: TextStyle(
-                                      fontSize: cardWidth * 0.4,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Flexible(
-                                    child: AutoSizeText(
-                                      groupData["name"] as String,
-                                      style: const TextStyle(
-                                        fontFamily: 'montserrat',
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                            ),
-                        ),
-                      ))
-                      .toList(),
-                ),
-              ),
-            ),
+          _GroupCardsWidget(
+            initialGroup: FritidsGroup.solen,
+            onGroupSelected: (group) {
+              fritidsProvider.selectGroup(group);
+            },
           ),
           // AppBar
           Positioned(
@@ -256,60 +180,73 @@ class _FritidsScreenState extends State<FritidsScreen> {
             ),
           ),
           // Error message
-          if (fritidsProvider.errorMessage != null)
-            Positioned(
-              bottom: 20,
-              left: 20,
-              right: 20,
-              child: Material(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(8),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.white),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          fritidsProvider.errorMessage!,
-                          style: const TextStyle(color: Colors.white),
+          Selector<FritidsProvider, String?>(
+            selector: (_, provider) => provider.errorMessage,
+            builder: (_, errorMessage, __) {
+              if (errorMessage == null) return const SizedBox.shrink();
+              return Positioned(
+                bottom: 20,
+                left: 20,
+                right: 20,
+                child: Material(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            errorMessage,
+                            style: const TextStyle(color: Colors.white),
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: () {
-                          fritidsProvider.clearError();
-                        },
-                      ),
-                    ],
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () {
+                            fritidsProvider.clearError();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
           // Success indicator
-          if (fritidsProvider.registrationSuccess)
-            Positioned(
-              top: screenHeight * 0.4,
-              left: 0,
-              right: 0,
-              child: const Center(
-                child: Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 80,
+          Selector<FritidsProvider, bool>(
+            selector: (_, provider) => provider.registrationSuccess,
+            builder: (_, registrationSuccess, __) {
+              if (!registrationSuccess) return const SizedBox.shrink();
+              return Positioned(
+                top: screenHeight * 0.4,
+                left: 0,
+                right: 0,
+                child: const Center(
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 80,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
           // Bekräfta button with smooth animations
-          if (fritidsProvider.selectedStudents.isNotEmpty && !fritidsProvider.isRegistering)
-            Positioned(
-              top: screenHeight * 0.22 - 50,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: _BekraftaButton(
-                  onPressed: () async {
+          Selector<FritidsProvider, ({List<StudentModel> selected, bool isRegistering})>(
+            selector: (_, provider) => (selected: provider.selectedStudents, isRegistering: provider.isRegistering),
+            builder: (_, data, __) {
+              if (data.selected.isEmpty || data.isRegistering) return const SizedBox.shrink();
+              return Positioned(
+                top: screenHeight * 0.22 - 50,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _BekraftaButton(
+                    onPressed: () async {
                     // Haptic feedback for important action
                     HapticFeedback.mediumImpact();
                     final success = await fritidsProvider.registerSelectedStudents();
@@ -359,9 +296,11 @@ class _FritidsScreenState extends State<FritidsScreen> {
                       );
                     }
                   },
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -441,6 +380,138 @@ class _BekraftaButtonState extends State<_BekraftaButton> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Group cards widget - exact replication of class cards
+class _GroupCardsWidget extends StatefulWidget {
+  final FritidsGroup? initialGroup;
+  final Function(FritidsGroup) onGroupSelected;
+
+  const _GroupCardsWidget({
+    required this.initialGroup,
+    required this.onGroupSelected,
+  });
+
+  @override
+  State<_GroupCardsWidget> createState() => _GroupCardsWidgetState();
+}
+
+class _GroupCardsWidgetState extends State<_GroupCardsWidget> {
+  late FritidsGroup? selectedGroup;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedGroup = widget.initialGroup;
+  }
+
+  bool _isTablet(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    return screenWidth > 600;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Larger sizing for better visibility
+    const double maxCardWidth = 180.0;
+    double cardWidth = math.min(screenWidth * 0.30, maxCardWidth);
+    const double maxCardHeight = 280.0;
+    double cardHeight = math.min(cardWidth * 3.5, maxCardHeight);
+
+    final groupCards = [
+      {
+        "group": FritidsGroup.solen,
+        "name": "Solen",
+        "icon": "☀️",
+      },
+      {
+        "group": FritidsGroup.havet,
+        "name": "Havet",
+        "icon": "🌊",
+      },
+    ];
+
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.28 - 10,
+      child: Container(
+        padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+        width: MediaQuery.of(context).size.width,
+        height: _isTablet(context)
+            ? MediaQuery.of(context).size.width * 0.3 + 10
+            : MediaQuery.of(context).size.width * 0.35 + 20,
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: groupCards
+              .map((groupData) => GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedGroup = groupData["group"] as FritidsGroup;
+                      });
+                      widget.onGroupSelected(groupData["group"] as FritidsGroup);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: EdgeInsets.only(
+                        right: 10.0,
+                        top: selectedGroup == groupData['group'] ? 10 : 0,
+                      ),
+                      width: cardWidth,
+                      height: cardHeight,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30.0),
+                        boxShadow: selectedGroup == groupData['group']
+                            ? [
+                                BoxShadow(
+                                  color: Colors.blue.shade100,
+                                  offset: const Offset(0, 2),
+                                  blurRadius: 10.0,
+                                  spreadRadius: 5.0,
+                                ),
+                              ]
+                            : const [
+                                BoxShadow(
+                                  color: Colors.black12,
+                                  offset: Offset(0, 2),
+                                  blurRadius: 6.0,
+                                ),
+                              ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              groupData['icon'] as String,
+                              style: TextStyle(
+                                fontSize: cardWidth * 0.4,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Flexible(
+                              child: AutoSizeText(
+                                "${groupData["name"]}",
+                                style: const TextStyle(
+                                  fontFamily: 'montserrat',
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ))
+              .toList(),
           ),
         ),
       ),

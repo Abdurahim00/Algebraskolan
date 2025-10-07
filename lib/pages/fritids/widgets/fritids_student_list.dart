@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import '../../../provider/fritids_provider.dart';
+import '../../../domain/models/fritids_group.dart';
 import '../../../domain/models/pass_type.dart';
 import 'fritids_student_card.dart';
 
@@ -15,13 +16,26 @@ class FritidsStudentList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fritidsProvider = context.watch<FritidsProvider>();
-    final students = fritidsProvider.students;
     final screenWidth = MediaQuery.of(context).size.width;
     double fontSize = screenWidth * 0.04;
     double baseFontSize = _isTablet(context) ? 18 : fontSize;
 
-    if (fritidsProvider.selectedGroup == null) {
+    return Selector<FritidsProvider, ({
+      FritidsGroup? selectedGroup,
+      List students,
+      List selectedStudents,
+      bool isLoading,
+    })>(
+      selector: (_, provider) => (
+        selectedGroup: provider.selectedGroup,
+        students: provider.students,
+        selectedStudents: provider.selectedStudents,
+        isLoading: provider.isLoading,
+      ),
+      builder: (context, data, _) {
+        final fritidsProvider = context.read<FritidsProvider>();
+
+    if (data.selectedGroup == null) {
       return Expanded(
         flex: 6,
         child: Padding(
@@ -55,7 +69,7 @@ class FritidsStudentList extends StatelessWidget {
             // "Välj alla" button
             TextButton(
               onPressed: () {
-                if (fritidsProvider.selectedStudents.isEmpty) {
+                if (data.selectedStudents.isEmpty) {
                   fritidsProvider.selectAllStudents();
                 } else {
                   fritidsProvider.deselectAllStudents();
@@ -66,13 +80,13 @@ class FritidsStudentList extends StatelessWidget {
                 alignment: Alignment.centerLeft,
               ),
               child: AutoSizeText(
-                fritidsProvider.selectedStudents.isEmpty
+                data.selectedStudents.isEmpty
                     ? "Välj alla >"
                     : "Avvälj alla >",
                 style: TextStyle(
                   fontFamily: 'Montserrat',
                   fontSize: baseFontSize,
-                  color: fritidsProvider.selectedStudents.isEmpty
+                  color: data.selectedStudents.isEmpty
                       ? Colors.blue
                       : const Color.fromRGBO(245, 142, 11, 1),
                 ),
@@ -87,8 +101,11 @@ class FritidsStudentList extends StatelessWidget {
                 physics: const BouncingScrollPhysics(),
                 clipBehavior: Clip.none,
                 child: Row(
-                  children: students.map((student) {
-                    return FritidsStudentCard(student: student);
+                  children: data.students.map((student) {
+                    // Wrap each card in RepaintBoundary for better performance
+                    return RepaintBoundary(
+                      child: FritidsStudentCard(student: student),
+                    );
                   }).toList(),
                 ),
               ),
@@ -96,6 +113,8 @@ class FritidsStudentList extends StatelessWidget {
           ],
         ),
       ),
+    );
+      },
     );
   }
 }

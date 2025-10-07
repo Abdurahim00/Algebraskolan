@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "508884989833",
+    "project_id": "algebra-dev",
+    "storage_bucket": "algebra-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:508884989833:android:49fcbff4c7bfc619a51358",
+        "android_client_info": {
+          "package_name": "algebrona.dev"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "508884989833-mubmfjrheoe1sgpmov9doqicacag4er8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "algebrona.dev",
+            "certificate_hash": "894bd35d847553dde784b59ffcec5a5dd642275a"
+          }
+        },
+        {
+          "client_id": "508884989833-o23rpfa7gpn19fuaovkv6eqguc0en8k2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "algebrona.dev",
+            "certificate_hash": "4f62f4034f4fd88499616f8b23ba1b03e0ffc093"
+          }
+        },
+        {
+          "client_id": "508884989833-mojov37a7fc1s2qsh1lhklrveora623j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBHjnasZa6I0Fkw4Xf4Tbpmujjwg8pzVA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "508884989833-ajf6gv8q7m01s356g0un1is5tg2k69db.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

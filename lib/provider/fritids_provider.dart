@@ -20,6 +20,9 @@ class FritidsProvider with ChangeNotifier {
   String? _errorMessage;
   bool _registrationSuccess = false;
 
+  // Cache all students to avoid repeated fetching (like class cards do)
+  List<StudentModel>? _cachedAllStudents;
+
   // Getters
   FritidsGroup? get selectedGroup => _selectedGroup;
   PassType get selectedPassType => _selectedPassType;
@@ -78,17 +81,37 @@ class FritidsProvider with ChangeNotifier {
   }
 
   // Set selected group and load students
-  Future<void> selectGroup(FritidsGroup group) async {
+  void selectGroup(FritidsGroup group) {
     if (_selectedGroup == group) return;
+
+    print('🔵 selectGroup START: $group');
+    final stopwatch = Stopwatch()..start();
 
     _selectedGroup = group;
     _errorMessage = null;
-    notifyListeners();
+    _selectedStudents.clear(); // Clear selections when switching groups
+
+    print('⏱️ Time before notifyListeners: ${stopwatch.elapsedMilliseconds}ms');
+    notifyListeners(); // Update UI immediately (animation happens now)
+    print('⏱️ Time after notifyListeners: ${stopwatch.elapsedMilliseconds}ms');
+
+    // Fetch data in background - will notify once when both complete
+    _loadGroupData();
+  }
+
+  Future<void> _loadGroupData() async {
+    print('🔵 _loadGroupData START');
+    final stopwatch = Stopwatch()..start();
 
     await Future.wait([
       _fetchGroupStudents(),
       _fetchTodayRegistrations(),
     ]);
+
+    print('⏱️ Data loaded in: ${stopwatch.elapsedMilliseconds}ms');
+    // Final notify after all data loaded
+    notifyListeners();
+    print('⏱️ Final notify done in: ${stopwatch.elapsedMilliseconds}ms');
   }
 
   // Toggle pass type between FM and EM
@@ -106,35 +129,47 @@ class FritidsProvider with ChangeNotifier {
 
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
 
     try {
-      final fetchStudentsUseCase = InjectionContainer.fetchStudentsUseCase;
-      final result = await fetchStudentsUseCase(
-        const FetchStudentsParams(),
-      );
+      // Use cached students if available (like class cards do)
+      if (_cachedAllStudents == null) {
+        final fetchStudentsUseCase = InjectionContainer.fetchStudentsUseCase;
+        final result = await fetchStudentsUseCase(
+          const FetchStudentsParams(),
+        );
 
-      result.fold(
-        onSuccess: (allStudents) {
-          // Filter students by fritids group
-          _students = allStudents
-              .where((student) =>
-                  student.role == 'student' &&
-                  student.fritidsGroup == _selectedGroup)
-              .toList()
-            ..sort((a, b) => a.displayName.compareTo(b.displayName));
-        },
-        onFailure: (error) {
-          _errorMessage = 'Kunde inte hämta elever: ${error.message}';
-          _students = [];
-        },
-      );
+        result.fold(
+          onSuccess: (allStudents) {
+            _cachedAllStudents = allStudents;
+          },
+          onFailure: (error) {
+            _errorMessage = 'Kunde inte hämta elever: ${error.message}';
+            _students = [];
+            return;
+          },
+        );
+      }
+
+      // Filter from cache (instant, no network delay)
+      if (_cachedAllStudents != null) {
+        _students = _cachedAllStudents!
+            .where((student) =>
+                student.role == 'student' &&
+                student.fritidsGroup == _selectedGroup)
+            .toList()
+          ..sort((a, b) => a.displayName.compareTo(b.displayName));
+
+        // Limit to 20 students for fair comparison with class cards
+        if (_students.length > 20) {
+          _students = _students.take(20).toList();
+        }
+      }
     } catch (e) {
       _errorMessage = 'Ett oväntat fel uppstod: $e';
       _students = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      // Don't notify - parent will notify once after all loads complete
     }
   }
 
@@ -164,7 +199,7 @@ class FritidsProvider with ChangeNotifier {
       _todayRegistrations = [];
     }
 
-    notifyListeners();
+    // Don't notify here - parent selectGroup() will notify once after both complete
   }
 
   // Register a pass for a student
@@ -230,6 +265,9 @@ class FritidsProvider with ChangeNotifier {
   // Refresh both students and registrations
   Future<void> refresh() async {
     if (_selectedGroup == null) return;
+
+    // Clear cache to force fresh fetch
+    _cachedAllStudents = null;
 
     await Future.wait([
       _fetchGroupStudents(),
