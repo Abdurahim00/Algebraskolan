@@ -47,9 +47,11 @@ import '../../domain/usecases/student/search_students_usecase.dart';
 import '../../domain/usecases/coins/update_coins_usecase.dart';
 import '../../domain/usecases/coins/batch_update_coins_usecase.dart';
 import '../../domain/usecases/coins/fetch_transactions_usecase.dart';
+import '../../domain/usecases/coins/revert_batch_transaction_usecase.dart';
 
 // Use cases - Fritids
 import '../../domain/usecases/fritids/register_fritids_pass_usecase.dart';
+import '../../domain/usecases/fritids/revert_fritids_registration_usecase.dart';
 import '../../domain/usecases/fritids/get_today_fritids_registrations_usecase.dart';
 import '../../domain/usecases/fritids/get_registrations_by_period_usecase.dart';
 import '../../domain/usecases/fritids/get_fritids_statistics_usecase.dart';
@@ -61,16 +63,16 @@ final GetIt sl = GetIt.instance;
 Future<void> setupServiceLocator() async {
   // External dependencies
   _registerExternalDependencies();
-  
+
   // Repositories
   _registerRepositories();
-  
+
   // Services
   _registerServices();
-  
+
   // Use cases
   _registerUseCases();
-  
+
   // Providers
   _registerProviders();
 }
@@ -80,7 +82,8 @@ void _registerExternalDependencies() {
   sl.registerLazySingleton<FirebaseAuth>(() => FirebaseAuth.instance);
   sl.registerLazySingleton<FirebaseFirestore>(() => FirebaseFirestore.instance);
   sl.registerLazySingleton<GoogleSignIn>(() => GoogleSignIn());
-  sl.registerLazySingleton<FirebaseRemoteConfig>(() => FirebaseRemoteConfig.instance);
+  sl.registerLazySingleton<FirebaseRemoteConfig>(
+      () => FirebaseRemoteConfig.instance);
 }
 
 void _registerRepositories() {
@@ -92,21 +95,21 @@ void _registerRepositories() {
       firestore: sl<FirebaseFirestore>(),
     ),
   );
-  
+
   // Student Repository
   sl.registerLazySingleton<IStudentRepository>(
     () => FirestoreStudentRepository(
       firestore: sl<FirebaseFirestore>(),
     ),
   );
-  
+
   // Transaction Repository
   sl.registerLazySingleton<ITransactionRepository>(
     () => FirestoreTransactionRepository(
       firestore: sl<FirebaseFirestore>(),
     ),
   );
-  
+
   // User Repository
   sl.registerLazySingleton<IUserRepository>(
     () => FirestoreUserRepository(
@@ -127,19 +130,19 @@ void _registerServices() {
   sl.registerLazySingleton<StudentService>(
     () => StudentService(sl<FirebaseFirestore>()),
   );
-  
+
   sl.registerLazySingleton<TransactionService>(
     () => TransactionService(firestore: sl<FirebaseFirestore>()),
   );
-  
+
   sl.registerLazySingleton<UserAuthService>(
     () => UserAuthService(),
   );
-  
+
   sl.registerLazySingleton<CoinService>(
     () => CoinService(sl<FirebaseFirestore>()),
   );
-  
+
   // Sound Manager (Singleton)
   sl.registerLazySingleton<SoundManager>(
     () => SoundManager(),
@@ -151,17 +154,17 @@ void _registerProviders() {
   sl.registerLazySingleton<GoogleSignInProvider>(
     () => GoogleSignInProvider.instance,
   );
-  
+
   // Custom Auth Provider (Singleton)
   sl.registerLazySingleton<CustomAuthProvider>(
     () => CustomAuthProvider.instance,
   );
-  
+
   // Student Provider (Singleton - same instance throughout app lifecycle)
   sl.registerLazySingleton<StudentProvider>(
     () => StudentProvider(),
   );
-  
+
   // Transaction Provider (Factory)
   sl.registerFactory<TransactionProvider>(
     () => TransactionProvider(
@@ -169,12 +172,12 @@ void _registerProviders() {
       googleSignInProvider: sl<GoogleSignInProvider>(),
     ),
   );
-  
+
   // Question Provider (Factory)
   sl.registerFactory<QuestionProvider>(
     () => QuestionProvider(),
   );
-  
+
   // Connectivity Controller (Singleton)
   sl.registerLazySingleton<ConnectivityController>(
     () => ConnectivityController(),
@@ -190,7 +193,7 @@ void _registerUseCases() {
       sl<FirebaseRemoteConfig>(),
     ),
   );
-  
+
   sl.registerLazySingleton<RegisterUseCase>(
     () => RegisterUseCase(
       sl<IAuthRepository>(),
@@ -198,7 +201,7 @@ void _registerUseCases() {
       sl<FirebaseRemoteConfig>(),
     ),
   );
-  
+
   sl.registerLazySingleton<GoogleLoginUseCase>(
     () => GoogleLoginUseCase(
       sl<IAuthRepository>(),
@@ -206,20 +209,20 @@ void _registerUseCases() {
       sl<FirebaseRemoteConfig>(),
     ),
   );
-  
+
   sl.registerLazySingleton<LogoutUseCase>(
     () => LogoutUseCase(sl<IAuthRepository>()),
   );
-  
+
   // Student use cases
   sl.registerLazySingleton<FetchStudentsUseCase>(
     () => FetchStudentsUseCase(sl<IStudentRepository>()),
   );
-  
+
   sl.registerLazySingleton<SearchStudentsUseCase>(
     () => SearchStudentsUseCase(sl<IStudentRepository>()),
   );
-  
+
   // Coin transaction use cases
   sl.registerLazySingleton<UpdateCoinsUseCase>(
     () => UpdateCoinsUseCase(
@@ -228,25 +231,41 @@ void _registerUseCases() {
       sl<IAuthRepository>(),
     ),
   );
-  
+
   sl.registerLazySingleton<BatchUpdateCoinsUseCase>(
     () => BatchUpdateCoinsUseCase(
       sl<IStudentRepository>(),
       sl<ITransactionRepository>(),
     ),
   );
-  
+
   sl.registerLazySingleton<FetchTransactionsUseCase>(
     () => FetchTransactionsUseCase(sl<ITransactionRepository>()),
   );
-  
+
   sl.registerLazySingleton<GetTransactionStatsUseCase>(
     () => GetTransactionStatsUseCase(sl<ITransactionRepository>()),
+  );
+
+  sl.registerLazySingleton<RevertBatchTransactionUseCase>(
+    () => RevertBatchTransactionUseCase(sl<ITransactionRepository>()),
+  );
+
+  sl.registerLazySingleton<GetLastBatchTransactionUseCase>(
+    () => GetLastBatchTransactionUseCase(sl<ITransactionRepository>()),
   );
 
   // Fritids use cases
   sl.registerLazySingleton<RegisterFritidsPassUseCase>(
     () => RegisterFritidsPassUseCase(
+      sl<IFritidsRepository>(),
+      sl<IStudentRepository>(),
+      sl<IAuthRepository>(),
+    ),
+  );
+
+  sl.registerLazySingleton<RevertFritidsRegistrationUseCase>(
+    () => RevertFritidsRegistrationUseCase(
       sl<IFritidsRepository>(),
       sl<IStudentRepository>(),
       sl<IAuthRepository>(),

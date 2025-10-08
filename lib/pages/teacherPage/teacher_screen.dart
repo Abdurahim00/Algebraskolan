@@ -12,6 +12,9 @@ import '../../provider/student_provider.dart';
 import 'widget/student_card_list.dart';
 import '../searchPage/student_search.dart';
 import 'dart:math' as math;
+import '../../core/di/injection_container.dart';
+import '../../domain/usecases/coins/revert_batch_transaction_usecase.dart';
+import '../../widgets/revert_transaction_dialog.dart';
 
 const classesNr = [
   {"image": "number0.png", "name": "Klass 0", "number": 0},
@@ -44,6 +47,258 @@ class TeacherScreenState extends State<TeacherScreen> {
   int? selectedClass = 0;
   final GlobalKey<ScaffoldState> _scaffoldkey = GlobalKey<ScaffoldState>();
   final ValueNotifier<bool> refreshNotifier = ValueNotifier<bool>(false);
+
+  Future<void> _handleRevertTransaction() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // Get the last batch transaction
+      final getLastBatchUseCase =
+          InjectionContainer.getLastBatchTransactionUseCase;
+      final result = await getLastBatchUseCase(
+        GetLastBatchTransactionParams(teacherId: user.uid),
+      );
+
+      await result.fold(
+        onSuccess: (lastTransaction) async {
+          if (!mounted) return;
+
+          // Show the revert dialog
+          await showDialog(
+            context: context,
+            builder: (context) => RevertTransactionDialog(
+              lastTransaction: lastTransaction,
+              onConfirm: () async {
+                // Close the confirm dialog first
+                final navigatorContext = Navigator.of(context);
+                navigatorContext.pop();
+
+                if (lastTransaction?.id != null) {
+                  // Show loading indicator and save its context
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (loadingContext) => WillPopScope(
+                      onWillPop: () async => false,
+                      child: Center(
+                        child: Lottie.asset(
+                          "assets/images/Circle Loading.json",
+                          width: MediaQuery.of(context).size.width * 0.3,
+                        ),
+                      ),
+                    ),
+                  );
+
+                  // Revert the transaction
+                  final revertUseCase =
+                      InjectionContainer.revertBatchTransactionUseCase;
+                  final revertResult = await revertUseCase(
+                    RevertBatchTransactionParams(
+                      batchId: lastTransaction!.id,
+                      teacherId: user.uid,
+                    ),
+                  );
+
+                  // Close loading dialog using navigator
+                  if (mounted) navigatorContext.pop();
+
+                  if (mounted) {
+                    await revertResult.fold(
+                      onSuccess: (_) async {
+                        // Show success dialog with animation and text
+                        print('Showing success dialog...');
+                        showDialog(
+                          context: navigatorContext.context,
+                          barrierDismissible: false,
+                          builder: (successContext) => WillPopScope(
+                            onWillPop: () async => false,
+                            child: Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: GestureDetector(
+                                onTap: () {
+                                  print('Dialog tapped, closing...');
+                                  Navigator.of(successContext).pop();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        height: 150,
+                                        width: 150,
+                                        child: Lottie.asset(
+                                          "assets/images/checkmark (2).json",
+                                          repeat: false,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      const Text(
+                                        'Transaktionen har ångrats!',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        'Algebronorna har återställts',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        'Tryck för att stänga',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+
+                        // Close success dialog after animation
+                        print('Waiting 2.5 seconds before auto-close...');
+                        await Future.delayed(
+                            const Duration(milliseconds: 2500));
+                        print(
+                            'Attempting to close dialog... mounted: $mounted');
+                        if (mounted) {
+                          try {
+                            navigatorContext.pop();
+                            print('Dialog closed successfully');
+                          } catch (e) {
+                            print('Error closing dialog: $e');
+                          }
+                        }
+
+                        // Refresh students to show updated coins
+                        if (mounted) {
+                          context
+                              .read<StudentProvider>()
+                              .fetchStudents(selectedClass ?? 0);
+                        }
+                      },
+                      onFailure: (error) async {
+                        // Show error dialog with animation and text
+                        showDialog(
+                          context: navigatorContext.context,
+                          barrierDismissible: false,
+                          builder: (errorContext) => WillPopScope(
+                            onWillPop: () async => false,
+                            child: Dialog(
+                              backgroundColor: Colors.transparent,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(errorContext).pop();
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        height: 150,
+                                        width: 150,
+                                        child: Lottie.asset(
+                                          "assets/images/canceled.json",
+                                          repeat: false,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                      const Text(
+                                        'Något gick fel!',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.red,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        error.message,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black87,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        'Tryck för att stänga',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+
+                        // Close error dialog after animation
+                        await Future.delayed(
+                            const Duration(milliseconds: 2500));
+                        if (mounted) navigatorContext.pop();
+                      },
+                    );
+                  }
+                }
+              },
+            ),
+          );
+        },
+        onFailure: (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Fel: ${error.message}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ett oväntat fel uppstod: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
 
   double getScreenSizeInInches(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -94,7 +349,9 @@ class TeacherScreenState extends State<TeacherScreen> {
         context.watch<StudentProvider>(); // Access the StudentProvider
     return Scaffold(
       key: _scaffoldkey,
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(
+        onRevertTransaction: _handleRevertTransaction,
+      ),
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [

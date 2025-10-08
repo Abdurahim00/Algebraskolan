@@ -5,6 +5,7 @@ import '../../domain/repositories/i_auth_repository.dart';
 import '../../domain/repositories/i_student_repository.dart';
 import '../../domain/repositories/i_transaction_repository.dart';
 import '../../domain/repositories/i_user_repository.dart';
+import '../../domain/repositories/i_fritids_repository.dart';
 
 // Providers
 import '../../provider/google_sign_In.dart';
@@ -31,7 +32,9 @@ import '../../domain/usecases/student/search_students_usecase.dart';
 import '../../domain/usecases/coins/update_coins_usecase.dart';
 import '../../domain/usecases/coins/batch_update_coins_usecase.dart';
 import '../../domain/usecases/coins/fetch_transactions_usecase.dart';
+import '../../domain/usecases/coins/revert_batch_transaction_usecase.dart';
 import '../../domain/usecases/fritids/register_fritids_pass_usecase.dart';
+import '../../domain/usecases/fritids/revert_fritids_registration_usecase.dart';
 import '../../domain/usecases/fritids/get_today_fritids_registrations_usecase.dart';
 import '../../domain/usecases/fritids/get_registrations_by_period_usecase.dart';
 import '../../domain/usecases/fritids/get_fritids_statistics_usecase.dart';
@@ -40,56 +43,78 @@ import '../../domain/usecases/fritids/get_fritids_statistics_usecase.dart';
 /// This provides a cleaner API for accessing registered services
 class InjectionContainer {
   static final GetIt _sl = GetIt.instance;
-  
+
   // Repositories
   static IAuthRepository get authRepository => _sl<IAuthRepository>();
   static IStudentRepository get studentRepository => _sl<IStudentRepository>();
-  static ITransactionRepository get transactionRepository => _sl<ITransactionRepository>();
+  static ITransactionRepository get transactionRepository =>
+      _sl<ITransactionRepository>();
   static IUserRepository get userRepository => _sl<IUserRepository>();
-  
+  static IFritidsRepository get fritidsRepository => _sl<IFritidsRepository>();
+
   // Providers
-  static GoogleSignInProvider get googleSignInProvider => _sl<GoogleSignInProvider>();
+  static GoogleSignInProvider get googleSignInProvider =>
+      _sl<GoogleSignInProvider>();
   static CustomAuthProvider get customAuthProvider => _sl<CustomAuthProvider>();
   static StudentProvider get studentProvider => _sl<StudentProvider>();
-  static TransactionProvider get transactionProvider => _sl<TransactionProvider>();
+  static TransactionProvider get transactionProvider =>
+      _sl<TransactionProvider>();
   static QuestionProvider get questionProvider => _sl<QuestionProvider>();
-  static ConnectivityController get connectivityController => _sl<ConnectivityController>();
-  
+  static ConnectivityController get connectivityController =>
+      _sl<ConnectivityController>();
+
   // Services (Legacy)
   static StudentService get studentService => _sl<StudentService>();
   static TransactionService get transactionService => _sl<TransactionService>();
   static UserAuthService get authService => _sl<UserAuthService>();
   static CoinService get coinService => _sl<CoinService>();
   static SoundManager get soundManager => _sl<SoundManager>();
-  
+
   // Use Cases - Auth
   static LoginUseCase get loginUseCase => _sl<LoginUseCase>();
   static RegisterUseCase get registerUseCase => _sl<RegisterUseCase>();
   static GoogleLoginUseCase get googleLoginUseCase => _sl<GoogleLoginUseCase>();
   static LogoutUseCase get logoutUseCase => _sl<LogoutUseCase>();
-  
+
   // Use Cases - Student
-  static FetchStudentsUseCase get fetchStudentsUseCase => _sl<FetchStudentsUseCase>();
-  static SearchStudentsUseCase get searchStudentsUseCase => _sl<SearchStudentsUseCase>();
-  
+  static FetchStudentsUseCase get fetchStudentsUseCase =>
+      _sl<FetchStudentsUseCase>();
+  static SearchStudentsUseCase get searchStudentsUseCase =>
+      _sl<SearchStudentsUseCase>();
+
   // Use Cases - Coins
   static UpdateCoinsUseCase get updateCoinsUseCase => _sl<UpdateCoinsUseCase>();
-  static BatchUpdateCoinsUseCase get batchUpdateCoinsUseCase => _sl<BatchUpdateCoinsUseCase>();
-  static FetchTransactionsUseCase get fetchTransactionsUseCase => _sl<FetchTransactionsUseCase>();
-  static GetTransactionStatsUseCase get transactionStatsUseCase => _sl<GetTransactionStatsUseCase>();
+  static BatchUpdateCoinsUseCase get batchUpdateCoinsUseCase =>
+      _sl<BatchUpdateCoinsUseCase>();
+  static FetchTransactionsUseCase get fetchTransactionsUseCase =>
+      _sl<FetchTransactionsUseCase>();
+  static GetTransactionStatsUseCase get transactionStatsUseCase =>
+      _sl<GetTransactionStatsUseCase>();
+  static RevertBatchTransactionUseCase get revertBatchTransactionUseCase =>
+      _sl<RevertBatchTransactionUseCase>();
+  static GetLastBatchTransactionUseCase get getLastBatchTransactionUseCase =>
+      _sl<GetLastBatchTransactionUseCase>();
 
   // Use Cases - Fritids
-  static RegisterFritidsPassUseCase get registerFritidsPassUseCase => _sl<RegisterFritidsPassUseCase>();
-  static GetTodayFritidsRegistrationsUseCase get getTodayFritidsRegistrationsUseCase => _sl<GetTodayFritidsRegistrationsUseCase>();
-  static GetRegistrationsByPeriodUseCase get getRegistrationsByPeriodUseCase => _sl<GetRegistrationsByPeriodUseCase>();
-  static GetFritidsStatisticsUseCase get getFritidsStatisticsUseCase => _sl<GetFritidsStatisticsUseCase>();
+  static RegisterFritidsPassUseCase get registerFritidsPassUseCase =>
+      _sl<RegisterFritidsPassUseCase>();
+  static RevertFritidsRegistrationUseCase
+      get revertFritidsRegistrationUseCase =>
+          _sl<RevertFritidsRegistrationUseCase>();
+  static GetTodayFritidsRegistrationsUseCase
+      get getTodayFritidsRegistrationsUseCase =>
+          _sl<GetTodayFritidsRegistrationsUseCase>();
+  static GetRegistrationsByPeriodUseCase get getRegistrationsByPeriodUseCase =>
+      _sl<GetRegistrationsByPeriodUseCase>();
+  static GetFritidsStatisticsUseCase get getFritidsStatisticsUseCase =>
+      _sl<GetFritidsStatisticsUseCase>();
 
   // Generic getter for any registered type
   static T get<T extends Object>() => _sl<T>();
-  
+
   // Check if a type is registered
   static bool isRegistered<T extends Object>() => _sl.isRegistered<T>();
-  
+
   // Reset the container (useful for testing)
   static Future<void> reset() async => await _sl.reset();
 }

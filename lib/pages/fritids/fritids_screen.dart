@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:lottie/lottie.dart';
 import 'dart:math' as math;
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../provider/fritids_provider.dart';
 import '../../domain/models/fritids_group.dart';
 import '../../domain/models/pass_type.dart';
@@ -10,6 +12,10 @@ import '../../domain/models/student_model.dart';
 import '../teacherPage/widget/drawer.dart';
 import 'widgets/fritids_student_list.dart';
 import 'fritids_history_screen.dart';
+import '../../core/di/injection_container.dart';
+import '../../domain/usecases/fritids/revert_fritids_registration_usecase.dart';
+import '../../domain/usecases/fritids/get_today_fritids_registrations_usecase.dart';
+import '../../widgets/revert_fritids_dialog.dart';
 
 class FritidsScreen extends StatefulWidget {
   const FritidsScreen({super.key});
@@ -37,6 +43,257 @@ class _FritidsScreenState extends State<FritidsScreen> {
       Future.microtask(() {
         context.read<FritidsProvider>().selectGroup(FritidsGroup.solen);
       });
+    }
+  }
+
+  Future<void> _handleRevertTransaction() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    try {
+      // Get today's Fritids registrations
+      final getTodayRegistrationsUseCase =
+          InjectionContainer.getTodayFritidsRegistrationsUseCase;
+      final result = await getTodayRegistrationsUseCase(
+        const GetTodayFritidsRegistrationsParams(),
+      );
+
+      await result.fold(
+        onSuccess: (registrations) async {
+          if (!mounted) return;
+
+          // Filter out already reverted registrations
+          final activeRegistrations =
+              registrations.where((r) => !r.isReverted).toList();
+
+          // Show the revert dialog
+          await showDialog(
+            context: context,
+            builder: (context) => RevertFritidsDialog(
+              todayRegistrations: activeRegistrations,
+              onRevert: (registrationId) async {
+                await _revertSingleRegistration(registrationId);
+              },
+            ),
+          );
+        },
+        onFailure: (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Fel: ${error.message}'),
+                backgroundColor: Colors.red,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        },
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Ett oväntat fel uppstod: $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _revertSingleRegistration(String registrationId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    if (!mounted) return;
+
+    // Show loading indicator
+    final navigatorContext = Navigator.of(context);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (loadingContext) => WillPopScope(
+        onWillPop: () async => false,
+        child: Center(
+          child: Lottie.asset(
+            "assets/images/Circle Loading.json",
+            width: MediaQuery.of(context).size.width * 0.3,
+          ),
+        ),
+      ),
+    );
+
+    // Revert the registration
+    final revertUseCase = InjectionContainer.revertFritidsRegistrationUseCase;
+    final revertResult = await revertUseCase(
+      RevertFritidsRegistrationParams(registrationId: registrationId),
+    );
+
+    // Close loading dialog
+    if (mounted) navigatorContext.pop();
+
+    if (mounted) {
+      await revertResult.fold(
+        onSuccess: (_) async {
+          // Show success dialog with animation and text
+          print('Showing success dialog...');
+          showDialog(
+            context: navigatorContext.context,
+            barrierDismissible: false,
+            builder: (successContext) => WillPopScope(
+              onWillPop: () async => false,
+              child: Dialog(
+                backgroundColor: Colors.transparent,
+                child: GestureDetector(
+                  onTap: () {
+                    print('Dialog tapped, closing...');
+                    Navigator.of(successContext).pop();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 150,
+                          width: 150,
+                          child: Lottie.asset(
+                            "assets/images/checkmark (2).json",
+                            repeat: false,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Registreringen har ångrats!',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Eleven kan registreras igen\noch 1 algebrona har dragits av',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Tryck för att stänga',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          // Close success dialog after animation
+          print('Waiting 2.5 seconds before auto-close...');
+          await Future.delayed(const Duration(milliseconds: 2500));
+          print('Attempting to close dialog... mounted: $mounted');
+          if (mounted) {
+            try {
+              navigatorContext.pop();
+              print('Dialog closed successfully');
+            } catch (e) {
+              print('Error closing dialog: $e');
+            }
+          }
+
+          // Refresh the view to show unlocked student
+          if (mounted) {
+            context.read<FritidsProvider>().refresh();
+          }
+        },
+        onFailure: (error) async {
+          // Show error dialog with animation and text
+          showDialog(
+            context: navigatorContext.context,
+            barrierDismissible: false,
+            builder: (errorContext) => WillPopScope(
+              onWillPop: () async => false,
+              child: Dialog(
+                backgroundColor: Colors.transparent,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(errorContext).pop();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          height: 150,
+                          width: 150,
+                          child: Lottie.asset(
+                            "assets/images/canceled.json",
+                            repeat: false,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Något gick fel!',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          error.message,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 10),
+                        const Text(
+                          'Tryck för att stänga',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+
+          // Close error dialog after animation
+          await Future.delayed(const Duration(milliseconds: 2500));
+          if (mounted) navigatorContext.pop();
+        },
+      );
     }
   }
 
@@ -78,7 +335,9 @@ class _FritidsScreenState extends State<FritidsScreen> {
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: true,
-      drawer: const AppDrawer(),
+      drawer: AppDrawer(
+        onRevertTransaction: _handleRevertTransaction,
+      ),
       body: Stack(
         children: [
           // FM/EM selector (positioned like coin calculator)
@@ -106,7 +365,8 @@ class _FritidsScreenState extends State<FritidsScreen> {
                       builder: (_, selectedPassType, __) => _PassTypeButton(
                         label: 'FM',
                         isSelected: selectedPassType == PassType.fm,
-                        onTap: () => fritidsProvider.selectPassType(PassType.fm),
+                        onTap: () =>
+                            fritidsProvider.selectPassType(PassType.fm),
                         isLeft: true,
                       ),
                     ),
@@ -117,7 +377,8 @@ class _FritidsScreenState extends State<FritidsScreen> {
                       builder: (_, selectedPassType, __) => _PassTypeButton(
                         label: 'EM',
                         isSelected: selectedPassType == PassType.em,
-                        onTap: () => fritidsProvider.selectPassType(PassType.em),
+                        onTap: () =>
+                            fritidsProvider.selectPassType(PassType.em),
                         isLeft: false,
                       ),
                     ),
@@ -155,7 +416,8 @@ class _FritidsScreenState extends State<FritidsScreen> {
               backgroundColor: const Color.fromRGBO(245, 142, 11, 1),
               centerTitle: true,
               title: SizedBox(
-                width: _isTablet(context) ? screenWidth * 0.18 : screenWidth * 0.4,
+                width:
+                    _isTablet(context) ? screenWidth * 0.18 : screenWidth * 0.4,
                 child: Image.asset("assets/images/Algebraskolan4.png"),
               ),
               actions: [
@@ -236,10 +498,15 @@ class _FritidsScreenState extends State<FritidsScreen> {
             },
           ),
           // Bekräfta button with smooth animations
-          Selector<FritidsProvider, ({List<StudentModel> selected, bool isRegistering})>(
-            selector: (_, provider) => (selected: provider.selectedStudents, isRegistering: provider.isRegistering),
+          Selector<FritidsProvider,
+              ({List<StudentModel> selected, bool isRegistering})>(
+            selector: (_, provider) => (
+              selected: provider.selectedStudents,
+              isRegistering: provider.isRegistering
+            ),
             builder: (_, data, __) {
-              if (data.selected.isEmpty || data.isRegistering) return const SizedBox.shrink();
+              if (data.selected.isEmpty || data.isRegistering)
+                return const SizedBox.shrink();
               return Positioned(
                 top: screenHeight * 0.22 - 50,
                 left: 0,
@@ -247,55 +514,58 @@ class _FritidsScreenState extends State<FritidsScreen> {
                 child: Center(
                   child: _BekraftaButton(
                     onPressed: () async {
-                    // Haptic feedback for important action
-                    HapticFeedback.mediumImpact();
-                    final success = await fritidsProvider.registerSelectedStudents();
-                    if (success && context.mounted) {
-                      // Show success animation with overlay
-                      showDialog(
-                        context: context,
-                        barrierColor: Colors.black.withOpacity(0.3),
-                        barrierDismissible: false,
-                        builder: (context) {
-                          Future.delayed(const Duration(milliseconds: 1500), () {
-                            if (context.mounted) Navigator.of(context).pop();
-                          });
-                          return Center(
-                            child: TweenAnimationBuilder<double>(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.elasticOut,
-                              tween: Tween(begin: 0.0, end: 1.0),
-                              builder: (context, value, child) {
-                                return Transform.scale(
-                                  scale: value,
-                                  child: Container(
-                                    width: 200,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.green.withOpacity(0.5),
-                                          blurRadius: 30,
-                                          spreadRadius: 10,
-                                        ),
-                                      ],
+                      // Haptic feedback for important action
+                      HapticFeedback.mediumImpact();
+                      final success =
+                          await fritidsProvider.registerSelectedStudents();
+                      if (success && context.mounted) {
+                        // Show success animation with overlay
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black.withOpacity(0.3),
+                          barrierDismissible: false,
+                          builder: (context) {
+                            Future.delayed(const Duration(milliseconds: 1500),
+                                () {
+                              if (context.mounted) Navigator.of(context).pop();
+                            });
+                            return Center(
+                              child: TweenAnimationBuilder<double>(
+                                duration: const Duration(milliseconds: 500),
+                                curve: Curves.elasticOut,
+                                tween: Tween(begin: 0.0, end: 1.0),
+                                builder: (context, value, child) {
+                                  return Transform.scale(
+                                    scale: value,
+                                    child: Container(
+                                      width: 200,
+                                      height: 200,
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            blurRadius: 30,
+                                            spreadRadius: 10,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.check,
+                                        size: 100,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                    child: const Icon(
-                                      Icons.check,
-                                      size: 100,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  },
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    },
                   ),
                 ),
               );
@@ -449,69 +719,70 @@ class _GroupCardsWidgetState extends State<_GroupCardsWidget> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: groupCards
-              .map((groupData) => GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedGroup = groupData["group"] as FritidsGroup;
-                      });
-                      widget.onGroupSelected(groupData["group"] as FritidsGroup);
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      margin: EdgeInsets.only(
-                        right: 10.0,
-                        top: selectedGroup == groupData['group'] ? 10 : 0,
-                      ),
-                      width: cardWidth,
-                      height: cardHeight,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30.0),
-                        boxShadow: selectedGroup == groupData['group']
-                            ? [
-                                BoxShadow(
-                                  color: Colors.blue.shade100,
-                                  offset: const Offset(0, 2),
-                                  blurRadius: 10.0,
-                                  spreadRadius: 5.0,
+                .map((groupData) => GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedGroup = groupData["group"] as FritidsGroup;
+                        });
+                        widget.onGroupSelected(
+                            groupData["group"] as FritidsGroup);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: EdgeInsets.only(
+                          right: 10.0,
+                          top: selectedGroup == groupData['group'] ? 10 : 0,
+                        ),
+                        width: cardWidth,
+                        height: cardHeight,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(30.0),
+                          boxShadow: selectedGroup == groupData['group']
+                              ? [
+                                  BoxShadow(
+                                    color: Colors.blue.shade100,
+                                    offset: const Offset(0, 2),
+                                    blurRadius: 10.0,
+                                    spreadRadius: 5.0,
+                                  ),
+                                ]
+                              : const [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    offset: Offset(0, 2),
+                                    blurRadius: 6.0,
+                                  ),
+                                ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                groupData['icon'] as String,
+                                style: TextStyle(
+                                  fontSize: cardWidth * 0.4,
                                 ),
-                              ]
-                            : const [
-                                BoxShadow(
-                                  color: Colors.black12,
-                                  offset: Offset(0, 2),
-                                  blurRadius: 6.0,
-                                ),
-                              ],
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              groupData['icon'] as String,
-                              style: TextStyle(
-                                fontSize: cardWidth * 0.4,
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Flexible(
-                              child: AutoSizeText(
-                                "${groupData["name"]}",
-                                style: const TextStyle(
-                                  fontFamily: 'montserrat',
-                                  fontWeight: FontWeight.bold,
+                              const SizedBox(height: 10),
+                              Flexible(
+                                child: AutoSizeText(
+                                  "${groupData["name"]}",
+                                  style: const TextStyle(
+                                    fontFamily: 'montserrat',
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ))
-              .toList(),
+                    ))
+                .toList(),
           ),
         ),
       ),
@@ -562,9 +833,12 @@ class _PassTypeButtonState extends State<_PassTypeButton> {
                 : Colors.white,
             borderRadius: BorderRadius.only(
               topLeft: widget.isLeft ? const Radius.circular(30) : Radius.zero,
-              bottomLeft: widget.isLeft ? const Radius.circular(30) : Radius.zero,
-              topRight: !widget.isLeft ? const Radius.circular(30) : Radius.zero,
-              bottomRight: !widget.isLeft ? const Radius.circular(30) : Radius.zero,
+              bottomLeft:
+                  widget.isLeft ? const Radius.circular(30) : Radius.zero,
+              topRight:
+                  !widget.isLeft ? const Radius.circular(30) : Radius.zero,
+              bottomRight:
+                  !widget.isLeft ? const Radius.circular(30) : Radius.zero,
             ),
           ),
           child: Center(

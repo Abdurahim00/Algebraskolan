@@ -12,6 +12,7 @@ import 'package:algebra/provider/transaction_provider.dart';
 import 'package:algebra/provider/connectivity_provider.dart';
 import 'package:algebra/provider/fritids_provider.dart';
 import 'package:algebra/provider/fritids_history_provider.dart';
+import 'package:algebra/provider/fritids_attendance_provider.dart';
 import 'package:algebra/other/splash_screen.dart';
 import 'package:algebra/other/network_alert.dart';
 import 'package:algebra/pages/fritids/fritids_screen.dart';
@@ -50,10 +51,10 @@ void main() async {
     persistenceEnabled: true,
     cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
-  
+
   // Initialize dependency injection
   await setupServiceLocator();
-  
+
   await setupRemoteConfig(); // Fetch and activate remote config with quick settings
 
   // Get instances from service locator
@@ -118,6 +119,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (context) => FritidsProvider()),
         ChangeNotifierProvider(create: (context) => FritidsHistoryProvider()),
+        ChangeNotifierProvider(
+            create: (context) => FritidsAttendanceProvider()),
         ChangeNotifierProvider.value(value: connectivityController),
       ],
       child: MaterialApp(
@@ -150,7 +153,8 @@ class MyApp extends StatelessWidget {
           return PageRouteBuilder(
             settings: settings,
             pageBuilder: (context, animation, secondaryAnimation) => page,
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.easeInOut;
