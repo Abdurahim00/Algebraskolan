@@ -74,7 +74,8 @@ class RegisterFritidsPassUseCase
       if (student.fritidsGroup != params.group) {
         return Failure(
           ValidationError(
-            message: 'Studenten tillhör inte gruppen ${params.group.displayName}',
+            message:
+                'Studenten tillhör inte gruppen ${params.group.displayName}',
             code: 'INVALID_GROUP',
           ),
         );
@@ -116,13 +117,16 @@ class RegisterFritidsPassUseCase
       );
 
       // Register the pass
-      final registrationId = await _fritidsRepository.registerPass(registration);
+      final registrationId =
+          await _fritidsRepository.registerPass(registration);
+      print('🎯 Registration saved with ID: $registrationId');
 
       // Update student coins
       await _studentRepository.updateStudentCoins(
         uid: params.studentId,
         coinChange: 1, // Award 1 Algebrona per pass
       );
+      print('💰 Updated coins for student: ${params.studentId}');
 
       return Success(registrationId);
     } catch (e, stackTrace) {

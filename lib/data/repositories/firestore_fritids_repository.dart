@@ -23,7 +23,8 @@ class FirestoreFritidsRepository implements IFritidsRepository {
   @override
   Future<String> registerPass(FritidsPassRegistrationModel registration) async {
     try {
-      print('FirestoreFritidsRepository: Registering pass for ${registration.studentName}');
+      print(
+          'FirestoreFritidsRepository: Registering pass for ${registration.studentName}');
 
       // Check if already registered
       final alreadyRegistered = await hasRegisteredToday(
@@ -41,7 +42,9 @@ class FirestoreFritidsRepository implements IFritidsRepository {
           .collection(_collectionName)
           .add(registration.toMap());
 
-      print('FirestoreFritidsRepository: Pass registered with ID: ${docRef.id}');
+      print(
+          'FirestoreFritidsRepository: Pass registered with ID: ${docRef.id}');
+      print('📝 Registration data: ${registration.toMap()}');
       return docRef.id;
     } catch (e) {
       print('FirestoreFritidsRepository - registerPass error: $e');
@@ -50,10 +53,12 @@ class FirestoreFritidsRepository implements IFritidsRepository {
   }
 
   @override
-  Future<List<FritidsPassRegistrationModel>> getRegistrationsByDate(DateTime date) async {
+  Future<List<FritidsPassRegistrationModel>> getRegistrationsByDate(
+      DateTime date) async {
     try {
       final normalizedDate = _normalizeDate(date);
-      print('FirestoreFritidsRepository: Querying registrations for date: $normalizedDate (${normalizedDate.millisecondsSinceEpoch})');
+      print(
+          'FirestoreFritidsRepository: Querying registrations for date: $normalizedDate (${normalizedDate.millisecondsSinceEpoch})');
 
       // Query without orderBy to avoid needing composite index while it's building
       // We'll sort in memory instead
@@ -63,11 +68,13 @@ class FirestoreFritidsRepository implements IFritidsRepository {
           .where('isReverted', isEqualTo: false)
           .get();
 
-      print('FirestoreFritidsRepository: Found ${snapshot.docs.length} registrations for $normalizedDate');
+      print(
+          'FirestoreFritidsRepository: Found ${snapshot.docs.length} registrations for $normalizedDate');
 
       // Convert to models and sort by timestamp in memory
       final registrations = snapshot.docs
-          .map((doc) => FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
+          .map((doc) =>
+              FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
           .toList();
 
       // Sort by timestamp descending (newest first)
@@ -85,6 +92,11 @@ class FirestoreFritidsRepository implements IFritidsRepository {
       FritidsGroup group) async {
     try {
       final today = _normalizeDate(DateTime.now());
+      print('🔍 Querying registrations for:');
+      print('  - Date: $today (${today.millisecondsSinceEpoch})');
+      print('  - Group: ${group.toValue()}');
+      print('  - Collection: $_collectionName');
+
       final snapshot = await _firestore
           .collection(_collectionName)
           .where('date', isEqualTo: today.millisecondsSinceEpoch)
@@ -93,17 +105,25 @@ class FirestoreFritidsRepository implements IFritidsRepository {
           .orderBy('timestamp', descending: true)
           .get();
 
+      print('🔍 Found ${snapshot.docs.length} registrations in database');
+      for (final doc in snapshot.docs) {
+        print('  - Doc ${doc.id}: ${doc.data()}');
+      }
+
       return snapshot.docs
-          .map((doc) => FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
+          .map((doc) =>
+              FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
           .toList();
     } catch (e) {
-      print('FirestoreFritidsRepository - getTodayRegistrationsByGroup error: $e');
+      print(
+          'FirestoreFritidsRepository - getTodayRegistrationsByGroup error: $e');
       return [];
     }
   }
 
   @override
-  Future<List<FritidsPassRegistrationModel>> getTodayRegistrationsByGroupAndPass(
+  Future<List<FritidsPassRegistrationModel>>
+      getTodayRegistrationsByGroupAndPass(
     FritidsGroup group,
     PassType passType,
   ) async {
@@ -119,10 +139,12 @@ class FirestoreFritidsRepository implements IFritidsRepository {
           .get();
 
       return snapshot.docs
-          .map((doc) => FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
+          .map((doc) =>
+              FritidsPassRegistrationModel.fromMap(doc.data(), id: doc.id))
           .toList();
     } catch (e) {
-      print('FirestoreFritidsRepository - getTodayRegistrationsByGroupAndPass error: $e');
+      print(
+          'FirestoreFritidsRepository - getTodayRegistrationsByGroupAndPass error: $e');
       return [];
     }
   }
@@ -180,7 +202,9 @@ class FirestoreFritidsRepository implements IFritidsRepository {
       final snapshot = await query.orderBy('date', descending: true).get();
 
       return snapshot.docs
-          .map((doc) => FritidsPassRegistrationModel.fromMap(doc.data() as Map<String, dynamic>, id: doc.id))
+          .map((doc) => FritidsPassRegistrationModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              id: doc.id))
           .toList();
     } catch (e) {
       print('FirestoreFritidsRepository - getStudentRegistrations error: $e');
@@ -191,7 +215,8 @@ class FirestoreFritidsRepository implements IFritidsRepository {
   @override
   Future<bool> revertRegistration(String registrationId, String staffId) async {
     try {
-      print('FirestoreFritidsRepository: Reverting registration $registrationId');
+      print(
+          'FirestoreFritidsRepository: Reverting registration $registrationId');
 
       final docRef = _firestore.collection(_collectionName).doc(registrationId);
       final doc = await docRef.get();
@@ -226,7 +251,8 @@ class FirestoreFritidsRepository implements IFritidsRepository {
   }
 
   @override
-  Future<FritidsPassRegistrationModel?> getRegistrationById(String registrationId) async {
+  Future<FritidsPassRegistrationModel?> getRegistrationById(
+      String registrationId) async {
     try {
       final doc = await _firestore
           .collection(_collectionName)
@@ -245,7 +271,8 @@ class FirestoreFritidsRepository implements IFritidsRepository {
   }
 
   @override
-  Future<FritidsPassRegistrationModel?> getLastRegistrationByStaff(String staffId) async {
+  Future<FritidsPassRegistrationModel?> getLastRegistrationByStaff(
+      String staffId) async {
     try {
       final snapshot = await _firestore
           .collection(_collectionName)
@@ -264,7 +291,8 @@ class FirestoreFritidsRepository implements IFritidsRepository {
         id: snapshot.docs.first.id,
       );
     } catch (e) {
-      print('FirestoreFritidsRepository - getLastRegistrationByStaff error: $e');
+      print(
+          'FirestoreFritidsRepository - getLastRegistrationByStaff error: $e');
       return null;
     }
   }

@@ -28,7 +28,8 @@ class FritidsProvider with ChangeNotifier {
   PassType get selectedPassType => _selectedPassType;
   List<StudentModel> get students => [..._students];
   List<StudentModel> get selectedStudents => [..._selectedStudents];
-  List<FritidsPassRegistrationModel> get todayRegistrations => [..._todayRegistrations];
+  List<FritidsPassRegistrationModel> get todayRegistrations =>
+      [..._todayRegistrations];
   bool get isLoading => _isLoading;
   bool get isRegistering => _isRegistering;
   String? get errorMessage => _errorMessage;
@@ -188,6 +189,8 @@ class FritidsProvider with ChangeNotifier {
       result.fold(
         onSuccess: (registrations) {
           _todayRegistrations = registrations;
+          print(
+              '🔄 Updated _todayRegistrations: ${registrations.length} registrations');
         },
         onFailure: (error) {
           print('Error fetching today\'s registrations: ${error.message}');
@@ -238,7 +241,7 @@ class FritidsProvider with ChangeNotifier {
           // Refresh today's registrations to update UI
           await _fetchTodayRegistrations();
           _registrationSuccess = true;
-          notifyListeners();
+          notifyListeners(); // This will update the UI to show green cards
 
           // Reset success flag after a delay
           Future.delayed(const Duration(seconds: 2), () {
@@ -328,13 +331,13 @@ class FritidsProvider with ChangeNotifier {
       final registerUseCase = InjectionContainer.registerFritidsPassUseCase;
       final results = await Future.wait(
         _selectedStudents.map((student) => registerUseCase(
-          RegisterFritidsPassParams(
-            studentId: student.uid,
-            studentName: student.displayName,
-            group: _selectedGroup!,
-            passType: _selectedPassType,
-          ),
-        )),
+              RegisterFritidsPassParams(
+                studentId: student.uid,
+                studentName: student.displayName,
+                group: _selectedGroup!,
+                passType: _selectedPassType,
+              ),
+            )),
       );
 
       // Count successes and failures

@@ -8,6 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../provider/google_sign_In.dart';
 import '../../../provider/student_provider.dart';
+import '../../admin_menu.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback? onRevertTransaction;
@@ -16,7 +17,6 @@ class AppDrawer extends StatelessWidget {
     super.key,
     this.onRevertTransaction,
   });
-
 
   void _handleDeleteRequest(BuildContext context) {
     showDialog(
@@ -189,6 +189,21 @@ class AppDrawer extends StatelessWidget {
           const Divider(thickness: 1, height: 1),
           const SizedBox(height: 8),
           _DrawerItem(
+            icon: Icons.admin_panel_settings,
+            title: 'Admin Menu',
+            iconColor: Colors.red,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AdminMenu(),
+                ),
+              );
+            },
+          ),
+          _DrawerItem(
             icon: Icons.undo,
             title: 'Återställ felaktiga algebrona-utdelningar',
             iconColor: Colors.orange,
@@ -354,7 +369,8 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
+  Widget _buildSection(
+      {required String title, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

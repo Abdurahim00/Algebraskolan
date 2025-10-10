@@ -8,7 +8,7 @@ import '../../domain/models/batch_transaction_model.dart';
 @LazySingleton(as: ITransactionRepository)
 class FirestoreTransactionRepository implements ITransactionRepository {
   final FirebaseFirestore _firestore;
-  
+
   FirestoreTransactionRepository({
     FirebaseFirestore? firestore,
   }) : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -21,7 +21,7 @@ class FirestoreTransactionRepository implements ITransactionRepository {
     try {
       final transactionMap = transaction.toMap();
       transactionMap['timestamp'] = FieldValue.serverTimestamp();
-      
+
       await _firestore
           .collection('students')
           .doc(studentId)
@@ -34,7 +34,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   }
 
   @override
-  Future<List<CoinTransactionModel>> fetchAllTransactions(String studentId) async {
+  Future<List<CoinTransactionModel>> fetchAllTransactions(
+      String studentId) async {
     if (studentId.isEmpty) {
       return [];
     }
@@ -76,11 +77,12 @@ class FirestoreTransactionRepository implements ITransactionRepository {
       }
 
       return CoinTransactionModel.fromMap(
-        snapshot.docs.first.data(), 
+        snapshot.docs.first.data(),
         id: snapshot.docs.first.id,
       );
     } catch (e) {
-      print('FirestoreTransactionRepository - fetchLatestTransaction error: $e');
+      print(
+          'FirestoreTransactionRepository - fetchLatestTransaction error: $e');
       return null;
     }
   }
@@ -111,7 +113,7 @@ class FirestoreTransactionRepository implements ITransactionRepository {
             .collection('transactions')
             .doc(lastTransaction.id)
             .get();
-        
+
         if (lastDoc.exists) {
           query = query.startAfterDocument(lastDoc);
         }
@@ -120,10 +122,13 @@ class FirestoreTransactionRepository implements ITransactionRepository {
       final snapshot = await query.get();
 
       return snapshot.docs
-          .map((doc) => CoinTransactionModel.fromMap(doc.data() as Map<String, dynamic>, id: doc.id))
+          .map((doc) => CoinTransactionModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              id: doc.id))
           .toList();
     } catch (e) {
-      print('FirestoreTransactionRepository - fetchTransactionsPaginated error: $e');
+      print(
+          'FirestoreTransactionRepository - fetchTransactionsPaginated error: $e');
       return [];
     }
   }
@@ -162,17 +167,17 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   }) async {
     try {
       WriteBatch batch = _firestore.batch();
-      
+
       for (var entry in studentCoinsUpdates.entries) {
         final studentId = entry.key;
         final coins = entry.value;
-        
+
         final docRef = _firestore
             .collection('students')
             .doc(studentId)
             .collection('transactions')
             .doc(); // Generate a new document ID
-        
+
         batch.set(docRef, {
           'teacherName': teacherName,
           'amount': coins,
@@ -180,7 +185,7 @@ class FirestoreTransactionRepository implements ITransactionRepository {
           'type': coins >= 0 ? 'earn' : 'spend',
         });
       }
-      
+
       await batch.commit();
     } catch (e) {
       print('FirestoreTransactionRepository - batchLogTransactions error: $e');
@@ -209,17 +214,17 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   Future<void> deleteAllTransactions(String studentId) async {
     try {
       final batch = _firestore.batch();
-      
+
       final snapshot = await _firestore
           .collection('students')
           .doc(studentId)
           .collection('transactions')
           .get();
-      
+
       for (final doc in snapshot.docs) {
         batch.delete(doc.reference);
       }
-      
+
       await batch.commit();
       print('All transactions deleted for student: $studentId');
     } catch (e) {
@@ -241,10 +246,10 @@ class FirestoreTransactionRepository implements ITransactionRepository {
 
     try {
       final transactions = await fetchAllTransactions(studentId);
-      
+
       int totalEarned = 0;
       int totalSpent = 0;
-      
+
       for (final transaction in transactions) {
         if (transaction.amount > 0) {
           totalEarned += transaction.amount;
@@ -252,14 +257,14 @@ class FirestoreTransactionRepository implements ITransactionRepository {
           totalSpent += transaction.amount.abs();
         }
       }
-      
+
       return {
         'totalEarned': totalEarned,
         'totalSpent': totalSpent,
         'netBalance': totalEarned - totalSpent,
         'transactionCount': transactions.length,
-        'averageTransaction': transactions.isNotEmpty 
-            ? (totalEarned - totalSpent) / transactions.length 
+        'averageTransaction': transactions.isNotEmpty
+            ? (totalEarned - totalSpent) / transactions.length
             : 0,
       };
     } catch (e) {
@@ -276,13 +281,13 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   @override
   Future<String> saveBatchTransaction(BatchTransactionModel batch) async {
     try {
-      print('FirestoreTransactionRepository: Saving batch transaction for teacher ${batch.teacherId}');
+      print(
+          'FirestoreTransactionRepository: Saving batch transaction for teacher ${batch.teacherId}');
       final map = batch.toMap();
       print('FirestoreTransactionRepository: Batch data: $map');
-      final docRef = await _firestore
-          .collection('batchTransactions')
-          .add(map);
-      print('FirestoreTransactionRepository: Batch saved with ID: ${docRef.id}');
+      final docRef = await _firestore.collection('batchTransactions').add(map);
+      print(
+          'FirestoreTransactionRepository: Batch saved with ID: ${docRef.id}');
       return docRef.id;
     } catch (e) {
       print('FirestoreTransactionRepository - saveBatchTransaction error: $e');
@@ -291,9 +296,11 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   }
 
   @override
-  Future<BatchTransactionModel?> getLastBatchTransaction(String teacherId) async {
+  Future<BatchTransactionModel?> getLastBatchTransaction(
+      String teacherId) async {
     try {
-      print('FirestoreTransactionRepository: Getting last batch for teacher: $teacherId');
+      print(
+          'FirestoreTransactionRepository: Getting last batch for teacher: $teacherId');
       final snapshot = await _firestore
           .collection('batchTransactions')
           .where('teacherId', isEqualTo: teacherId)
@@ -302,7 +309,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
           .limit(1)
           .get();
 
-      print('FirestoreTransactionRepository: Found ${snapshot.docs.length} batch transactions');
+      print(
+          'FirestoreTransactionRepository: Found ${snapshot.docs.length} batch transactions');
 
       if (snapshot.docs.isEmpty) {
         print('FirestoreTransactionRepository: No batch transactions found');
@@ -317,7 +325,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
         id: snapshot.docs.first.id,
       );
     } catch (e) {
-      print('FirestoreTransactionRepository - getLastBatchTransaction error: $e');
+      print(
+          'FirestoreTransactionRepository - getLastBatchTransaction error: $e');
       return null;
     }
   }
@@ -325,13 +334,12 @@ class FirestoreTransactionRepository implements ITransactionRepository {
   @override
   Future<bool> revertBatchTransaction(String batchId, String teacherId) async {
     try {
-      print('FirestoreTransactionRepository: Reverting batch $batchId for teacher $teacherId');
+      print(
+          'FirestoreTransactionRepository: Reverting batch $batchId for teacher $teacherId');
 
       // Get the batch transaction
-      final batchDoc = await _firestore
-          .collection('batchTransactions')
-          .doc(batchId)
-          .get();
+      final batchDoc =
+          await _firestore.collection('batchTransactions').doc(batchId).get();
 
       if (!batchDoc.exists) {
         print('FirestoreTransactionRepository: Batch document does not exist');
@@ -343,7 +351,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
         id: batchDoc.id,
       );
 
-      print('FirestoreTransactionRepository: Batch found - isReverted: ${batch.isReverted}, students: ${batch.studentTransactions.length}');
+      print(
+          'FirestoreTransactionRepository: Batch found - isReverted: ${batch.isReverted}, students: ${batch.studentTransactions.length}');
 
       // Check if already reverted
       if (batch.isReverted) {
@@ -356,9 +365,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
 
       // Revert coins for each student
       for (final studentTransaction in batch.studentTransactions) {
-        final studentRef = _firestore
-            .collection('users')
-            .doc(studentTransaction.studentId);
+        final studentRef =
+            _firestore.collection('users').doc(studentTransaction.studentId);
 
         // Update student coins back to previous amount
         writeBatch.update(studentRef, {
@@ -394,7 +402,8 @@ class FirestoreTransactionRepository implements ITransactionRepository {
       print('FirestoreTransactionRepository: Revert successful');
       return true;
     } catch (e, stackTrace) {
-      print('FirestoreTransactionRepository - revertBatchTransaction error: $e');
+      print(
+          'FirestoreTransactionRepository - revertBatchTransaction error: $e');
       print('Stack trace: $stackTrace');
       return false;
     }

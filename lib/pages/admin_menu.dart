@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:algebra/pages/admin/seed_database_screen.dart';
+import 'package:algebra/pages/admin/assign_fritids_screen.dart';
+import 'package:algebra/pages/admin/manage_fake_students_screen.dart';
+import 'package:algebra/utils/setup_fritids_collections.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdminMenu extends StatelessWidget {
@@ -21,7 +24,10 @@ class AdminMenu extends StatelessWidget {
       await firestore.collection('users').doc('teacher_listor_dev').delete();
 
       // 2. Update the real Google user to be a teacher
-      await firestore.collection('users').doc('XTutGYZ3GRSCCIQLekQFa8SxgnM2').update({
+      await firestore
+          .collection('users')
+          .doc('XTutGYZ3GRSCCIQLekQFa8SxgnM2')
+          .update({
         'role': 'teacher',
         'classNumber': -1,
         'coins': 9999,
@@ -42,7 +48,8 @@ class AdminMenu extends StatelessWidget {
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('✅ User fixed! listor@algebrautbildning.se is now a teacher'),
+          content: Text(
+              '✅ User fixed! listor@algebrautbildning.se is now a teacher'),
           backgroundColor: Colors.green,
         ),
       );
@@ -85,7 +92,8 @@ class AdminMenu extends StatelessWidget {
               icon: const Icon(Icons.storage),
               label: const Text('Seed Database'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 backgroundColor: Colors.orange,
               ),
             ),
@@ -95,8 +103,87 @@ class AdminMenu extends StatelessWidget {
               icon: const Icon(Icons.build),
               label: const Text('Fix Listor User'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 backgroundColor: Colors.blue,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () async {
+                // Show loading dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+
+                try {
+                  final result = await setupFritidsCollections();
+                  Navigator.pop(context); // Close loading dialog
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(result['message']),
+                      backgroundColor:
+                          result['success'] ? Colors.green : Colors.red,
+                      duration: const Duration(seconds: 5),
+                    ),
+                  );
+                } catch (e) {
+                  Navigator.pop(context); // Close loading dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              icon: const Icon(Icons.build),
+              label: const Text('Test Fritids Collections'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                backgroundColor: Colors.orange,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ManageFakeStudentsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.person_add),
+              label: const Text('Manage Fake Students'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                backgroundColor: Colors.purple,
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AssignFritidsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.groups),
+              label: const Text('Assign Fritids Groups'),
+              style: ElevatedButton.styleFrom(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                backgroundColor: Colors.green,
               ),
             ),
           ],

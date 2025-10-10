@@ -111,6 +111,12 @@ class _FritidsAttendanceViewState extends State<FritidsAttendanceView> {
       await Share.shareXFiles(
         [XFile(path)],
         subject: 'Fritids Närvaro - ${dateFormat.format(_selectedDate)}',
+        sharePositionOrigin: Rect.fromLTWH(
+          0,
+          0,
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height * 0.5,
+        ),
       );
 
       if (mounted) {
