@@ -1,4 +1,8 @@
 #include "Pods/Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"
 #include "Generated.xcconfig"
 
+// Force Info.plist path for all configurations (absolute path)
+INFOPLIST_FILE = $(SRCROOT)/Runner/Info.plist
+GENERATE_INFOPLIST_FILE = NO
+
 // Add any additional custom build settings for your release configuration here

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../scripts/assign_students_to_fritids.dart';
 import '../../utils/quick_assign_fritids.dart';
 
 class AssignFritidsScreen extends StatefulWidget {
@@ -42,75 +41,6 @@ class _AssignFritidsScreenState extends State<AssignFritidsScreen> {
     }
   }
 
-  Future<void> _assignStudents() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'Tilldelar elever till fritidsgrupper...';
-    });
-
-    try {
-      await assignStudentsToFritids();
-      setState(() {
-        _statusMessage = 'Klart! Alla elever har tilldelats till Solen eller Havet.';
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Fel: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _assignByClass() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'Tilldelar elever baserat på klass...';
-    });
-
-    try {
-      // Example: Assign classes 0-4 to Solen, 5-9 to Havet
-      await assignStudentsByClass(
-        solenClasses: [0, 1, 2, 3, 4],
-        havetClasses: [5, 6, 7, 8, 9],
-      );
-      setState(() {
-        _statusMessage = 'Klart! Klass 0-4 → Solen, Klass 5-9 → Havet';
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Fel: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _clearAssignments() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = 'Rensar alla fritidstilldelningar...';
-    });
-
-    try {
-      await clearFritidsAssignments();
-      setState(() {
-        _statusMessage = 'Klart! Alla fritidstilldelningar har rensats.';
-      });
-    } catch (e) {
-      setState(() {
-        _statusMessage = 'Fel: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -152,94 +82,6 @@ class _AssignFritidsScreenState extends State<AssignFritidsScreen> {
                       label: const Text('Snabbtilldela 20 elever'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Option 1: Split evenly
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '☀️ Alternativ 1: Dela jämnt',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Tilldelar hälften av eleverna till Solen och hälften till Havet.'),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _assignStudents,
-                      icon: const Icon(Icons.people),
-                      label: const Text('Tilldela jämnt'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.orange,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Option 2: By class
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '🌊 Alternativ 2: Baserat på klass',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Klass 0-4 → Solen ☀️\nKlass 5-9 → Havet 🌊'),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _assignByClass,
-                      icon: const Icon(Icons.class_),
-                      label: const Text('Tilldela efter klass'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Option 3: Clear all
-            Card(
-              color: Colors.red.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '🗑️ Rensa alla tilldelningar',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.red),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Ta bort fritidsgrupp från alla elever.'),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _clearAssignments,
-                      icon: const Icon(Icons.delete),
-                      label: const Text('Rensa alla'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
                         foregroundColor: Colors.white,
                       ),
                     ),

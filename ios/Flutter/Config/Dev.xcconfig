@@ -1,0 +1,3 @@
+// Dev flavor configuration
+PRODUCT_BUNDLE_IDENTIFIER = algebrona.dev
+PRODUCT_NAME = Algebra Dev

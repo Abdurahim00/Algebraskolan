@@ -28,7 +28,7 @@ class HomePage extends StatelessWidget {
     print('HomePage: Starting getUserDataStream');
 
     final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.fetchAndActivate();
+    // Remote Config already fetched in main.dart, just read the value
     bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
     print('HomePage: allowAllEmails = $allowAllEmails');
 

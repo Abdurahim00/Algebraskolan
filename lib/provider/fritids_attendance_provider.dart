@@ -36,6 +36,9 @@ class FritidsAttendanceProvider with ChangeNotifier {
           await fritidsRepository.getRegistrationsByDate(date);
 
       if (students.isNotEmpty) {
+        // Filter to only include students registered for fritids (those with a fritidsGroup)
+        final fritidsStudents = students.where((s) => s.fritidsGroup != null).toList();
+        
         // Filter non-reverted registrations
         final activeRegistrations =
             registrations.where((r) => !r.isReverted).toList();
@@ -43,7 +46,7 @@ class FritidsAttendanceProvider with ChangeNotifier {
         // Build attendance data
         final attendanceList = <Map<String, dynamic>>[];
 
-        for (var student in students) {
+        for (var student in fritidsStudents) {
           // Check if student has FM pass
           final hasFM = activeRegistrations.any(
               (r) => r.studentId == student.uid && r.passType == PassType.fm);
@@ -74,7 +77,7 @@ class FritidsAttendanceProvider with ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       } else {
-        _errorMessage = 'Inga elever hittades';
+        _errorMessage = 'Inga fritidsregistrerade elever hittades';
         _isLoading = false;
         notifyListeners();
       }

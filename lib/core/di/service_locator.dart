@@ -27,6 +27,7 @@ import '../../backend/sound_manager.dart';
 
 // Providers
 import '../../provider/google_sign_In.dart';
+import '../../provider/apple_sign_in_provider.dart';
 import '../../provider/custom_auth_provider.dart';
 import '../../provider/student_provider.dart';
 import '../../provider/transaction_provider.dart';
@@ -153,6 +154,11 @@ void _registerProviders() {
   // Google Sign In Provider (Singleton)
   sl.registerLazySingleton<GoogleSignInProvider>(
     () => GoogleSignInProvider.instance,
+  );
+
+  // Apple Sign In Provider (Singleton)
+  sl.registerLazySingleton<AppleSignInProvider>(
+    () => AppleSignInProvider(),
   );
 
   // Custom Auth Provider (Singleton)

@@ -137,80 +137,75 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           _buildHeader(user, imageProvider),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.zero,
-              children: [
-                const SizedBox(height: 8),
-                _buildSection(
-                  title: 'ALGEBRONOR',
-                  children: [
-                    _DrawerItem(
-                      icon: Icons.school,
-                      title: 'Huvudsida',
-                      iconColor: Colors.green,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        // Close drawer first, then navigate
-                        Navigator.of(context).pop();
-                        // Pop all routes back to home
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      },
-                    ),
-                  ],
-                ),
-                const Divider(height: 32, thickness: 1),
-                _buildSection(
-                  title: 'FRITIDS',
-                  children: [
-                    _DrawerItem(
-                      icon: Icons.child_care,
-                      title: 'Fritids',
-                      iconColor: Colors.purple,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        // Close drawer
-                        Navigator.of(context).pop();
-                        // Navigate to Fritids
-                        Navigator.of(context).pushNamed('/fritids');
-                      },
-                    ),
-                    _DrawerItem(
-                      icon: Icons.history,
-                      title: 'Fritids Historik',
-                      iconColor: Colors.blue,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        // Close drawer
-                        Navigator.of(context).pop();
-                        // Navigate to Fritids History
-                        Navigator.of(context).pushNamed('/fritids-history');
-                      },
-                    ),
-                  ],
-                ),
-                // Add flexible space to push bottom items down
-                SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-                const Divider(thickness: 1, height: 1),
-                const SizedBox(height: 8),
-                _DrawerItem(
-                  icon: Icons.undo,
-                  title: 'Återställ felaktiga algebrona-utdelningar',
-                  iconColor: Colors.orange,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.pop(context);
-                    onRevertTransaction?.call();
-                  },
-                ),
-                const Divider(thickness: 1, height: 1),
-                _DrawerItem(
-                  icon: Icons.exit_to_app_rounded,
-                  title: 'Logga ut',
-                  iconColor: Colors.grey,
-                  onTap: () {
-                    HapticFeedback.lightImpact();
-                    showDialog(
+          const SizedBox(height: 8),
+          _buildSection(
+            title: 'ALGEBRONOR',
+            children: [
+              _DrawerItem(
+                icon: Icons.school,
+                title: 'Huvudsida',
+                iconColor: Colors.green,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  // Close drawer first, then navigate
+                  Navigator.of(context).pop();
+                  // Pop all routes back to home
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
+            ],
+          ),
+          const Divider(height: 32, thickness: 1),
+          _buildSection(
+            title: 'FRITIDS',
+            children: [
+              _DrawerItem(
+                icon: Icons.child_care,
+                title: 'Fritids',
+                iconColor: Colors.purple,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  // Close drawer
+                  Navigator.of(context).pop();
+                  // Navigate to Fritids
+                  Navigator.of(context).pushNamed('/fritids');
+                },
+              ),
+              _DrawerItem(
+                icon: Icons.history,
+                title: 'Fritids Historik',
+                iconColor: Colors.blue,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  // Close drawer
+                  Navigator.of(context).pop();
+                  // Navigate to Fritids History
+                  Navigator.of(context).pushNamed('/fritids-history');
+                },
+              ),
+            ],
+          ),
+          const Spacer(),
+          const Divider(thickness: 1, height: 1),
+          const SizedBox(height: 8),
+          _DrawerItem(
+            icon: Icons.undo,
+            title: 'Återställ felaktiga algebrona-utdelningar',
+            iconColor: Colors.orange,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+              onRevertTransaction?.call();
+            },
+          ),
+          const Divider(thickness: 1, height: 1),
+          _DrawerItem(
+            icon: Icons.exit_to_app_rounded,
+            title: 'Logga ut',
+            iconColor: Colors.grey,
+            onTap: () {
+              HapticFeedback.lightImpact();
+              showDialog(
                 context: context,
                 builder: (BuildContext context) {
                   // Check the platform
@@ -262,20 +257,35 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           const Divider(thickness: 1, height: 1),
-          _DrawerItem(
-            icon: Icons.delete_forever_rounded,
-            title: 'Radera konto',
-            iconColor: Colors.red,
-            textColor: Colors.red,
+          InkWell(
             onTap: () {
               HapticFeedback.mediumImpact();
               _handleDeleteRequest(context);
             },
-          ),
-          const SizedBox(height: 16),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.delete_forever_rounded,
+                    color: Colors.red,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Radera konto',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+          const SizedBox(height: 8),
         ],
       ),
     );

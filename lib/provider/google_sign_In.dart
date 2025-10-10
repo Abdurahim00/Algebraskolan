@@ -33,11 +33,17 @@ class GoogleSignInProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Step 1: Start Google Sign-In
+      // Step 1: Start Google Sign-In with timeout
       print('Step 1: Starting Google Sign-In...');
-      final googleUser = await _googleSignIn.signIn();
+      final googleUser = await _googleSignIn.signIn().timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          print('Google Sign-In timed out after 15 seconds');
+          return null;
+        },
+      );
       if (googleUser == null) {
-        print('Step 1 FAILED: User cancelled Google Sign-In');
+        print('Step 1 FAILED: User cancelled Google Sign-In or timeout');
         _isLoading = false;
         notifyListeners();
         return;
@@ -188,9 +194,16 @@ class GoogleSignInProvider extends ChangeNotifier {
     final currentUser = InjectionContainer.authRepository.currentUser;
     if (currentUser != null) {
       try {
-        // Try silent sign-in with Google
-        final GoogleSignInAccount? googleUser =
-            await _googleSignIn.signInSilently();
+        // Try silent sign-in with Google (with timeout for simulator compatibility)
+        final GoogleSignInAccount? googleUser = await _googleSignIn
+            .signInSilently()
+            .timeout(
+              const Duration(seconds: 5),
+              onTimeout: () {
+                print('Silent Google Sign-In timed out (likely on simulator)');
+                return null;
+              },
+            );
         if (googleUser != null) {
           _user = googleUser;
           notifyListeners();

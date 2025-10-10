@@ -245,17 +245,34 @@ class StudentDrawer extends StatelessWidget {
             title: const Text("Logga ut"),
             trailing: const Icon(Icons.exit_to_app_rounded),
           ),
-          Expanded(
-            child: ListView(
-              children: [
-                // Add other ListTiles if needed
-              ],
+          const Spacer(),
+          const Divider(thickness: 1, height: 1),
+          InkWell(
+            onTap: () => _handleDeleteRequest(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.delete_forever_rounded,
+                    color: Colors.red,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Radera konto',
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          ListTile(
-            onTap: () => _handleDeleteRequest(context),
-            leading: const Icon(Icons.delete_forever_rounded),
-          ),
+          const SizedBox(height: 8),
         ],
       ),
     );

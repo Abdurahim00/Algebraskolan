@@ -1,0 +1,6 @@
+// Shared Info.plist configuration
+// Point every config to the same Info.plist
+INFOPLIST_FILE = Runner/Info.plist
+
+// (optional) per-env overrides live here too, e.g. bundle id
+// PRODUCT_BUNDLE_IDENTIFIER = com.your.bundleid.dev

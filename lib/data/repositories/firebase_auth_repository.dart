@@ -257,9 +257,8 @@ class FirebaseAuthRepository implements IAuthRepository {
   @override
   Future<bool> isEmailDomainAllowed(String email) async {
     try {
+      // Remote Config already fetched in main.dart, just read the cached value
       final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
-      await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
-      await remoteConfig.fetchAndActivate();
       bool allowAllEmails = remoteConfig.getBool('allow_all_emails_for_review');
       
       if (allowAllEmails) {

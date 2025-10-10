@@ -83,7 +83,7 @@ class LoginUseCase extends BaseUseCase<User, LoginParams> {
 
   Future<Result<void>> _validateEmailDomain(String email) async {
     try {
-      await _remoteConfig.fetchAndActivate();
+      // Remote Config already fetched in main.dart, just read the cached value
       final allowAllEmails = _remoteConfig.getBool('allow_all_emails_for_review');
 
       if (!allowAllEmails &&

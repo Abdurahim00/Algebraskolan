@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 import 'package:algebra/provider/google_sign_In.dart';
+import 'package:algebra/provider/apple_sign_in_provider.dart';
 import 'package:algebra/provider/student_provider.dart';
 import 'package:algebra/provider/question_provider.dart';
 import 'package:algebra/provider/transaction_provider.dart';
@@ -19,6 +20,8 @@ import 'package:algebra/pages/fritids/fritids_screen.dart';
 import 'package:algebra/pages/fritids/fritids_history_screen.dart';
 import 'package:algebra/pages/admin/assign_fritids_screen.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:algebra/utils/version_checker.dart';
+import 'package:algebra/widgets/force_update_dialog.dart';
 
 // Dependency Injection
 import 'core/di/service_locator.dart';
@@ -61,6 +64,9 @@ void main() async {
   final googleSignInProvider = sl<GoogleSignInProvider>();
   await googleSignInProvider.initializeUser();
 
+  final appleSignInProvider = sl<AppleSignInProvider>();
+  await appleSignInProvider.initializeUser();
+
   final connectivityController = sl<ConnectivityController>();
   await connectivityController.init();
 
@@ -68,6 +74,7 @@ void main() async {
 
   runApp(MyApp(
     googleSignInProvider: googleSignInProvider,
+    appleSignInProvider: appleSignInProvider,
     connectivityController: connectivityController,
   ));
 }
@@ -75,30 +82,32 @@ void main() async {
 Future<void> setupRemoteConfig() async {
   final FirebaseRemoteConfig remoteConfig = FirebaseRemoteConfig.instance;
 
-  // Set the minimum fetch interval to 0 during development for faster results.
-  await remoteConfig.setConfigSettings(RemoteConfigSettings(
-    fetchTimeout: const Duration(seconds: 10),
-    minimumFetchInterval: const Duration(
-        seconds: 0), // Set to 0 for fast fetch during development
-  ));
-
+  // Set defaults first
   await remoteConfig.setDefaults({'allow_all_emails_for_review': false});
 
-  try {
-    await remoteConfig.fetchAndActivate();
+  // Set aggressive timeout for faster startup
+  await remoteConfig.setConfigSettings(RemoteConfigSettings(
+    fetchTimeout: const Duration(seconds: 3), // Reduced from 10 to 3 seconds
+    minimumFetchInterval: const Duration(seconds: 0),
+  ));
+
+  // Fetch in background, don't block app startup
+  remoteConfig.fetchAndActivate().then((_) {
     print("Remote Config fetched and activated");
-  } catch (e) {
-    print("Remote Config fetch failed: $e");
-  }
+  }).catchError((e) {
+    print("Remote Config fetch failed (using defaults): $e");
+  });
 }
 
 class MyApp extends StatelessWidget {
   final GoogleSignInProvider googleSignInProvider;
+  final AppleSignInProvider appleSignInProvider;
   final ConnectivityController connectivityController;
 
   const MyApp({
     super.key,
     required this.googleSignInProvider,
+    required this.appleSignInProvider,
     required this.connectivityController,
   });
 
@@ -107,6 +116,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: googleSignInProvider),
+        ChangeNotifierProvider.value(value: appleSignInProvider),
         ChangeNotifierProvider(create: (context) => StudentProvider()),
         ChangeNotifierProvider(create: (context) => QuestionProvider()),
         ChangeNotifierProvider(
@@ -178,24 +188,99 @@ class MyApp extends StatelessWidget {
             transitionDuration: const Duration(milliseconds: 300),
           );
         },
-        home: ValueListenableBuilder<bool>(
-          valueListenable: connectivityController.isConnected,
-          builder: (context, isConnected, child) {
-            if (isConnected) {
-              return SplashScreen(
-                  connectivityController: connectivityController);
-            } else {
-              // Show network alert popup
-              Future.microtask(() => NetworkAlertPopup.show(
-                    context,
-                    connectivityController,
-                    () => connectivityController.checkConnectivity(),
-                  ));
-              return Container(); // Return an empty container
-            }
-          },
-        ),
+        home: _AppHome(connectivityController: connectivityController),
       ),
+    );
+  }
+}
+
+class _AppHome extends StatefulWidget {
+  final ConnectivityController connectivityController;
+
+  const _AppHome({required this.connectivityController});
+
+  @override
+  State<_AppHome> createState() => _AppHomeState();
+}
+
+class _AppHomeState extends State<_AppHome> {
+  bool _isCheckingVersion = true;
+  bool _needsUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVersion();
+  }
+
+  Future<void> _checkVersion() async {
+    try {
+      final needsUpdate = await VersionChecker.isUpdateRequired();
+      if (mounted) {
+        setState(() {
+          _needsUpdate = needsUpdate;
+          _isCheckingVersion = false;
+        });
+
+        // Show force update dialog if needed
+        if (_needsUpdate) {
+          final currentVersion = await VersionChecker.getCurrentVersion();
+          final requiredVersion = await VersionChecker.getMinimumRequiredVersion();
+
+          if (mounted) {
+            Future.microtask(() {
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => ForceUpdateDialog(
+                  currentVersion: currentVersion,
+                  requiredVersion: requiredVersion,
+                ),
+              );
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error checking version: $e');
+      if (mounted) {
+        setState(() {
+          _isCheckingVersion = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isCheckingVersion) {
+      // Show loading while checking version
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Color.fromRGBO(245, 142, 11, 1),
+          ),
+        ),
+      );
+    }
+
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.connectivityController.isConnected,
+      builder: (context, isConnected, child) {
+        if (isConnected) {
+          return SplashScreen(
+            connectivityController: widget.connectivityController,
+          );
+        } else {
+          // Show network alert popup
+          Future.microtask(() => NetworkAlertPopup.show(
+                context,
+                widget.connectivityController,
+                () => widget.connectivityController.checkConnectivity(),
+              ));
+          return Container(); // Return an empty container
+        }
+      },
     );
   }
 }

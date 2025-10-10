@@ -1,0 +1,3 @@
+// Prod flavor configuration
+PRODUCT_BUNDLE_IDENTIFIER = com.aj.algebrona
+PRODUCT_NAME = Algebraskolan
