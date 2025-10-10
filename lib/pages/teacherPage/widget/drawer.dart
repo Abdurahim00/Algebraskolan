@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../provider/google_sign_In.dart';
 import '../../../provider/student_provider.dart';
-import '../../admin_menu.dart';
+import '../../../backend/control_page.dart';
 
 class AppDrawer extends StatelessWidget {
   final VoidCallback? onRevertTransaction;
@@ -189,21 +189,6 @@ class AppDrawer extends StatelessWidget {
           const Divider(thickness: 1, height: 1),
           const SizedBox(height: 8),
           _DrawerItem(
-            icon: Icons.admin_panel_settings,
-            title: 'Admin Menu',
-            iconColor: Colors.red,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AdminMenu(),
-                ),
-              );
-            },
-          ),
-          _DrawerItem(
             icon: Icons.undo,
             title: 'Återställ felaktiga algebrona-utdelningar',
             iconColor: Colors.orange,
@@ -230,10 +215,16 @@ class AppDrawer extends StatelessWidget {
                       title: const Text("Är du säker?"),
                       actions: <Widget>[
                         CupertinoDialogAction(
-                          onPressed: () {
+                          onPressed: () async {
+                            Navigator.of(context).pop(); // Close dialog first
                             // Perform logout action
-                            provider.googleLogout();
-                            Navigator.of(context).pop();
+                            await provider.googleLogout();
+                            // Navigate to login screen
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
                           },
                           child: const Text("Ja"),
                         ),
@@ -251,10 +242,16 @@ class AppDrawer extends StatelessWidget {
                       title: const Text("Är du säker?"),
                       actions: <Widget>[
                         TextButton(
-                          onPressed: () {
+                          onPressed: () async {
+                            Navigator.of(context).pop(); // Close dialog first
                             // Perform logout action
-                            provider.googleLogout();
-                            Navigator.of(context).pop();
+                            await provider.googleLogout();
+                            // Navigate to login screen
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
                           },
                           child: const Text("Ja"),
                         ),
